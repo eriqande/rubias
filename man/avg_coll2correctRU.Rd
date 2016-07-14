@@ -2,21 +2,39 @@
 % Please edit documentation in R/data_conversion.R
 \name{avg_coll2correctRU}
 \alias{avg_coll2correctRU}
-\title{generate a matrix of the average percentage of a collection assigned to the correct reporting unit}
+\title{Get the average within-RU assignment rate for each collection}
 \usage{
 avg_coll2correctRU(SL, coll, RU_starts, RU_vec)
 }
 \arguments{
-\item{SL}{a scaled likelihood matrix}
+\item{SL}{a scaled likelihood matrix; each column should sum to one, and represent
+the probability of assignments to each collection (row) for a particular individual}
 
-\item{coll}{a vector of the collection of origin indices of the fish (length == ncol(SL))}
+\item{coll}{a vector of the collection of origin indices of the individuals (length = \code{ncol(SL)})}
 
 \item{RU_starts}{a vector delineating starting indices of different reporting units in RU_vec}
 
 \item{RU_vec}{a vector of collection indices, organized by reporting unit}
 }
+\value{
+\code{avg_coll2correctRU} returns a vector of length \code{nrow(SL)}, where
+each element represents the average proportion of fish from the corresponding collection
+which are correctly assigned to the proper collection, or misassigned to another
+collection within the same reporting unit. This is distinct from the rate of
+correct assignment at the collection level, which is too low and variable to serve
+ as a stable metric for \code{omega} scaling.
+}
 \description{
-generate a matrix of the average percentage of a collection assigned to the correct reporting unit
+This function takes a matrix of scaled genotype likelihoods for a group of
+individuals of known origin, and calculates the average rate at which individuals
+in a particular collection are assigned to the correct reporting unit.
+}
+\details{
+The average rate of correct within-reporting unit assignment is proportional to
+reporting-unit-level bias in the posterior probability for this collection;
+if the correct assignment rate is high relative to other collections,
+it will be upwardly biased, and vice versa. The inverse of this vector is used
+to scale Dirichlet draws of \code{omega} during misassignment-scaled MCMC.
 }
 \examples{
 params <- tcf2param_list(alewife, 15)

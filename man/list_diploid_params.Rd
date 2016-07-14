@@ -7,26 +7,47 @@
 list_diploid_params(AC_list, I_list, PO, coll_N, RU_vec, RU_starts)
 }
 \arguments{
-\item{AC_list}{output from reference_allele_counts}
+\item{AC_list}{a list of allele count matrices; output from \code{a_freq_list}}
 
-\item{I_list}{output from allelic_list}
+\item{I_list}{a list of genotype vectors; output from \code{allelic_list}}
 
-\item{PO}{vector of collection (population of origin) indices
-for every individual in the sample}
+\item{PO}{a vector of collection (population of origin) indices
+for every individual in the sample, in order identical to \code{I_list}}
 
-\item{coll_N}{a vector of the total number of individuals in each collection}
+\item{coll_N}{a vector of the total number of individuals in each collection,
+in order of appearance in the dataset}
 
-\item{RU_vec}{a vector of collection indexes, sorted by reporting unit}
+\item{RU_vec}{a vector of collection indices, sorted by reporting unit}
 
-\item{RU_starts}{a vector of indexes, designating the first collection for each
+\item{RU_starts}{a vector of indices, designating the first collection for each
 reporting unit in RU_vec}
 }
 \value{
 \code{list_diploid_params} returns a list of the information necessary
-for the calculation of genotype likelihoods in MCMC
+for the calculation of genotype likelihoods in MCMC:
+
+\code{L}, \code{N}, and \code{C} represent the number of loci, individual genotypes,
+and collections, respectively. \code{A} is a vector of the number of alleles at each
+locus, and \code{CA} is the cumulative sum of \code{A}. \code{coll}, \code{coll_N},
+\code{RU_vec}, and \code{RU_starts} are copied directly from input.
+
+\code{I}, \code{AC}, \code{sum_AC}, \code{DP}, and \code{sum_DP} are vectorized
+versions of data previously represented as lists and matrices; indexing macros
+use \code{L}, \code{N}, \code{C}, \code{A}, and \code{CA} to access these vectors
+in later Rcpp-based calculations.
 }
 \description{
-Collect essential data values before mixture proportion estimation
+Takes all relevant information created in previous steps of data conversion pipeline,
+and combines into a single list which serves as input for further calculations
+}
+\details{
+Genotypes represented in \code{I_list} are converted into a single long vector,
+ordered by locus, individual, and gene copy, with \code{NA} values represented as 0s.
+Similarly, \code{AC_list} is unlisted to \code{AC}, ordered by locus, collection,
+and allele. \code{DP} is a list of Dirichlet priors for likelihood calculations, created
+by adding the inverse of the number of alleles at a locus to each allele.
+\code{sum_AC} and \code{sum_DP} are the summed allele values for each locus
+of their parent vectors, ordered by locus and collection.
 }
 \examples{
 example(allelic_list)

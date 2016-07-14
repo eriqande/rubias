@@ -11,12 +11,12 @@
 // P = Ploidy of individuals
 // A = Vector of number of alleles at each locus
 // CA = Vector of cumulative number of alleles at all previous loci
-// AC = Vector of allele counts (Locus -> Population -> allele)
-// sum_AC = Vector of sums of allele counts at each locus (Loci -> Population)
-// DP = Vector of Dirichlet parameters (Locus -> Population -> allele)
+// AC = Vector of allele counts (Locus -> Collection -> allele)
+// sum_AC = Vector of sums of allele counts at each locus (Loci -> Collection)
+// DP = Vector of Dirichlet parameters (Locus -> Collection -> allele)
 // I = Vector of Individual genotypes (Locus -> Individual -> allele)
 // LOO = Leave-one-out cross validation? 0 or 1
-// sum_DP = vector of sums of Dirichlet parameters (Loci -> Population)
+// sum_DP = vector of sums of Dirichlet parameters (Loci -> Collection)
 // a1 = allelic type 1 from simulation (base 0)
 // a2 = allelic type 2 from simulation (base 0)
 #define D_dx(l, c, a, L, C, A, CA) (C) * (CA[l]) + (A[l]) * (c) + (a)

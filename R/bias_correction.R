@@ -6,6 +6,16 @@
 #' and compares the results of GSI through standard MCMC, misassignment-scaled MCMC,
 #' and parametric-bootstrap MCMC bias correction
 #'
+#' The amount of bias in reporting unit proportion calculations increases with the
+#' rate of missassignment between reporting units (decreases with genetic differentiation),
+#' and increases as the number of collections within reporting units becomes more uneven.
+#'
+#' Output from the standard Bayesian MCMC method demonstrates the level of bias to be
+#' expected for the input dataset; parametric bootstrapping is an empirical method
+#' for the removal of any existing bias, while the misassignment-scaled MCMC is a semi-empirical
+#' method based on the rate of misassignment, which takes into account both genetic differentiation
+#' and uneven collection distribution.
+#'
 #' @param reference a two-column format genetic dataset, with a "repunit" column
 #' specifying each individual's reporting unit of origin, a "collection" column
 #' specifying the collection (population or time of sampling) and "indiv" providing
@@ -19,8 +29,13 @@
 #' a list of the relevant rho values generated on each iteration of the random "mixture"
 #' creation. This includes the true rho value, the standard result \code{rho_mcmc},
 #' the misassignment-scaled \code{rho_bh}, and the parametric bootstrapped \code{rho_pb}.
+#'
 #' The second element is a dataframe listing summary statistics for each
-#' reporting unit and estimation method
+#' reporting unit and estimation method. \code{mse}, the mean squared error, summarizes
+#' the deviation of the rho estimates from their true value, including both bias and other variance.
+#' \code{mean_prop_bias} is the average ratio of residual to true value, which gives greater
+#' weight to deviations at smaller values. \code{mean_bias} is simply the average residual;
+#' unlike \code{mse}, this demonstrates the direction of the bias.
 #'
 #' @examples
 #' ale_bias <- bias_comparison(alewife, 15)
@@ -100,7 +115,7 @@ bias_comparison <- function(reference, gen_start_col, seed = 5) {
     dplyr::mutate(prop_bias = (rho_est-true_rho) / true_rho) %>%
     dplyr::mutate(bias = rho_est-true_rho) %>%
     dplyr::group_by(repunit, method) %>%
-    dplyr::summarise(sme = mean(dev), mean_prop_bias = mean(prop_bias), mean_bias = mean(bias))
+    dplyr::summarise(mse = mean(dev), mean_prop_bias = mean(prop_bias), mean_bias = mean(bias))
 
 
   g <- ggplot2::ggplot(rho_data, ggplot2::aes(x = true_rho, y = rho_est, colour = repunit)) +
@@ -110,7 +125,7 @@ bias_comparison <- function(reference, gen_start_col, seed = 5) {
   print(g)
 
   # the standard mean error of each method and reporting unit
-  d <- ggplot2::ggplot(data = rho_dev, ggplot2::aes(x = method, y = sme, fill = repunit)) +
+  d <- ggplot2::ggplot(data = rho_dev, ggplot2::aes(x = method, y = mse, fill = repunit)) +
     ggplot2::geom_bar(stat = "identity") +
     ggplot2::facet_wrap(~repunit)
   print(d)

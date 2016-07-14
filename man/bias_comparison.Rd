@@ -23,14 +23,29 @@ same locus should be adjacent}
 a list of the relevant rho values generated on each iteration of the random "mixture"
 creation. This includes the true rho value, the standard result \code{rho_mcmc},
 the misassignment-scaled \code{rho_bh}, and the parametric bootstrapped \code{rho_pb}.
+
 The second element is a dataframe listing summary statistics for each
-reporting unit and estimation method
+reporting unit and estimation method. \code{mse}, the mean squared error, summarizes
+the deviation of the rho estimates from their true value, including both bias and other variance.
+/code{mean_prop_bias} is the average ratio of residual to true value, which gives greater
+weight to deviations at smaller values. /code{mean_bias} is simply the average residual;
+unlike \code{mse}, this demonstrates the direction of the bias.
 }
 \description{
 Takes a reference two-column genetic dataset, pulls a series of random
 "mixture" datasets with varying reporting unit proportions from this reference,
 and compares the results of GSI through standard MCMC, misassignment-scaled MCMC,
 and parametric-bootstrap MCMC bias correction
+}
+\details{
+The amount of bias in reporting unit proportion calculations increases with the
+rate of missassignment between reporting units (decreases with genetic differentiation),
+and increases as the number of collections within reporting units becomes more uneven.
+Output from the standard Bayesian MCMC method demonstrates the level of bias to be
+expected for this particular dataset. Parametric bootstrapping is an empirical method
+for the removal of any existing bias, while the misassignment-scaled MCMC is a semi-empirical
+method based on the rate of misassignment, which takes into account both genetic differentiation
+and uneven collection distribution.
 }
 \examples{
 ale_bias <- bias_comparison(alewife, 15)

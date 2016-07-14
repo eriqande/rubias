@@ -2,7 +2,7 @@
 % Please edit documentation in R/data_conversion.R
 \name{tcf2param_list}
 \alias{tcf2param_list}
-\title{Generate MCMC parameter list from two-column genetic data & Print Summary}
+\title{Generate MCMC parameter list from two-column genetic data & print summary}
 \usage{
 tcf2param_list(D, gen_start_col, samp_type = "both", summ = T)
 }
@@ -11,7 +11,8 @@ tcf2param_list(D, gen_start_col, samp_type = "both", summ = T)
 The header of the first genetic data column in each pair lists the locus name,
 the second is ignored. \strong{Locus names must not have spaces in them!}
 Required metadata includes a column of unique individual identifiers named "indiv",
-a column named "collection" designating the sample groups, and a "sample_type" column
+a column named "collection" designating the sample groups, a column "repunit"
+designating the reporting unit of origin of each fish, and a "sample_type" column
 denoting each individual as a "reference" or "mixture" sample}
 
 \item{gen_start_col}{The index (number) of the column in which genetic data starts.
@@ -20,11 +21,23 @@ Columns must be only genetic data after genetic data starts.}
 \item{samp_type}{the sample groups to be include in the individual genotype list,
 whose likelihoods will be used in MCMC. Options "reference", "mixture", and "both"}
 
-\item{summ}{(LOGICAL) should summary descriptions of the formatted data be provided?}
+\item{summ}{logical indicating whether summary descriptions of the formatted data be provided}
+}
+\value{
+\code{tcf2param_list} returns the output of \code{list_diploid_params},
+after the original dataset is converted to a usable format and all relevant values
+are extracted. See \code{?list_diploid_params} for details
 }
 \description{
 This function is a wrapper for all steps to create the parameter list necessary
 for genotype log-likelihood calculation from the starting two-column genetic data
+}
+\details{
+In order for all steps in conversion to be carried out successfully, the dataset
+must have "repunit", "collection", "indiv", and "sample_type" columns preceeding
+two-column genetic data. If \code{summ == TRUE}, the function prints summary statistics
+describing the structure of the dataset, as well as the presence of missing data,
+enabling verification of proper data conversion.
 }
 \examples{
 ale_par_list <- tcf2param_list(alewife, 15)

@@ -266,17 +266,39 @@ allelic_list <- function(cs, ac, samp_type = "both") {
 
 #' Collect essential data values before mixture proportion estimation
 #'
-#' @param AC_list output from reference_allele_counts
-#' @param I_list output from allelic_list
-#' @param PO vector of collection (population of origin) indices
-#' for every individual in the sample
-#' @param coll_N a vector of the total number of individuals in each collection
-#' @param RU_vec a vector of collection indexes, sorted by reporting unit
-#' @param RU_starts a vector of indexes, designating the first collection for each
+#' Takes all relevant information created in previous steps of data conversion pipeline,
+#' and combines into a single list which serves as input for further calculations
+#'
+#' Genotypes represented in \code{I_list} are converted into a single long vector,
+#' ordered by locus, individual, and gene copy, with \code{NA} values represented as 0s.
+#' Similarly, \code{AC_list} is unlisted to \code{AC}, ordered by locus, collection,
+#' and allele. \code{DP} is a list of Dirichlet priors for likelihood calculations, created
+#' by adding the inverse of the number of alleles at a locus to each allele.
+#' \code{sum_AC} and \code{sum_DP} are the summed allele values for each locus
+#' of their parent vectors, ordered by locus and collection.
+#'
+#' @param AC_list a list of allele count matrices; output from \code{a_freq_list}
+#' @param I_list a list of genotype vectors; output from \code{allelic_list}
+#' @param PO a vector of collection (population of origin) indices
+#' for every individual in the sample, in order identical to \code{I_list}
+#' @param coll_N a vector of the total number of individuals in each collection,
+#' in order of appearance in the dataset
+#' @param RU_vec a vector of collection indices, sorted by reporting unit
+#' @param RU_starts a vector of indices, designating the first collection for each
 #' reporting unit in RU_vec
 #'
 #' @return \code{list_diploid_params} returns a list of the information necessary
-#' for the calculation of genotype likelihoods in MCMC
+#' for the calculation of genotype likelihoods in MCMC:
+#'
+#' \code{L}, \code{N}, and \code{C} represent the number of loci, individual genotypes,
+#' and collections, respectively. \code{A} is a vector of the number of alleles at each
+#' locus, and \code{CA} is the cumulative sum of \code{A}. \code{coll}, \code{coll_N},
+#' \code{RU_vec}, and \code{RU_starts} are copied directly from input.
+#'
+#' \code{I}, \code{AC}, \code{sum_AC}, \code{DP}, and \code{sum_DP} are vectorized
+#' versions of data previously represented as lists and matrices; indexing macros
+#' use \code{L}, \code{N}, \code{C}, \code{A}, and \code{CA} to access these vectors
+#' in later Rcpp-based calculations.
 #'
 #' @examples
 #' example(allelic_list)
@@ -321,22 +343,34 @@ list_diploid_params <- function(AC_list, I_list, PO, coll_N, RU_vec, RU_starts) 
          unlist())
 }
 
-#' Generate MCMC parameter list from two-column genetic data & Print Summary
+#' Generate MCMC parameter list from two-column genetic data & print summary
 #'
 #' This function is a wrapper for all steps to create the parameter list necessary
 #' for genotype log-likelihood calculation from the starting two-column genetic data
+#'
+#' In order for all steps in conversion to be carried out successfully, the dataset
+#' must have "repunit", "collection", "indiv", and "sample_type" columns preceeding
+#' two-column genetic data. If \code{summ == TRUE}, the function prints summary statistics
+#' describing the structure of the dataset, as well as the presence of missing data,
+#' enabling verification of proper data conversion.
 #'
 #' @param D A data frame containing two-column genetic data, preceded by metadata.
 #' The header of the first genetic data column in each pair lists the locus name,
 #' the second is ignored. \strong{Locus names must not have spaces in them!}
 #' Required metadata includes a column of unique individual identifiers named "indiv",
-#' a column named "collection" designating the sample groups, and a "sample_type" column
+#' a column named "collection" designating the sample groups, a column "repunit"
+#' designating the reporting unit of origin of each fish, and a "sample_type" column
 #' denoting each individual as a "reference" or "mixture" sample
 #' @param gen_start_col The index (number) of the column in which genetic data starts.
 #' Columns must be only genetic data after genetic data starts.
 #' @param samp_type the sample groups to be include in the individual genotype list,
 #' whose likelihoods will be used in MCMC. Options "reference", "mixture", and "both"
-#' @param summ (LOGICAL) should summary descriptions of the formatted data be provided?
+#' @param summ logical indicating whether summary descriptions of the formatted data be provided
+#'
+#' @return \code{tcf2param_list} returns the output of \code{list_diploid_params},
+#' after the original dataset is converted to a usable format and all relevant values
+#' are extracted. See \code{?list_diploid_params} for details
+#'
 #'
 #' @examples
 #' ale_par_list <- tcf2param_list(alewife, 15)
@@ -404,39 +438,29 @@ tcf2param_list <- function(D, gen_start_col, samp_type = "both", summ = T){
 }
 
 
-#' generate a matrix of the average percentage of a reporting unit misassigned
+#' Get the average within-RU assignment rate for each collection
 #'
-#' @param SL a scaled likelihood matrix
-#' @param params the MCMC parameter list output by list_diploid_params and tcf2param_list
+#' This function takes a matrix of scaled genotype likelihoods for a group of
+#' individuals of known origin, and calculates the average rate at which individuals
+#' in a particular collection are assigned to the correct reporting unit.
 #'
-#' @examples
-#' params <- tcf2param_list(alewife, 15)
-#' SL <- geno_logL(params) %>% exp() %>% apply(2, function(x) x/sum(x))
-#' miss <- avg_miss_ru(SL, params$coll, params$RU_starts, params$RU_vec)
-#'
-#' @export
-avg_miss_ru <- function(SL, coll, RU_starts, RU_vec) {
-  avg_SL <- lapply(1:nrow(SL), function(x) as.array(SL[, (coll == x)])) %>%
-    lapply(function(x) apply(x,MARGIN = 1, FUN = mean)) %>%
-    simplify2array()
-  miss <- lapply(1:(length(RU_starts)-1), function(ru){
-    n_coll <- RU_starts[ru+1] - RU_starts[ru]
-    ru_colls <- RU_vec[(RU_starts[ru]+1):RU_starts[ru+1]]
-    miss <- sum(avg_SL[-ru_colls, ru_colls])/n_coll
-  }) %>%
-    unlist
-  names(miss) <- names(RU_starts[1:(length(RU_starts) - 1)])
-  miss
-}
-
-
-#' generate a matrix of the average percentage of a collection assigned to the correct reporting unit
-#'
-#' @param SL a scaled likelihood matrix
-#' @param coll a vector of the collection of origin indices of the fish (length == ncol(SL))
+#' The average rate of correct within-reporting unit assignment is proportional to
+#' reporting-unit-level bias in the posterior probability for this collection;
+#' if the correct assignment rate is high relative to other collections,
+#' it will be upwardly biased, and vice versa. The inverse of this vector is used
+#' to scale Dirichlet draws of \code{omega} during misassignment-scaled MCMC.
+#' @param SL a scaled likelihood matrix; each column should sum to one, and represent
+#' the probability of assignments to each collection (row) for a particular individual
+#' @param coll a vector of the collection of origin indices of the individuals (length = \code{ncol(SL)})
 #' @param RU_starts a vector delineating starting indices of different reporting units in RU_vec
 #' @param RU_vec a vector of collection indices, organized by reporting unit
 #'
+#' @return \code{avg_coll2correctRU} returns a vector of length \code{nrow(SL)}, where
+#' each element represents the average proportion of fish from the corresponding collection
+#' which are correctly assigned to the proper collection, or misassigned to another
+#' collection within the same reporting unit. This is distinct from the rate of
+#' correct assignment at the collection level, which is too low and variable to serve
+#'  as a stable metric for \code{omega} scaling.
 #' @examples
 #' params <- tcf2param_list(alewife, 15)
 #' SL <- geno_logL(params) %>% exp() %>% apply(2, function(x) x/sum(x))
