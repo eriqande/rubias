@@ -7,7 +7,7 @@
 allelic_list(cs, ac, samp_type = "both")
 }
 \arguments{
-\item{cs}{a clean short genetic data matrix, the second element of the
+\item{cs}{a clean short genetic data matrix; the second element of the
 output from \code{tcf2long}. Must have a column of individual identifiers, named "indiv"}
 
 \item{ac}{allele counts from a_freq_list}

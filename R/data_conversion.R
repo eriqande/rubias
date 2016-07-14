@@ -154,13 +154,13 @@ reference_allele_counts <- function(D, pop_level = "collection") {
 
 #' Convert data frame of allele frequencies to nested lists
 #'
-#' List-izes the output of \code{reference_allele_counts} into a usable format for allelic_list
+#' List-izes the output of \code{reference_allele_counts} into a usable format for \code{allelic_list}
 #'
 #'@param D the long-format dataframe of counts by collection, locus, and allele,
-#'output by reference_allele_counts, to be made into a nested list
+#'output by \code{reference_allele_counts}, to be made into a nested list
 #'
 #'@return \code{a_freq_list} returns a list named by loci, each element of which is a matrix
-#'containing that locus's count data. Rows in the matrix mark alleles, and columns collections
+#'containing that locus's allele count data. Rows in the matrix mark alleles, and columns collections
 #'
 #'@examples#'
 #' # Generate a list of individual genotypes by allele from
@@ -202,7 +202,7 @@ a_freq_list <- function(D, pop_level = "collection") {
 #' Uses the allele counts from \code{a_freq_list} and the cleaned short-format output of
 #' \code{tcf2long} to generate a nested list of individual genotypes for each locus
 #'
-#' @param cs a clean short genetic data matrix, the second element of the
+#' @param cs a clean short genetic data matrix; the second element of the
 #' output from \code{tcf2long}. Must have a column of individual identifiers, named "indiv"
 #' @param ac allele counts from a_freq_list
 #' @param samp_type choose which sample types of individuals to include in output:
@@ -263,24 +263,6 @@ allelic_list <- function(cs, ac, samp_type = "both") {
   list(chr = ret, int = iret)
 }
 
-#' Get summed Dirichlet parameters for all alleles and populations in a numeric vector
-#'
-#' @param DP the list of dirichlet parameter matrices
-#'
-#' @examples
-#' example(allelic_list)
-#' as <- lapply(ale_ac, nrow)
-#' loc_cycle <- names(ale_ac)
-#' names(loc_cycle) <- loc_cycle
-#' ale_DP_list <- lapply(loc_cycle, function(x) ale_ac[[x]] + 1/as[[x]])
-#' sum_DP <- DP_sum(ale_DP_list)
-#'
-#' @export
-DP_sum <- function(DP_list) {
-  sum_DP <- lapply(DP_list, colSums)
-  sum_DP <- unlist(sum_DP)
-}
-
 
 #' Collect essential data values before mixture proportion estimation
 #'
@@ -332,9 +314,11 @@ list_diploid_params <- function(AC_list, I_list, PO, coll_N, RU_vec, RU_starts) 
          x
        }))),
        AC = unname(unlist(AC_list)),
-       sum_AC = DP_sum(AC_list),
+       sum_AC = lapply(AC_list, colSums) %>%
+         unlist(),
        DP = unlist(DP_list),
-       sum_DP = DP_sum(DP_list))
+       sum_DP = lapply(DP_list,colSums) %>%
+         unlist())
 }
 
 #' Generate MCMC parameter list from two-column genetic data & Print Summary
@@ -419,26 +403,6 @@ tcf2param_list <- function(D, gen_start_col, samp_type = "both", summ = T){
   params
 }
 
-#' generate a matrix of the average percentage of a collection assigned to each collection
-#'
-#' @param SL a scaled likelihood matrix
-#' @param coll a vector of the collections of origin of the columns in SL
-#'
-#' @return a matrix in which each column represents the collection of origin, and each row
-#' the average scaled likelihood of assignment to that collection
-#'
-#' @examples
-#' params <- tcf2param_list(alewife, 15)
-#' SL <- geno_logL(params) %>% exp() %>% apply(2, function(x) x/sum(x))
-#' avg_SL <- avg_SL_coll(SL, params$coll)
-#'
-#' @export
-avg_SL_coll <- function(SL, coll) {
-  avg_SL <- lapply(1:nrow(SL), function(x) as.array(SL[, (coll == x)])) %>%
-    lapply(function(x) apply(x,MARGIN = 1, FUN = mean)) %>%
-    simplify2array()
-  avg_SL
-}
 
 #' generate a matrix of the average percentage of a reporting unit misassigned
 #'
@@ -462,35 +426,6 @@ avg_miss_ru <- function(SL, coll, RU_starts, RU_vec) {
   }) %>%
     unlist
   names(miss) <- names(RU_starts[1:(length(RU_starts) - 1)])
-  miss
-}
-
-#' generate a matrix of the average percentage of a collection misassigned to a different reporting unit
-#'
-#' @param SL a scaled likelihood matrix
-#' @param coll a vector of the collection of origin indices of the fish (length == ncol(SL))
-#' @param RU_starts a vector delineating starting indices of different reporting units in RU_vec
-#' @param RU_vec a vector of collection indices, organized by reporting unit
-#'
-#' @examples
-#' params <- tcf2param_list(alewife, 15)
-#' SL <- geno_logL(params) %>% exp() %>% apply(2, function(x) x/sum(x))
-#' miss <- avg_miss_ru(SL, params$coll, params$RU_starts, params$RU_vec)
-#'
-#' @export
-avg_coll_miss_ru <- function(SL, coll, RU_starts, RU_vec) {
-  ru_SL <- lapply(1:(length(RU_starts)-1), function(ru){
-    apply(SL[RU_vec[(RU_starts[ru]+1):RU_starts[ru + 1]], ], 2, sum)
-  }) %>%
-    do.call("rbind", .)
-  avg_SL <- lapply(1:nrow(SL), function(x) as.array(ru_SL[, (coll == x)])) %>%
-    lapply(function(x) apply(x,MARGIN = 1, FUN = mean)) %>%
-    simplify2array()
-  miss <- lapply(1:(length(RU_starts)-1), function(ru) {
-    ru_colls <- RU_vec[(RU_starts[ru]+1):RU_starts[ru+1]]
-    miss <- colSums(avg_SL[-ru, ru_colls])
-  }) %>%
-    unlist()
   miss
 }
 
@@ -523,52 +458,3 @@ avg_coll2correctRU <- function(SL, coll, RU_starts, RU_vec) {
     unlist()
   correct
 }
-
-#' generate a matrix of the average (by reporting unit) scaled likelihood of fish assigned to a reporting unit
-#'
-#' @param SL a scaled likelihood matrix
-#' @param coll a vector of the collection of origin indices of the fish (length == ncol(SL))
-#' @param RU_starts a vector delineating starting indices of different reporting units in RU_vec
-#' @param RU_vec a vector of collection indices, organized by reporting unit
-#'
-#' @examples
-#' params <- tcf2param_list(alewife, 15)
-#' SL <- geno_logL(params) %>% exp() %>% apply(2, function(x) x/sum(x))
-#' avg_SL_ru <- avg_assign_ru(SL, params$coll, params$RU_starts, params$RU_vec)
-#'
-#' @export
-avg_assign_ru <- function(SL, coll, RU_starts, RU_vec) {
-  ru_SL <- lapply(1:(length(RU_starts)-1), function(ru){
-    apply(SL[RU_vec[(RU_starts[ru]+1):RU_starts[ru + 1]], ], 2, sum)
-    }) %>%
-    do.call("rbind", .)
-  avg_ru_SL <- lapply(1:(length(RU_starts) - 1), function(ru) {
-    as.array(ru_SL[, (coll %in% RU_vec[(RU_starts[ru]+1):RU_starts[ru + 1]]) ])
-  }) %>%
-    lapply(function(x) apply(x,MARGIN = 1, FUN = mean)) %>%
-    simplify2array()
-}
-
-#' generate a matrix of the average (by collection) scaled likelihood of fish assigned to a reporting unit
-#'
-#' @param SL a scaled likelihood matrix
-#' @param coll a vector of the collection of origin indices of the fish (length == ncol(SL))
-#' @param RU_starts a vector delineating starting indices of different reporting units in RU_vec
-#' @param RU_vec a vector of collection indices, organized by reporting unit
-#'
-#' @examples
-#' params <- tcf2param_list(alewife, 15)
-#' SL <- geno_logL(params) %>% exp() %>% apply(2, function(x) x/sum(x))
-#' avg_SL_coll2ru <- avg_assign_coll(SL, params$coll, params$RU_starts, params$RU_vec)
-#'
-#' @export
-avg_assign_coll <- function(SL, coll, RU_starts, RU_vec) {
-  ru_SL <- lapply(1:(length(RU_starts)-1), function(ru){
-    apply(SL[RU_vec[(RU_starts[ru]+1):RU_starts[ru + 1]], ], 2, sum)
-  }) %>%
-    do.call("rbind", .)
-  avg_SL <- lapply(1:nrow(SL), function(x) as.array(ru_SL[, (coll == x)])) %>%
-    lapply(function(x) apply(x,MARGIN = 1, FUN = mean)) %>%
-    simplify2array()
-}
-

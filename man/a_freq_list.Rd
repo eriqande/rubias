@@ -8,14 +8,14 @@ a_freq_list(D, pop_level = "collection")
 }
 \arguments{
 \item{D}{the long-format dataframe of counts by collection, locus, and allele,
-output by reference_allele_counts, to be made into a nested list}
+output by \code{reference_allele_counts}, to be made into a nested list}
 }
 \value{
 \code{a_freq_list} returns a list named by loci, each element of which is a matrix
-containing that locus's count data. Rows in the matrix mark alleles, and columns collections
+containing that locus's allele count data. Rows in the matrix mark alleles, and columns collections
 }
 \description{
-List-izes the output of \code{reference_allele_counts} into a usable format for allelic_list
+List-izes the output of \code{reference_allele_counts} into a usable format for \code{allelic_list}
 }
 \examples{
 #'
