@@ -4,9 +4,13 @@ using namespace Rcpp;
 
 //' Sample 1 observation from cell probabilities that are columns of a matrix
 //'
-//' blah blah...
+//' Takes a matrix in which columns sum to one. For each column, performs a
+//' single multinomial draw from the rows, weighted by their values in that column
+//'
 //' @param M a matrix whose columns are reals summing to one
 //'
+//' @return a vector length = \code{ncol(M)} of indices, with each element being
+//' the row that was chosen in that column's sampling
 //' @export
 // [[Rcpp::export]]
 IntegerVector samp_from_mat(NumericMatrix M) {

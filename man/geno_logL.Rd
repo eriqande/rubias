@@ -2,15 +2,26 @@
 % Please edit documentation in R/RcppExports.R
 \name{geno_logL}
 \alias{geno_logL}
-\title{Calculate list of genotype likelihoods}
+\title{Calculate a matrix of genotype log-likelihoods for a genetic dataset}
 \usage{
 geno_logL(par_list)
 }
 \arguments{
-\item{par_list}{genetic data converted to the param_list format by tcf2param_list}
+\item{par_list}{genetic data converted to the param_list format by \code{tcf2param_list}}
+}
+\value{
+\code{geno_logL} returns a matrix with C rows and I columns. Each column
+represents an individual, and each row the log-likelihood of that individual's
+genotype, given the allele counts in that collection
 }
 \description{
-Calculate list of genotype likelihoods
+Takes a list of key parameters from a genetic dataset, and calculates
+the log-likelihood of each individual's genotype, given the allele counts
+in each collection
+}
+\details{
+Leave-One-Out cross-validation is used to avoid bias in log-likelihood for an
+individual's known collection of origin
 }
 \examples{
 example(tcf2param_list)

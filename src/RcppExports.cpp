@@ -29,38 +29,6 @@ BEGIN_RCPP
     return __result;
 END_RCPP
 }
-// coll_ac
-IntegerVector coll_ac(int l, int c, IntegerVector ac_v, int L, int C, IntegerVector A, IntegerVector CA);
-RcppExport SEXP rubias_coll_ac(SEXP lSEXP, SEXP cSEXP, SEXP ac_vSEXP, SEXP LSEXP, SEXP CSEXP, SEXP ASEXP, SEXP CASEXP) {
-BEGIN_RCPP
-    Rcpp::RObject __result;
-    Rcpp::RNGScope __rngScope;
-    Rcpp::traits::input_parameter< int >::type l(lSEXP);
-    Rcpp::traits::input_parameter< int >::type c(cSEXP);
-    Rcpp::traits::input_parameter< IntegerVector >::type ac_v(ac_vSEXP);
-    Rcpp::traits::input_parameter< int >::type L(LSEXP);
-    Rcpp::traits::input_parameter< int >::type C(CSEXP);
-    Rcpp::traits::input_parameter< IntegerVector >::type A(ASEXP);
-    Rcpp::traits::input_parameter< IntegerVector >::type CA(CASEXP);
-    __result = Rcpp::wrap(coll_ac(l, c, ac_v, L, C, A, CA));
-    return __result;
-END_RCPP
-}
-// genotype_i
-IntegerVector genotype_i(int l, int i, IntegerVector I_v, int P, int I);
-RcppExport SEXP rubias_genotype_i(SEXP lSEXP, SEXP iSEXP, SEXP I_vSEXP, SEXP PSEXP, SEXP ISEXP) {
-BEGIN_RCPP
-    Rcpp::RObject __result;
-    Rcpp::RNGScope __rngScope;
-    Rcpp::traits::input_parameter< int >::type l(lSEXP);
-    Rcpp::traits::input_parameter< int >::type i(iSEXP);
-    Rcpp::traits::input_parameter< IntegerVector >::type I_v(I_vSEXP);
-    Rcpp::traits::input_parameter< int >::type P(PSEXP);
-    Rcpp::traits::input_parameter< int >::type I(ISEXP);
-    __result = Rcpp::wrap(genotype_i(l, i, I_v, P, I));
-    return __result;
-END_RCPP
-}
 // geno_logL
 NumericMatrix geno_logL(List par_list);
 RcppExport SEXP rubias_geno_logL(SEXP par_listSEXP) {
@@ -69,17 +37,6 @@ BEGIN_RCPP
     Rcpp::RNGScope __rngScope;
     Rcpp::traits::input_parameter< List >::type par_list(par_listSEXP);
     __result = Rcpp::wrap(geno_logL(par_list));
-    return __result;
-END_RCPP
-}
-// geno_logL_RU
-NumericMatrix geno_logL_RU(List par_list);
-RcppExport SEXP rubias_geno_logL_RU(SEXP par_listSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject __result;
-    Rcpp::RNGScope __rngScope;
-    Rcpp::traits::input_parameter< List >::type par_list(par_listSEXP);
-    __result = Rcpp::wrap(geno_logL_RU(par_list));
     return __result;
 END_RCPP
 }

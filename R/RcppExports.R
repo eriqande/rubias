@@ -63,40 +63,20 @@ gsi_mcmc_2 <- function(SL, Rho_init, Omega_init, lambda_rho, lambda_omega, reps,
     .Call('rubias_gsi_mcmc_2', PACKAGE = 'rubias', SL, Rho_init, Omega_init, lambda_rho, lambda_omega, reps, burn_in, sample_int_omega, sample_int_rho, sample_int_PofZ, sample_int_PofR, RU_starts, RU_vec, coll2correctRU)
 }
 
-#' Draw all allele counts for a population from a vector of allele counts
+#' Calculate a matrix of genotype log-likelihoods for a genetic dataset
 #'
-#' (This is a test for our allele count vector indexing macro)
-#' @param c the collection index desired
-#' @param l the locus desired
-#' @param ac_v the vector of allele counts
-#' @param L the total number of loci
-#' @param C the total number of collections
-#' @param A an integer vector of alleles in each population
-#' @param CA an integer vector of the cumulative number of alleles at all previous loci in the vector
+#' Takes a list of key parameters from a genetic dataset, and calculates
+#' the log-likelihood of each individual's genotype, given the allele counts
+#' in each collection
 #'
-#' @export
-coll_ac <- function(l, c, ac_v, L, C, A, CA) {
-    .Call('rubias_coll_ac', PACKAGE = 'rubias', l, c, ac_v, L, C, A, CA)
-}
-
-#' Fetch individual genotypes from a locus and population
+#' Leave-One-Out cross-validation is used to avoid bias in log-likelihood for an
+#' individual's known collection of origin
 #'
-#' (This is a test case for our individual indexing macro)
+#' @param par_list genetic data converted to the param_list format by \code{tcf2param_list}
 #'
-#' @param i the index of the desired individual to sample
-#' @param l the index of the desired locus
-#' @param I_v a vector of individual genotypes, created by unlisting allelic_list output
-#' @param P Ploidy
-#' @param I Total number of individuals
-#'
-#' @export
-genotype_i <- function(l, i, I_v, P, I) {
-    .Call('rubias_genotype_i', PACKAGE = 'rubias', l, i, I_v, P, I)
-}
-
-#' Calculate list of genotype likelihoods
-#'
-#' @param par_list genetic data converted to the param_list format by tcf2param_list
+#' @return \code{geno_logL} returns a matrix with C rows and I columns. Each column
+#' represents an individual, and each row the log-likelihood of that individual's
+#' genotype, given the allele counts in that collection
 #'
 #' @examples
 #' example(tcf2param_list)
@@ -106,23 +86,15 @@ geno_logL <- function(par_list) {
     .Call('rubias_geno_logL', PACKAGE = 'rubias', par_list)
 }
 
-#' Calculate list of genotype likelihoods
-#'
-#' @param par_list genetic data converted to the param_list format by tcf2param_list
-#'
-#' @examples
-#' example(tcf2param_list)
-#' ale_glL <- geno_logL(ale_par_list)
-#' @export
-geno_logL_RU <- function(par_list) {
-    .Call('rubias_geno_logL_RU', PACKAGE = 'rubias', par_list)
-}
-
 #' Sample 1 observation from cell probabilities that are columns of a matrix
 #'
-#' blah blah...
+#' Takes a matrix in which columns sum to one. For each column, performs a
+#' single multinomial draw from the rows, weighted by their values in that column
+#'
 #' @param M a matrix whose columns are reals summing to one
 #'
+#' @return a vector length = \code{ncol(M)} of indices, with each element being
+#' the row that was chosen in that column's sampling
 #' @export
 samp_from_mat <- function(M) {
     .Call('rubias_samp_from_mat', PACKAGE = 'rubias', M)

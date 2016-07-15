@@ -9,7 +9,12 @@ samp_from_mat(M)
 \arguments{
 \item{M}{a matrix whose columns are reals summing to one}
 }
+\value{
+a vector length = \code{ncol(M)} of indices, with each element being
+the row that was chosen in that column's sampling
+}
 \description{
-blah blah...
+Takes a matrix in which columns sum to one. For each column, performs a
+single multinomial draw from the rows, weighted by their values in that column
 }
 
