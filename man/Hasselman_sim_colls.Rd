@@ -2,15 +2,30 @@
 % Please edit documentation in R/simulation_pipeline.R
 \name{Hasselman_sim_colls}
 \alias{Hasselman_sim_colls}
-\title{Generate a random sim_colls vector for simulation of individual genotypes, based on the methods
-used in Hasselman et al. 2015, and the collection-repunit relationship vectors generated from a
-reference}
+\title{Generate a random sim_colls vector, \emph{a la} Hasselman et al. 2015}
 \usage{
 Hasselman_sim_colls(RU_starts, RU_vec)
 }
+\arguments{
+\item{RU_starts}{a vector delineating the reporting units in RU_vec}
+
+\item{RU_vec}{a vector of collection indices, grouped by reporting unit}
+}
+\value{
+\code{Hasselman_sim_colls} returns a list with three elements. The first two are
+a rho vector and an omega vector, respectively, both with alpha parameters = 1.5 The third
+is a vector of origins for simulated individuals, sampled from the collections with probabilities
+= omega
+}
 \description{
-Generate a random sim_colls vector for simulation of individual genotypes, based on the methods
+Creates a random sim_colls vector for simulation of individual genotypes, based on the methods
 used in Hasselman et al. 2015, and the collection-repunit relationship vectors generated from a
 reference
+}
+\details{
+This function is designed specifically to recreate the simulations in Hasselman, to check for
+the bias that was observed therein. Rho (reporting unit proportions) is chosen with alphas of 1.5,
+and omega (collection proportions) chosen with the same alpha, then scaled by the
+corresponding rho
 }
 

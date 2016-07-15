@@ -2,15 +2,15 @@
 % Please edit documentation in R/RcppExports.R
 \name{gsi_em_1}
 \alias{gsi_em_1}
-\title{do EM algorithm from the simplest GSI model for pi and the individual posterior probabilities}
+\title{EM algorithm from the simplest GSI model for pi and the individual posterior probabilities}
 \usage{
 gsi_em_1(SL, Pi_init, max_iterations, tolerance, return_progression)
 }
 \arguments{
-\item{SL}{matrix of the scaled likelihoods.  This is should have values for each individual in a column
-(going down in the rows are values for different populations).}
+\item{SL}{a matrix of the scaled likelihoods.  This is should have values for each individual in a column
+(going down in the rows are values for different collections).}
 
-\item{Pi_init}{Starting value for the pi vector.}
+\item{Pi_init}{Starting value for the pi (collection mixture proportion) vector.}
 
 \item{max_iterations}{the maximum total number of reps iterations to do.}
 
@@ -20,8 +20,8 @@ of the difference between the previous and the current estimate is less than tol
 \item{return_progression}{If true, then the pi_trace component of the output shows the value of pi visited en route to the end.}
 }
 \description{
-Using a matrix of scaled likelihoods this function does an EM algorithm to climb the likelihood surface
-for pi and and the end computes the plug-in estimate of the posteriors
+Using a matrix of scaled likelihoods, this function does an EM algorithm to climb the
+likelihood surface for pi, and computes the plug-in estimate of the posteriors
 for all the individuals.  It returns the output in a list.
 }
 

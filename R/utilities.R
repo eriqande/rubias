@@ -1,7 +1,7 @@
 #' Separate a chosen proportion of a reference dataset into a mixture with known population proportions
 #'
 #' @param D a two-column genetic dataframe with "indiv", "repunit", and "collection" columns
-#' @param rhos the desired reporting unit proportions in the mixture set;
+#' @param rhos a vector of the desired reporting unit proportions in the mixture set;
 #' if not named, will be assumed to be ordered by order of appearance in the dataset
 #' @param omegas the desired collection proportions in the mixture set
 #' @param N the total size of the mixture set
@@ -32,7 +32,7 @@ mixture_draw <- function(D, rhos = NULL, omegas = NULL, N, min_remaining = 1/(le
   if(!is.null(rhos)) {
     if(!identical(all.equal(sum(rhos),1), TRUE)) stop("Desired proportions must sum to 1")
 
-    if(is.null(names(rhos))) names(rhos) <- levels(D$repunit)
+    if(is.null(names(rhos))) names(rhos) <- levels(as.factor(D$repunit))
     ru_ns <- table(D$repunit)
     samp_sizes <- as.vector(round2(rhos * N, 0))
     names(samp_sizes) <- names(rhos)
@@ -46,7 +46,6 @@ mixture_draw <- function(D, rhos = NULL, omegas = NULL, N, min_remaining = 1/(le
       dplyr::group_by(repunit, collection) %>%
       dplyr::tally()
     coll_props <- new_repidxs$n /sum(new_repidxs$n)
-    if(any(coll_props < min_remaining)) stop("minimum remaining violated")
   }
 
   else if(!is.null(omegas)) {
@@ -64,7 +63,6 @@ mixture_draw <- function(D, rhos = NULL, omegas = NULL, N, min_remaining = 1/(le
       dplyr::group_by(repunit, collection) %>%
       dplyr::tally()
     coll_props <- new_repidxs$n /sum(new_repidxs$n)
-    if(any(coll_props < min_remaining)) stop("desired sample cannot be taken without violating min_remaining")
   }
 
   draw$sample_type <- "mixture"

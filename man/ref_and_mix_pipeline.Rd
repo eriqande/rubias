@@ -19,12 +19,19 @@ Does not need "sample_type" column, and will be overwritten if provided}
 \item{method}{a choice between "EM", "MCMC", and "BH" methods for estimating mixture proportions}
 }
 \value{
-\code{mix_proportion_pipeline} returns the standard output of the chosen method (always a list)
+\code{mix_proportion_pipeline} returns the standard output of the chosen
+mixing proportion estimation method (always a list)
 }
 \description{
 Takes a mixture and reference dataframe of two-column genetic data, and a
 desired method of estimate for the population mixture proportions (EM, MCMC, or BH MCMC)
 Returns the output of the chosen estimation method
+}
+\details{
+"EM" estimates mixing proportions and individual posterior
+probabilities of assignment through a simple expectation maximization,
+while "MCMC" does the same with Markov-chain Monte Carlo, and "BH" uses the misassignment-scaled,
+Hierarchial MCMC.
 }
 \examples{
 reference <- alewife[,-1]

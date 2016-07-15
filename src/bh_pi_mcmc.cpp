@@ -3,32 +3,55 @@ using namespace Rcpp;
 #include "utilities.h"
 #include "rcpp_sampling.h"
 
-//' MCMC from the simplest GSI model for pi and the individual posterior probabilities
+//' MCMC from a hierarchical GSI model for rho, pi, and the individual posterior probabilities,
+//' with misassignment-scaling
 //'
-//' Using a matrix of scaled likelihoods this function samples values of pi and the posteriors
-//' for all the individuals.  It returns the output in a list.
+//' Using a matrix of scaled likelihoods, this function samples the posteriors and values of rho,
+//' then samples values of omega scaled by their corresponding rho and the inverse of their
+//' average rate of correct assignment.  It returns the output in a list.
+//'
+//'
 //' @param SL  matrix of the scaled likelihoods.  This is should have values for each individual in a column
 //' (going down in the rows are values for different populations).
-//' @param Omega_init  Starting value for the omega vector.
-//' @param Rho_init Starting value for the rho vector.
+//' @param Omega_init  Starting value for the omega (collection mixing proportion) vector.
+//' @param Rho_init Starting value for the rho (reporting unit mixing proportion) vector.
 //' @param reps total number of reps (sweeps) to do.
-//' @param burn_in how many reps to discard in the beginning when doing the mean calculation. They will still be
-//' returned in the traces if desired
-//' @param sample_int_Pi the number of reps between samples being taken for Pi traces.  If 0 no trace samples are taken
-//' @param sample_int_PofZ the number of reps between samples being taken for the traces of posterior of each individual's origin. If 0
-//' no trace samples are taken.
-//' @param RU_starts a vector of length(rho.size()) + 1, where each element delineates the starting index of a reporting unit in RU_vec (last element is total # collections)
-//' @param RU_vec a vector of collection indices, grouped by reporting unit, with groups delineated in RU_starts
-//' @param miss_coll2RU a vector of rates at which each collection is misassigned to a different reporting unit;
-//' in the same order as RU_vec
+//' @param burn_in how many reps to discard in the beginning when doing the mean calculation.
+//' They will still be returned in the traces if desired
+//' @param sample_int_Pi the number of reps between samples being taken for Pi traces.
+//' If 0 no trace samples are taken
+//' @param sample_int_PofZ the number of reps between samples being taken for the traces of
+//' posterior of each individual's origin. If 0 no trace samples are taken.
+//' @param sample_int_PofR the number of reps between samples being taken for the traces of
+//' posterior reporting unit of each individual's origin. If 0 no trace samples are taken.
+//' @param RU_starts a vector of length(rho.size()) + 1, where each element delineates
+//' the starting index of a reporting unit in RU_vec (last element is total # collections)
+//' @param RU_vec a vector of collection indices, grouped by reporting unit, with groups
+//' delineated in RU_starts
+//' @param miss_coll2RU a vector of rates at which each collection is misassigned
+//' to a different reporting unit; in the same order as RU_vec
 //'
 //' @examples
 //' params <- tcf2param_list(alewife, 15)
 //' logl <- geno_logL(params)
 //' SL <- apply(exp(logl), 2, function(x) x/sum(x))
+//' avg_correct <- avg_coll2correctRU(SL, params$coll,params$RU_starts, params$RU_vec)
 //' lambda_omega <- rep(1/params$C, params$C)
 //' lambda_rho <- rep(1/(length(params$RU_starts)-1), length(params$RU_starts)-1 )
-//' test_bh_mcmc <- gsi_mcmc_2(SL, lambda_rho, lambda_omega, lambda_rho, lambda_omega, 10000, 2500, 50, 50, 50, 50, params$RU_starts, params$RU_vec)
+//' test_bh_mcmc <- gsi_mcmc_2(SL, lambda_rho, lambda_omega, lambda_rho, lambda_omega, 10000, 2500, 50, 50, 50, 50, params$RU_starts, params$RU_vec, avg_correct)
+//'
+//' @return \code{gsi_mcmc_2} returns a nested list of MCMC results.
+//'
+//' \code{$mean} records the mean
+//' sampled values for rho and omega in vectors, as well as a matrix of the posterior probability of
+//' assignment for every in individual (column) to a collection (PofZ, rows) or reporting unit (PofR, rows)
+//'
+//' \code{$sd} records the standard deviations for the same values. Sampling for both \code{sd}
+//' and \code{mean} are only begun after the burn-in period.
+//'
+//' \code{$trace} is a list, with each element being a list of samples for the relevant variable
+//' (rho, omega, PofZ, PofR) taken at the chosen sampling interval. If the sampling interval for
+//' any parameter == 0, that list is empty.
 //'
 //' @export
 // [[Rcpp::export]]

@@ -4,7 +4,7 @@
 \alias{bias_comparison}
 \title{Test the effects of bias correction on a particular reference dataset}
 \usage{
-bias_comparison(reference, gen_start_col, seed = 5)
+bias_comparison(reference, gen_start_col, seed = 10)
 }
 \arguments{
 \item{reference}{a two-column format genetic dataset, with a "repunit" column
@@ -27,8 +27,8 @@ the misassignment-scaled \code{rho_bh}, and the parametric bootstrapped \code{rh
 The second element is a dataframe listing summary statistics for each
 reporting unit and estimation method. \code{mse}, the mean squared error, summarizes
 the deviation of the rho estimates from their true value, including both bias and other variance.
-/code{mean_prop_bias} is the average ratio of residual to true value, which gives greater
-weight to deviations at smaller values. /code{mean_bias} is simply the average residual;
+\code{mean_prop_bias} is the average ratio of residual to true value, which gives greater
+weight to deviations at smaller values. \code{mean_bias} is simply the average residual;
 unlike \code{mse}, this demonstrates the direction of the bias.
 }
 \description{
@@ -41,8 +41,9 @@ and parametric-bootstrap MCMC bias correction
 The amount of bias in reporting unit proportion calculations increases with the
 rate of missassignment between reporting units (decreases with genetic differentiation),
 and increases as the number of collections within reporting units becomes more uneven.
+
 Output from the standard Bayesian MCMC method demonstrates the level of bias to be
-expected for this particular dataset. Parametric bootstrapping is an empirical method
+expected for the input dataset; parametric bootstrapping is an empirical method
 for the removal of any existing bias, while the misassignment-scaled MCMC is a semi-empirical
 method based on the rate of misassignment, which takes into account both genetic differentiation
 and uneven collection distribution.

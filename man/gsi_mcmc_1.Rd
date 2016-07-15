@@ -2,7 +2,7 @@
 % Please edit documentation in R/RcppExports.R
 \name{gsi_mcmc_1}
 \alias{gsi_mcmc_1}
-\title{do MCMC from the simplest GSI model for pi and the individual posterior probabilities}
+\title{MCMC from the simplest GSI model for pi and the individual posterior probabilities}
 \usage{
 gsi_mcmc_1(SL, Pi_init, lambda, reps, burn_in, sample_int_Pi, sample_int_PofZ)
 }
@@ -10,7 +10,10 @@ gsi_mcmc_1(SL, Pi_init, lambda, reps, burn_in, sample_int_Pi, sample_int_PofZ)
 \item{SL}{matrix of the scaled likelihoods.  This is should have values for each individual in a column
 (going down in the rows are values for different populations).}
 
-\item{Pi_init}{Starting value for the pi vector.}
+\item{Pi_init}{Starting value for the pi (colelction mixture proportion) vector.}
+
+\item{lambda}{the prior to be added to the allocated individuals in order to generate pseudo-count
+Dirichlet parameters for the simulation of a new pi vector}
 
 \item{reps}{total number of reps (sweeps) to do.}
 

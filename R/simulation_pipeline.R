@@ -6,6 +6,11 @@
 #' desired method of estimate for the population mixture proportions (EM, MCMC, or BH MCMC)
 #' Returns the output of the chosen estimation method
 #'
+#' "EM" estimates mixing proportions and individual posterior
+#' probabilities of assignment through a simple expectation maximization,
+#' while "MCMC" does the same with Markov-chain Monte Carlo, and "BH" uses the misassignment-scaled,
+#' Hierarchial MCMC.
+#'
 #' @param reference a dataframe of two-column genetic format data, proceeded by "repunit", "collection",
 #' and "indiv" columns. Does not need "sample_type" column, and will be overwritten if provided
 #' @param mixture a dataframe of two-column genetic format data. Must have the same structure as
@@ -14,7 +19,8 @@
 #' @param gen_start_col the first column of genetic data in both data frames
 #' @param method a choice between "EM", "MCMC", and "BH" methods for estimating mixture proportions
 #'
-#' @return \code{mix_proportion_pipeline} returns the standard output of the chosen method (always a list)
+#' @return \code{mix_proportion_pipeline} returns the standard output of the chosen
+#' mixing proportion estimation method (always a list)
 #' @examples
 #' reference <- alewife[,-1]
 #' mixture <- alewife[,-1]
@@ -117,10 +123,24 @@ ref_and_mix_pipeline <- function(reference, mixture, gen_start_col, method = "MC
 out
 }
 
-#' Generate a random sim_colls vector for simulation of individual genotypes, based on the methods
+#' Generate a random sim_colls vector, \emph{a la} Hasselman et al. 2015
+#'
+#' Creates a random sim_colls vector for simulation of individual genotypes, based on the methods
 #' used in Hasselman et al. 2015, and the collection-repunit relationship vectors generated from a
 #' reference
 #'
+#' This function is designed specifically to recreate the simulations in Hasselman, to check for
+#' the bias that was observed therein. Rho (reporting unit proportions) is chosen with alphas of 1.5,
+#' and omega (collection proportions) chosen with the same alpha, then scaled by the
+#' corresponding rho
+#'
+#' @param RU_starts a vector delineating the reporting units in RU_vec
+#' @param RU_vec a vector of collection indices, grouped by reporting unit
+#'
+#' @return \code{Hasselman_sim_colls} returns a list with three elements. The first two are
+#' a rho vector and an omega vector, respectively, both with alpha parameters = 1.5 The third
+#' is a vector of origins for simulated individuals, sampled from the collections with probabilities
+#' = omega
 #' @export
 Hasselman_sim_colls <- function(RU_starts, RU_vec) {
   rho <- gtools::rdirichlet(1, c(1.5, 1.5, 1.5))
@@ -254,68 +274,3 @@ mixture_simulation_pipeline <- function(reference, gen_start_col) {
 
 
 }
-
-
-#' Generate a matrix of average scaled likelihoods from a mixture dataset
-#'
-#' @param D a two-column genetic dataset with "repunit", "collection", and "sample_type" columns
-#' @param gen_start_col the first column of genetic data
-#'
-#' @examples
-#' D <- rbind(alewife, alewife)
-#' D$repunit <- as.character(D$repunit)
-#' D$collection <- as.character(D$collection)
-#' D$sample_type[1071:2140] <- "mixture"
-#' D$repunit[1071:2140] <- "mix"
-#' D$collection[1071:2140] <- "mix"
-#' D$repunit <- factor(D$repunit)
-#' D$collection <- factor(D$collection)
-#' gen_start_col <- 15
-#'
-C_test <- function(D, gen_start_col) {
-  clean <- tcf2long(D, gen_start_col)
-  rac <- reference_allele_counts(clean$long)
-  ac <- a_freq_list(rac)
-  mix_I <- allelic_list(clean$clean_short, ac, samp_type = "mixture")$int
-  coll <- rep(0,length(mix_I[[1]]$a))  # populations of each individual in mix_I; not applicable for mixture samples
-  coll_N <- rep(0, ncol(ac[[1]])) # the number of individuals in each population; not applicable for mixture samples
-  RU_starts <- c(0, 1)
-  RU_vec <- c(1)
-
-  params <- list_diploid_params(ac, mix_I, coll, coll_N, RU_vec, RU_starts)
-
-  sim_colls <- lapply(1:params$C, function(x) rep(x, 10)) %>%
-    unlist()
-  sim_missing <- sample(params$N,10*params$C)
-  sim_logL <- gprob_sim_gc_missing(params, sim_colls, sim_missing)
-
-  groups <- list(1:10, 11:20, 21:30, 31:40, 41:50, 51:60, 61:70, 71:80, 81:90, 91:100, 101:110, 111:120, 121:130, 131:140, 141:150, 151:160, 161:170, 171:180, 181:190, 191:200, 201:210)
-  avg_logL <- lapply(groups, function(x) sim_logL[1:params$C,x]) %>%
-    lapply(function(x) apply(x,MARGIN = 1, FUN = mean)) %>%
-    simplify2array() %>%
-    apply(2, function(x) {
-      exp(x)/sum(exp(x))
-    })
-
-  C0 <- -avg_logL
-  diag(C0) <- 0
-  C1 <- avg_logL
-  diag(C1) <- 1
-
-  pi <- gtools::rdirichlet(1, rep(1.5, 21))
-  pi.new <- pi
-  pi.list <- list(denom = list(), pi.new = list(), diff = list())
-  for(i in 1:100) {
-    gain <- pi %*% C1
-    lose <- t(C0 %*% t(pi))
-    pi.list$denom[[i]] <- sum(gain + lose)
-    pi.new <- gain + lose
-    pi.new[pi.new < 0] <- 1/1000
-    pi.new <- pi.new/sum(pi.new)
-    pi.list$pi.new[[i]] <- pi.new
-    pi.list$diff[[i]] <- abs(pi.new-pi)
-    pi <- pi.new
-  }
-
-}
-

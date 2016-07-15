@@ -3,13 +3,15 @@ using namespace Rcpp;
 #include "utilities.h"
 #include "rcpp_sampling.h"
 
-//' do MCMC from the simplest GSI model for pi and the individual posterior probabilities
+//' MCMC from the simplest GSI model for pi and the individual posterior probabilities
 //'
 //' Using a matrix of scaled likelihoods this function samples values of pi and the posteriors
 //' for all the individuals.  It returns the output in a list.
 //' @param SL  matrix of the scaled likelihoods.  This is should have values for each individual in a column
 //' (going down in the rows are values for different populations).
-//' @param Pi_init  Starting value for the pi vector.
+//' @param Pi_init  Starting value for the pi (colelction mixture proportion) vector.
+//' @param lambda the prior to be added to the allocated individuals in order to generate pseudo-count
+//' Dirichlet parameters for the simulation of a new pi vector
 //' @param reps total number of reps (sweeps) to do.
 //' @param burn_in how many reps to discard in the beginning when doing the mean calculation. They will still be
 //' returned in the traces if desired

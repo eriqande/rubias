@@ -10,7 +10,7 @@ mixture_draw(D, rhos = NULL, omegas = NULL, N,
 \arguments{
 \item{D}{a two-column genetic dataframe with "indiv", "repunit", and "collection" columns}
 
-\item{rhos}{the desired reporting unit proportions in the mixture set;
+\item{rhos}{a vector of the desired reporting unit proportions in the mixture set;
 if not named, will be assumed to be ordered by order of appearance in the dataset}
 
 \item{omegas}{the desired collection proportions in the mixture set}

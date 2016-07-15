@@ -13,7 +13,8 @@ the second is ignored. \strong{Locus names must not have spaces in them!}
 Required metadata includes a column of unique individual identifiers named "indiv",
 a column named "collection" designating the sample groups, a column "repunit"
 designating the reporting unit of origin of each fish, and a "sample_type" column
-denoting each individual as a "reference" or "mixture" sample}
+denoting each individual as a "reference" or "mixture" sample. \emph{No NAs should be
+present in metadata}}
 
 \item{gen_start_col}{The index (number) of the column in which genetic data starts.
 Columns must be only genetic data after genetic data starts.}
