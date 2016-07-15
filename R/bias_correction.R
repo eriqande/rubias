@@ -65,44 +65,44 @@ bias_comparison <- function(reference, gen_start_col, seed = 10) {
   # get the constraints on the number of individuals to be drawn during the cross-validation
   # a minimum of 5 individuals must be left in the reference for each collection,
   # and 5*(#collections) for each reporting unit
-  coll_max_draw <- ref_params$coll_N - 5
-  ru_max_draw <- lapply(levels(reference$repunit), function(ru){
-    out <- sum(coll_max_draw[repidxs$coll_int[repidxs$repunit == ru]])
-  }) %>% unlist()
+  #coll_max_draw <- ref_params$coll_N - 5
+  #ru_max_draw <- lapply(levels(reference$repunit), function(ru){
+    #out <- sum(coll_max_draw[repidxs$coll_int[repidxs$repunit == ru]])
+  #}) %>% unlist()
 
   #fifty iterations of a system for comparing reporting unit proportion methods
   rho50 <- lapply(1:50, function(rr) {
     #get a random rho, constrained by a minimum of 5 individuals per population after the draw
     # using a stick breaking model of the Dirichlet distribution
-    rho <- numeric(length(ru_max_draw))
-    omega <- numeric(length(coll_max_draw))
-    rho_sum <- 0
-    for(ru in 1:length(ru_max_draw)) {
-      rho[ru] <- min(ru_max_draw[ru]/N,
-                 (1 - rho_sum) * rbeta(1, 1.5, 1.5 * (length(ru_max_draw) - ru)))
-      rho_sum <- rho_sum + rho[ru]
-      om_sum <- 0
-      c <- 1
-      for(coll in (ref_params$RU_starts[ru] + 1):ref_params$RU_starts[ru+1]){
-        omega[ref_params$RU_vec[coll]] <- min(coll_max_draw[ref_params$RU_vec[coll]]/N,
-                           (rho[ru] - om_sum) * rbeta(1, 1.5, 1.5 * (length((ref_params$RU_starts[ru] + 1):ref_params$RU_starts[ru+1]) - c)))
-        om_sum <- om_sum + omega[ref_params$RU_vec[coll]]
-        c <- c + 1
-      }
+    #rho <- numeric(length(ru_max_draw))
+    #omega <- numeric(length(coll_max_draw))
+    #rho_sum <- 0
+    #for(ru in 1:length(ru_max_draw)) {
+    #  rho[ru] <- min(ru_max_draw[ru]/N,
+    #             (1 - rho_sum) * rbeta(1, 1.5, 1.5 * (length(ru_max_draw) - ru)))
+    #  rho_sum <- rho_sum + rho[ru]
+    #  om_sum <- 0
+    #  c <- 1
+    #  for(coll in (ref_params$RU_starts[ru] + 1):ref_params$RU_starts[ru+1]){
+    #    omega[ref_params$RU_vec[coll]] <- min(coll_max_draw[ref_params$RU_vec[coll]]/N,
+    #                       (rho[ru] - om_sum) * rbeta(1, 1.5, 1.5 * (length((ref_params$RU_starts[ru] + 1):ref_params$RU_starts[ru+1]) - c)))
+    #    om_sum <- om_sum + omega[ref_params$RU_vec[coll]]
+    #    c <- c + 1
+    #  }
       # encountered a bug where if the omega proposal is rejected for the
       # last collection in a reporting unit, the acceptance of the max/N
       # causes omega to sum to less than one; the following line should
       # fix this bug for all but the last collection to be chosen
-      rho[ru] <- om_sum
-    }
+    #  rho[ru] <- om_sum
+    #}
     # quick fix in case the last omega to be chosen is rejected;
     # should find a better solution
-    rho <- rho/sum(rho)
-    omega <- omega/sum(omega)
-    if(!identical(all.equal(sum(omega),1), TRUE)) print(omega)
-    #rho <- as.vector(gtools::rdirichlet(1, rep(1.5, length(unique(reference$repunit)))))
+    #rho <- rho/sum(rho)
+    #omega <- omega/sum(omega)
+    #if(!identical(all.equal(sum(omega),1), TRUE)) print(omega)
+    rho <- as.vector(gtools::rdirichlet(1, rep(1.5, length(unique(reference$repunit)))))
     #split the dataset into "reference" and "mixture", with mixture having the above rho
-    drawn <- mixture_draw(reference, omegas = omega, N = 100, min_remaining = .005)
+    drawn <- mixture_draw(reference, rhos = rho, N = 100, min_remaining = .005)
     # get estimates of rho from standard mcmc
     pi_mcmc <- ref_and_mix_pipeline(drawn$reference, drawn$mixture, 15, method = "MCMC")$mean$pi
     rho_mcmc <- lapply(levels(reference$repunit), function(ru){

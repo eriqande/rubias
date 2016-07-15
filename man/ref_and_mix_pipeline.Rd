@@ -24,14 +24,14 @@ mixing proportion estimation method (always a list)
 }
 \description{
 Takes a mixture and reference dataframe of two-column genetic data, and a
-desired method of estimate for the population mixture proportions (EM, MCMC, or BH MCMC)
+desired method of estimation for the population mixture proportions (EM, MCMC, or BH MCMC)
 Returns the output of the chosen estimation method
 }
 \details{
 "EM" estimates mixing proportions and individual posterior
 probabilities of assignment through a simple expectation maximization,
 while "MCMC" does the same with Markov-chain Monte Carlo, and "BH" uses the misassignment-scaled,
-Hierarchial MCMC.
+hierarchial MCMC.
 }
 \examples{
 reference <- alewife[,-1]

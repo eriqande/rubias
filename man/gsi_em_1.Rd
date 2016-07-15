@@ -19,9 +19,19 @@ of the difference between the previous and the current estimate is less than tol
 
 \item{return_progression}{If true, then the pi_trace component of the output shows the value of pi visited en route to the end.}
 }
+\value{
+\code{gsi_em_1} returns a final Maximum-Likelihood estimate for pi and PofZ, as well as the number
+}
 \description{
 Using a matrix of scaled likelihoods, this function does an EM algorithm to climb the
 likelihood surface for pi, and computes the plug-in estimate of the posteriors
 for all the individuals.  It returns the output in a list.
+}
+\examples{
+params <- tcf2param_list(alewife, 15)
+logl <- geno_logL(params)
+SL <- apply(exp(logl), 2, function(x) x/sum(x))
+test_em <- gsi_em_1(SL, rep(1/params$C, params$C), max_iterations = 10^6, tolerance = 10^-7, return_progression = TRUE)
+
 }
 
