@@ -7,7 +7,7 @@
 gprob_sim_gc(par_list, sim_colls)
 }
 \arguments{
-\item{par_list}{genetic data converted to the param_list format by tcf2param_list}
+\item{par_list}{genetic data converted to the param_list format by \code{tcf2param_list}}
 
 \item{sim_colls}{a vector of indices for the collections desired for simulation;
 each element of the list corresponds to an individual}
@@ -16,17 +16,22 @@ each element of the list corresponds to an individual}
 \code{gprob_sim} returns a matrix of the summed log-likelihoods
 for all loci of a simulated population mixture; columns represent individuals,
 with each row containing their log-likelihood of belonging to the collection
-of the same index, given the selection of two independent gene copies from the desired
-collection of origin's reference allele frequencies
+of the same index, given the selection of two independent gene copies from the
+desired collection of origin's reference allele frequencies
 }
 \description{
-Simulate genotype log-likelihoods from a population by gene copy
+Takes a list of parameters from a genetic dataset, and returns a genotype log-likelihood
+matrix for individuals simulated by gene copy from the specified collections
+}
+\details{
+In simulation by gene copy, the genotype at a locus for any individual is the result
+of two random draws from the allele count matrix of that locus. Draws within an individual
+are performed without replacement, but allele counts are replaced between individuals.
 }
 \examples{
 example(tcf2param_list)
 sim_colls <- sample(ale_par_list$C, 1070, replace = T)
 ale_sim_gprobs_gc <- gprob_sim_gc(ale_par_list, sim_colls)
-ale_sim_gprobs_ind <- gprob_sim_ind(ale_par_list, sim_colls)
 
 }
 

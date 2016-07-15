@@ -130,8 +130,14 @@ samp_from_mat <- function(M) {
 
 #' Simulate genotype log-likelihoods from a population by gene copy
 #'
-#' @param par_list genetic data converted to the param_list format by tcf2param_list
+#' Takes a list of parameters from a genetic dataset, and returns a genotype log-likelihood
+#' matrix for individuals simulated by gene copy from the specified collections
 #'
+#' In simulation by gene copy, the genotype at a locus for any individual is the result
+#' of two random draws from the allele count matrix of that locus. Draws within an individual
+#' are performed without replacement, but allele counts are replaced between individuals.
+#'
+#' @param par_list genetic data converted to the param_list format by \code{tcf2param_list}
 #' @param sim_colls a vector of indices for the collections desired for simulation;
 #' each element of the list corresponds to an individual
 #'
@@ -139,14 +145,13 @@ samp_from_mat <- function(M) {
 #' @return \code{gprob_sim} returns a matrix of the summed log-likelihoods
 #' for all loci of a simulated population mixture; columns represent individuals,
 #' with each row containing their log-likelihood of belonging to the collection
-#' of the same index, given the selection of two independent gene copies from the desired
-#' collection of origin's reference allele frequencies
+#' of the same index, given the selection of two independent gene copies from the
+#' desired collection of origin's reference allele frequencies
 #'
 #' @examples
 #' example(tcf2param_list)
 #' sim_colls <- sample(ale_par_list$C, 1070, replace = T)
 #' ale_sim_gprobs_gc <- gprob_sim_gc(ale_par_list, sim_colls)
-#' ale_sim_gprobs_ind <- gprob_sim_ind(ale_par_list, sim_colls)
 #'
 #' @export
 gprob_sim_gc <- function(par_list, sim_colls) {
@@ -155,8 +160,14 @@ gprob_sim_gc <- function(par_list, sim_colls) {
 
 #' Simulate genotype log-likelihoods from a population by individual
 #'
-#' @param par_list genetic data converted to the param_list format by tcf2param_list
+#' Takes a list of parameters from a genetic dataset, and returns a genotype log-likelihood
+#' matrix for individuals simulated by individual from the specified collections
 #'
+#' In simulation by individual, the genotype for any simulated individual is the
+#' result of a single random draw from the genotypes of all individuals in the collection.
+#' Gene copies and loci are therefore not independent.
+#'
+#' @param par_list genetic data converted to the param_list format by \code{tcf2param_list}
 #' @param sim_colls a vector of indices for the collections desired for simulation;
 #' each element of the list corresponds to an individual
 #'
@@ -171,71 +182,37 @@ gprob_sim_gc <- function(par_list, sim_colls) {
 #' @examples
 #' example(tcf2param_list)
 #' sim_colls <- sample(ale_par_list$C, 1070, replace = T)
-#' ale_sim_gprobs <- gprob_sim(ale_par_list, sim_colls)
+#' ale_sim_gprobs_ind <- gprob_sim_ind(ale_par_list, sim_colls)
 #'
 #' @export
 gprob_sim_ind <- function(par_list, sim_colls) {
     .Call('rubias_gprob_sim_ind', PACKAGE = 'rubias', par_list, sim_colls)
 }
 
-#' Simulate genotype log-likelihoods from a population by gene copy
-#'
-#' @param par_list genetic data converted to the param_list format by tcf2param_list
-#'
-#' @param sim_colls a vector of indices for the collections desired for simulation;
-#' each element of the list corresponds to an individual
-#'
-#'
-#' @return \code{gprob_sim} returns a matrix of the summed log-likelihoods
-#' for all loci of a simulated population mixture; columns represent individuals,
-#' with each row containing their log-likelihood of belonging to the collection
-#' of the same index, given the selection of two independent gene copies from the desired
-#' collection of origin's reference allele frequencies
-#'
-#' @examples
-#' example(tcf2param_list)
-#' sim_colls <- sample(ale_par_list$C, 1070, replace = T)
-#' ale_sim_gprobs_gc <- gprob_sim_gc(ale_par_list, sim_colls)
-#' ale_sim_gprobs_ind <- gprob_sim_ind(ale_par_list, sim_colls)
-#'
-#' @export
-gprob_sim_gc_RU <- function(par_list, sim_colls, ru_colls) {
-    .Call('rubias_gprob_sim_gc_RU', PACKAGE = 'rubias', par_list, sim_colls, ru_colls)
-}
-
-#' Simulate genotype log-likelihoods from a population by individual for Ben's experiment
-#'
-#' @param par_list genetic data converted to the param_list format by tcf2param_list
-#'
-#' @param sim_colls a vector of indices for the collections desired for simulation;
-#' each element of the list corresponds to an individual
-#'
-#'
-#' @return \code{gprob_sim} returns a matrix of the summed log-likelihoods
-#' for all loci of a simulated population mixture; columns represent individuals,
-#' with each row containing their log-likelihood of belonging to the collection
-#' of the same index, given the selection of an individual's genotype from the
-#' reference collection of interest. Selection at the locus and gene copy level
-#' are not independent, and missing data is included in selection.
-#'
-#' @examples
-#' example(tcf2param_list)
-#' sim_colls <- sample(ale_par_list$C, 1070, replace = T)
-#' ale_sim_gprobs <- gprob_sim(ale_par_list, sim_colls)
-#'
-#' @export
-gprob_sim_ind_RU <- function(par_list, sim_colls) {
-    .Call('rubias_gprob_sim_ind_RU', PACKAGE = 'rubias', par_list, sim_colls)
-}
-
 #' Simulate genotypes by gene copy, with missing data from chosen individuals
 #'
-#' @param par_list list_diploid_params output
+#' Takes a list of parameters from a genetic dataset, and returns a genotype log-likelihood
+#' matrix for individuals simulated by gene copy from the specified collections, with
+#' genotypes masked by missing data patterns from reference individuals
+#'
+#' In simulation by gene copy, the genotype at a locus for any individual is the result
+#' of two random draws from the allele count matrix of that locus. Draws within an individual
+#' are performed without replacement, but allele counts are replaced between individuals.
+#' If the data at a particular locus is missing for individual i in \code{sim_missing},
+#' this data will also be missing in simulated individual i for the
+#' log-likelihood calculation.
+#'
+#' @param par_list genetic data converted to the param_list format by \code{tcf2param_list}
 #' @param sim_colls a vector length I of collections from which to sample the genotypes
 #' for individual i
 #' @param sim_missing a vector of length I of indices for individuals in I_list
 #' whose missing data should be copied for individual i
 #'
+#' @examples
+#' example(tcf2param_list)
+#' sim_colls <- sample(ale_par_list$C, 1070, replace = T)
+#' sim_miss <- sample(1070, 1070, replace = T)
+#' ale_sim_gprobs_miss <- gprob_sim_gc_missing(ale_par_list, sim_colls, sim_miss)
 #' @export
 gprob_sim_gc_missing <- function(par_list, sim_colls, sim_missing) {
     .Call('rubias_gprob_sim_gc_missing', PACKAGE = 'rubias', par_list, sim_colls, sim_missing)

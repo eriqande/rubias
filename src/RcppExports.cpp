@@ -118,31 +118,6 @@ BEGIN_RCPP
     return __result;
 END_RCPP
 }
-// gprob_sim_gc_RU
-List gprob_sim_gc_RU(List par_list, IntegerVector sim_colls, IntegerVector ru_colls);
-RcppExport SEXP rubias_gprob_sim_gc_RU(SEXP par_listSEXP, SEXP sim_collsSEXP, SEXP ru_collsSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject __result;
-    Rcpp::RNGScope __rngScope;
-    Rcpp::traits::input_parameter< List >::type par_list(par_listSEXP);
-    Rcpp::traits::input_parameter< IntegerVector >::type sim_colls(sim_collsSEXP);
-    Rcpp::traits::input_parameter< IntegerVector >::type ru_colls(ru_collsSEXP);
-    __result = Rcpp::wrap(gprob_sim_gc_RU(par_list, sim_colls, ru_colls));
-    return __result;
-END_RCPP
-}
-// gprob_sim_ind_RU
-List gprob_sim_ind_RU(List par_list, IntegerVector sim_colls);
-RcppExport SEXP rubias_gprob_sim_ind_RU(SEXP par_listSEXP, SEXP sim_collsSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject __result;
-    Rcpp::RNGScope __rngScope;
-    Rcpp::traits::input_parameter< List >::type par_list(par_listSEXP);
-    Rcpp::traits::input_parameter< IntegerVector >::type sim_colls(sim_collsSEXP);
-    __result = Rcpp::wrap(gprob_sim_ind_RU(par_list, sim_colls));
-    return __result;
-END_RCPP
-}
 // gprob_sim_gc_missing
 NumericMatrix gprob_sim_gc_missing(List par_list, IntegerVector sim_colls, IntegerVector sim_missing);
 RcppExport SEXP rubias_gprob_sim_gc_missing(SEXP par_listSEXP, SEXP sim_collsSEXP, SEXP sim_missingSEXP) {

@@ -7,7 +7,7 @@
 gprob_sim_ind(par_list, sim_colls)
 }
 \arguments{
-\item{par_list}{genetic data converted to the param_list format by tcf2param_list}
+\item{par_list}{genetic data converted to the param_list format by \code{tcf2param_list}}
 
 \item{sim_colls}{a vector of indices for the collections desired for simulation;
 each element of the list corresponds to an individual}
@@ -21,12 +21,18 @@ reference collection of interest. Selection at the locus and gene copy level
 are not independent, and missing data is included in selection.
 }
 \description{
-Simulate genotype log-likelihoods from a population by individual
+Takes a list of parameters from a genetic dataset, and returns a genotype log-likelihood
+matrix for individuals simulated by individual from the specified collections
+}
+\details{
+In simulation by individual, the genotype for any simulated individual is the
+result of a single random draw from the genotypes of all individuals in the collection.
+Gene copies and loci are therefore not independent.
 }
 \examples{
 example(tcf2param_list)
 sim_colls <- sample(ale_par_list$C, 1070, replace = T)
-ale_sim_gprobs <- gprob_sim(ale_par_list, sim_colls)
+ale_sim_gprobs_ind <- gprob_sim_ind(ale_par_list, sim_colls)
 
 }
 

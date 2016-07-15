@@ -7,7 +7,7 @@
 gprob_sim_gc_missing(par_list, sim_colls, sim_missing)
 }
 \arguments{
-\item{par_list}{list_diploid_params output}
+\item{par_list}{genetic data converted to the param_list format by \code{tcf2param_list}}
 
 \item{sim_colls}{a vector length I of collections from which to sample the genotypes
 for individual i}
@@ -16,6 +16,22 @@ for individual i}
 whose missing data should be copied for individual i}
 }
 \description{
-Simulate genotypes by gene copy, with missing data from chosen individuals
+Takes a list of parameters from a genetic dataset, and returns a genotype log-likelihood
+matrix for individuals simulated by gene copy from the specified collections, with
+genotypes masked by missing data patterns from reference individuals
+}
+\details{
+In simulation by gene copy, the genotype at a locus for any individual is the result
+of two random draws from the allele count matrix of that locus. Draws within an individual
+are performed without replacement, but allele counts are replaced between individuals.
+If the data at a particular locus is missing for individual i in \code{sim_missing},
+this data will also be missing in simulated individual i for the
+log-likelihood calculation.
+}
+\examples{
+example(tcf2param_list)
+sim_colls <- sample(ale_par_list$C, 1070, replace = T)
+sim_miss <- sample(1070, 1070, replace = T)
+ale_sim_gprobs_miss <- gprob_sim_gc_missing(ale_par_list, sim_colls, sim_miss)
 }
 
