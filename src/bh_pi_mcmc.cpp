@@ -11,25 +11,32 @@ using namespace Rcpp;
 //' average rate of correct assignment.  It returns the output in a list.
 //'
 //'
-//' @param SL  matrix of the scaled likelihoods.  This is should have values for each individual in a column
-//' (going down in the rows are values for different populations).
+//' @param SL  matrix of the scaled likelihoods.  This is should have values for each
+//' individual in a column (going down in the rows are values for different populations).
 //' @param Omega_init  Starting value for the omega (collection mixing proportion) vector.
 //' @param Rho_init Starting value for the rho (reporting unit mixing proportion) vector.
+//' @param lambda_rho the prior to be added to the reporting unit allocations, in order to
+//' generate pseudo-count Dirichlet parameters for the simulation of a new rho vector
+//' @param lambda_omega the prior to be added to the collection allocations, in order to
+//' generate pseudo-count Dirichlet parameters for the simulation of a new omega vector
 //' @param reps total number of reps (sweeps) to do.
 //' @param burn_in how many reps to discard in the beginning when doing the mean calculation.
 //' They will still be returned in the traces if desired
-//' @param sample_int_Pi the number of reps between samples being taken for Pi traces.
-//' If 0 no trace samples are taken
-//' @param sample_int_PofZ the number of reps between samples being taken for the traces of
-//' posterior of each individual's origin. If 0 no trace samples are taken.
-//' @param sample_int_PofR the number of reps between samples being taken for the traces of
-//' posterior reporting unit of each individual's origin. If 0 no trace samples are taken.
+//' @param sample_int_omega the number of reps between samples being taken for omega
+//' traces. If 0 no trace samples are taken.
+//' @param sample_int_rho the number of reps between samples being taken for rho.
+//' If 0 no trace samples are taken.
+//' @param sample_int_PofZ the number of reps between samples being taken for the posterior
+//' traces of each individual's collection of origin. If 0 no trace samples are taken.
+//' @param sample_int_PofR the number of reps between samples being taken for the posterior
+//' traces of each individual's reporting unit of origin. If 0 no trace samples are taken.
 //' @param RU_starts a vector of length(rho.size()) + 1, where each element delineates
 //' the starting index of a reporting unit in RU_vec (last element is total # collections)
 //' @param RU_vec a vector of collection indices, grouped by reporting unit, with groups
 //' delineated in RU_starts
-//' @param miss_coll2RU a vector of rates at which each collection is misassigned
-//' to a different reporting unit; in the same order as RU_vec
+//' @param coll2correctRU a vector of average rates at which fish from each collection
+//' are assigned to itselfm or to another collection in the same reporting unit;
+//' collections should be in the same order as RU_vec.
 //'
 //' @examples
 //' params <- tcf2param_list(alewife, 15)
@@ -51,7 +58,7 @@ using namespace Rcpp;
 //'
 //' \code{$trace} is a list, with each element being a list of samples for the relevant variable
 //' (rho, omega, PofZ, PofR) taken at the chosen sampling interval. If the sampling interval for
-//' any parameter == 0, that list is empty.
+//' any parameter = 0, that list is empty.
 //'
 //' @export
 // [[Rcpp::export]]

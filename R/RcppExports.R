@@ -9,25 +9,32 @@
 #' average rate of correct assignment.  It returns the output in a list.
 #'
 #'
-#' @param SL  matrix of the scaled likelihoods.  This is should have values for each individual in a column
-#' (going down in the rows are values for different populations).
+#' @param SL  matrix of the scaled likelihoods.  This is should have values for each
+#' individual in a column (going down in the rows are values for different populations).
 #' @param Omega_init  Starting value for the omega (collection mixing proportion) vector.
 #' @param Rho_init Starting value for the rho (reporting unit mixing proportion) vector.
+#' @param lambda_rho the prior to be added to the reporting unit allocations, in order to
+#' generate pseudo-count Dirichlet parameters for the simulation of a new rho vector
+#' @param lambda_omega the prior to be added to the collection allocations, in order to
+#' generate pseudo-count Dirichlet parameters for the simulation of a new omega vector
 #' @param reps total number of reps (sweeps) to do.
 #' @param burn_in how many reps to discard in the beginning when doing the mean calculation.
 #' They will still be returned in the traces if desired
-#' @param sample_int_Pi the number of reps between samples being taken for Pi traces.
-#' If 0 no trace samples are taken
-#' @param sample_int_PofZ the number of reps between samples being taken for the traces of
-#' posterior of each individual's origin. If 0 no trace samples are taken.
-#' @param sample_int_PofR the number of reps between samples being taken for the traces of
-#' posterior reporting unit of each individual's origin. If 0 no trace samples are taken.
+#' @param sample_int_omega the number of reps between samples being taken for omega
+#' traces. If 0 no trace samples are taken.
+#' @param sample_int_rho the number of reps between samples being taken for rho.
+#' If 0 no trace samples are taken.
+#' @param sample_int_PofZ the number of reps between samples being taken for the posterior
+#' traces of each individual's collection of origin. If 0 no trace samples are taken.
+#' @param sample_int_PofR the number of reps between samples being taken for the posterior
+#' traces of each individual's reporting unit of origin. If 0 no trace samples are taken.
 #' @param RU_starts a vector of length(rho.size()) + 1, where each element delineates
 #' the starting index of a reporting unit in RU_vec (last element is total # collections)
 #' @param RU_vec a vector of collection indices, grouped by reporting unit, with groups
 #' delineated in RU_starts
-#' @param miss_coll2RU a vector of rates at which each collection is misassigned
-#' to a different reporting unit; in the same order as RU_vec
+#' @param coll2correctRU a vector of average rates at which fish from each collection
+#' are assigned to itselfm or to another collection in the same reporting unit;
+#' collections should be in the same order as RU_vec.
 #'
 #' @examples
 #' params <- tcf2param_list(alewife, 15)
@@ -49,7 +56,7 @@
 #'
 #' \code{$trace} is a list, with each element being a list of samples for the relevant variable
 #' (rho, omega, PofZ, PofR) taken at the chosen sampling interval. If the sampling interval for
-#' any parameter == 0, that list is empty.
+#' any parameter = 0, that list is empty.
 #'
 #' @export
 gsi_mcmc_2 <- function(SL, Rho_init, Omega_init, lambda_rho, lambda_omega, reps, burn_in, sample_int_omega, sample_int_rho, sample_int_PofZ, sample_int_PofR, RU_starts, RU_vec, coll2correctRU) {
@@ -247,7 +254,9 @@ gprob_sim_gc_missing <- function(par_list, sim_colls, sim_missing) {
 #' of the difference between the previous and the current estimate is less than tolerance.
 #' @param return_progression  If true, then the pi_trace component of the output shows the value of pi visited en route to the end.
 #'
-#' @return \code{gsi_em_1} returns a final Maximum-Likelihood estimate for pi and PofZ, as well as the number
+#' @return \code{gsi_em_1} returns a final Maximum-Likelihood estimate for pi and PofZ,
+#' as well as the number of iterations needed to reach convergence ("iterations_performed"),
+#' and traces of the pi values and change in pi in each iteration
 #'
 #' @examples
 #' params <- tcf2param_list(alewife, 15)
@@ -262,13 +271,13 @@ gsi_em_1 <- function(SL, Pi_init, max_iterations, tolerance, return_progression)
 
 #' MCMC from the simplest GSI model for pi and the individual posterior probabilities
 #'
-#' Using a matrix of scaled likelihoods this function samples values of pi and the posteriors
+#' Using a matrix of scaled likelihoods, this function samples values of pi and the posteriors
 #' for all the individuals.  It returns the output in a list.
 #' @param SL  matrix of the scaled likelihoods.  This is should have values for each individual in a column
 #' (going down in the rows are values for different populations).
-#' @param Pi_init  Starting value for the pi (colelction mixture proportion) vector.
-#' @param lambda the prior to be added to the allocated individuals in order to generate pseudo-count
-#' Dirichlet parameters for the simulation of a new pi vector
+#' @param Pi_init  Starting value for the pi (collection mixture proportion) vector.
+#' @param lambda the prior to be added to the collection allocations, in order to
+#' generate pseudo-count Dirichlet parameters for the simulation of a new pi vector
 #' @param reps total number of reps (sweeps) to do.
 #' @param burn_in how many reps to discard in the beginning when doing the mean calculation. They will still be
 #' returned in the traces if desired
@@ -276,12 +285,20 @@ gsi_em_1 <- function(SL, Pi_init, max_iterations, tolerance, return_progression)
 #' @param sample_int_PofZ the number of reps between samples being taken for the traces of posterior of each individual's origin. If 0
 #' no trace samples are taken.
 #'
+#' @return \code{gsi_mcmc_1} returns a list of three. \code{$mean} lists the posterior
+#' means for collection proportions \code{pi} and for the individual posterior
+#' probabilities of assignment \code{PofZ}. \code{$sd} returns the posterior standard
+#' deviations for the same values.
+#'
+#' If the corresponding \code{sample_int} variables are not 0, \code{$trace} contains
+#' samples taken from the Markov chain at intervals of \code{sample_int_}(variable) steps.
+#'
 #' @examples
 #' params <- tcf2param_list(alewife, 15)
 #' logl <- geno_logL(params)
 #' SL <- apply(exp(logl), 2, function(x) x/sum(x))
 #' lambda <- rep(1/params$C, params$C)
-#' mcmc <- test_gsi_mcmc_1(SL, lambda, lambda, 10000, 2500, 50, 50)
+#' mcmc <- gsi_mcmc_1(SL, lambda, lambda, 10000, 2500, 50, 50)
 #'
 #' @export
 gsi_mcmc_1 <- function(SL, Pi_init, lambda, reps, burn_in, sample_int_Pi, sample_int_PofZ) {

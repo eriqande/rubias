@@ -5,13 +5,13 @@ using namespace Rcpp;
 
 //' MCMC from the simplest GSI model for pi and the individual posterior probabilities
 //'
-//' Using a matrix of scaled likelihoods this function samples values of pi and the posteriors
+//' Using a matrix of scaled likelihoods, this function samples values of pi and the posteriors
 //' for all the individuals.  It returns the output in a list.
 //' @param SL  matrix of the scaled likelihoods.  This is should have values for each individual in a column
 //' (going down in the rows are values for different populations).
-//' @param Pi_init  Starting value for the pi (colelction mixture proportion) vector.
-//' @param lambda the prior to be added to the allocated individuals in order to generate pseudo-count
-//' Dirichlet parameters for the simulation of a new pi vector
+//' @param Pi_init  Starting value for the pi (collection mixture proportion) vector.
+//' @param lambda the prior to be added to the collection allocations, in order to
+//' generate pseudo-count Dirichlet parameters for the simulation of a new pi vector
 //' @param reps total number of reps (sweeps) to do.
 //' @param burn_in how many reps to discard in the beginning when doing the mean calculation. They will still be
 //' returned in the traces if desired
@@ -19,12 +19,20 @@ using namespace Rcpp;
 //' @param sample_int_PofZ the number of reps between samples being taken for the traces of posterior of each individual's origin. If 0
 //' no trace samples are taken.
 //'
+//' @return \code{gsi_mcmc_1} returns a list of three. \code{$mean} lists the posterior
+//' means for collection proportions \code{pi} and for the individual posterior
+//' probabilities of assignment \code{PofZ}. \code{$sd} returns the posterior standard
+//' deviations for the same values.
+//'
+//' If the corresponding \code{sample_int} variables are not 0, \code{$trace} contains
+//' samples taken from the Markov chain at intervals of \code{sample_int_}(variable) steps.
+//'
 //' @examples
 //' params <- tcf2param_list(alewife, 15)
 //' logl <- geno_logL(params)
 //' SL <- apply(exp(logl), 2, function(x) x/sum(x))
 //' lambda <- rep(1/params$C, params$C)
-//' mcmc <- test_gsi_mcmc_1(SL, lambda, lambda, 10000, 2500, 50, 50)
+//' mcmc <- gsi_mcmc_1(SL, lambda, lambda, 10000, 2500, 50, 50)
 //'
 //' @export
 // [[Rcpp::export]]
