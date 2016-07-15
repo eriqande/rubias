@@ -336,7 +336,7 @@ Hasselman_simulation_pipeline <- function(reference, gen_start_col, seed = 5) {
 #' ale_bias <- bias_comparison(alewife, 15)
 #'
 #' @export
-bias_comparison <- function(reference, gen_start_col, seed = 10) {
+bias_comparison <- function(reference, gen_start_col, seed = 5) {
 
   #get a dataframe which connects each collection to its reporting unit
   repidxs <- reference %>%
