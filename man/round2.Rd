@@ -2,7 +2,7 @@
 % Please edit documentation in R/utilities.R
 \name{round2}
 \alias{round2}
-\title{Rounding 5 up, rather than rounding to the nearest even number}
+\title{Round a given number, with 5 always rounded up}
 \usage{
 round2(x, n)
 }
@@ -12,7 +12,12 @@ round2(x, n)
 \item{n}{the number of digits to round to}
 }
 \description{
-Sometimes desired, especially when the numbers are all positive,
-and not possible with R (stolen from the Statistically Significant blog)
+Given a number and a digit to round to, returns the rounded number,
+with 5 always rounded upwards.
+}
+\details{
+This function differs from \code{round}, which rounds 5 "towards the
+even number". Rounding 5s up leads to bias when positive and negative numbers
+are expected, but can be desired in some cases.
 }
 

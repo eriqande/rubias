@@ -158,7 +158,7 @@ Hasselman_sim_colls <- function(RU_starts, RU_vec) {
   out <- list(rho = rho, omega = omega, sim_coll = sim_coll)
 }
 
-#' Recreate the simulations of Hasselmann \emph{et al.} (2015) with two alternative
+#' Recreate the simulations of Hasselman \emph{et al.} (2015) with two alternative
 #' GSI methods
 #'
 #' Using a reference dataset, creates a genotype-logL matrix based on
@@ -166,13 +166,13 @@ Hasselman_sim_colls <- function(RU_starts, RU_vec) {
 #' then uses this in three different estimates of population mixture proportions:
 #' EM, MCMC, and hierarchical MCMC
 #'
-#' The reference data set is processed with the tcf2param_list function,
-#' and the additional average-correct-assignement matrix is calculated using
+#' The reference data set is processed with \code{tcf2param_list},
+#' and the average-correct-assignment matrix is calculated using
 #' \code{avg_coll2correctRU}.
 #'
 #' 50 Hasselman-style simulated mixture samples are then created, run through EM, MCMC,
 #' and hierarchical MCMC GSI, and plotted against the rho value used to simulate
-#' the mixture
+#' the mixture.
 #'
 #' @param reference a two-column format genetic dataset, with "repunit", "collection", and "indiv"
 #' columns

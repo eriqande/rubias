@@ -1,5 +1,10 @@
 #' Separate a chosen proportion of a reference dataset into a mixture with known population proportions
 #'
+#' Takes a reference dataset and a set of population proportions, either at the collection
+#' or reporting unit level. Randomly samples individuals to satisfy these desired proportions,
+#' and splits them into a new "mixture" dataframe.
+#'
+#'
 #' @param D a two-column genetic dataframe with "indiv", "repunit", and "collection" columns
 #' @param rhos a vector of the desired reporting unit proportions in the mixture set;
 #' if not named, will be assumed to be ordered by order of appearance in the dataset
@@ -8,12 +13,12 @@
 #' @param min_remaining the fraction of any collection in the reference dataset which must remain
 #' at the end of the draw
 #'
-#' @return a list of two data frames, "mixture" being the random sample taken, and "reference" being the remaining samples
+#' @return \code{mixture_draw} returns a list of two data frames,
+#' "mixture" being the random sample taken, and "reference" being the remaining samples
 #'
-#' D <- alewife
-#' N <- 100
+#' @examples
 #' rhos <- as.vector(gtools::rdirichlet(1, table(alewife$repunit)))
-#' min_remaining <- .005
+#' cross_val <- mixture_draw(D = alewife, rhos = rhos, N = 100, min_remaining = .005)
 #'
 #' @export
 mixture_draw <- function(D, rhos = NULL, omegas = NULL, N, min_remaining = 1/(length(omegas) * 10)) {
@@ -72,10 +77,14 @@ mixture_draw <- function(D, rhos = NULL, omegas = NULL, N, min_remaining = 1/(le
 }
 
 
-#' Rounding 5 up, rather than rounding to the nearest even number
+#' Round a given number, with 5 always rounded up
 #'
-#' Sometimes desired, especially when the numbers are all positive,
-#' and not possible with R (stolen from the Statistically Significant blog)
+#' Given a number and a digit to round to, returns the rounded number,
+#' with 5 always rounded upwards.
+#'
+#' This function differs from \code{round}, which rounds 5 "towards the
+#' even number". Rounding 5s up leads to bias when positive and negative numbers
+#' are expected, but can be desired in some cases.
 #'
 #' @param x the data to be rounded
 #' @param n the number of digits to round to

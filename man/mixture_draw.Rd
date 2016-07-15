@@ -21,14 +21,17 @@ if not named, will be assumed to be ordered by order of appearance in the datase
 at the end of the draw}
 }
 \value{
-a list of two data frames, "mixture" being the random sample taken, and "reference" being the remaining samples
-
-D <- alewife
-N <- 100
-rhos <- as.vector(gtools::rdirichlet(1, table(alewife$repunit)))
-min_remaining <- .005
+\code{mixture_draw} returns a list of two data frames,
+"mixture" being the random sample taken, and "reference" being the remaining samples
 }
 \description{
-Separate a chosen proportion of a reference dataset into a mixture with known population proportions
+Takes a reference dataset and a set of population proportions, either at the collection
+or reporting unit level. Randomly samples individuals to satisfy these desired proportions,
+and splits them into a new "mixture" dataframe.
+}
+\examples{
+rhos <- as.vector(gtools::rdirichlet(1, table(alewife$repunit)))
+cross_val <- mixture_draw(D = alewife, rhos = rhos, N = 100, min_remaining = .005)
+
 }
 
