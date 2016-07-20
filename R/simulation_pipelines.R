@@ -66,7 +66,8 @@ ref_and_mix_pipeline <- function(reference, mixture, gen_start_col, method = "MC
     PC[colls_by_RU$repunit[i]] <- PC[colls_by_RU$repunit[i]] + 1
   }
   RU_starts <- c(0, cumsum(PC))
-  RU_vec <- as.integer(colls_by_RU$collection)
+  RU_vec <- as.integer(factor(colls_by_RU$collection,
+                              levels = unique(colls_by_RU$collection)))
   params <- list_diploid_params(ac, mix_I, coll, coll_N, RU_vec, RU_starts)
 
 
@@ -76,7 +77,8 @@ ref_and_mix_pipeline <- function(reference, mixture, gen_start_col, method = "MC
 
   #and for reference individuals, then condense to an average assigment list
   ref_I <- allelic_list(clean$clean_short, ac, samp_type = "reference")$int
-  ref_coll <- as.integer(factor(reference$collection))
+  ref_coll <- as.integer(factor(reference$collection,
+                                levels = unique(reference$collection)))
   ref_coll_N <- dplyr::count(reference, collection) %>%
     dplyr::select(n) %>%
     simplify2array() %>%
@@ -289,10 +291,75 @@ Hasselman_simulation_pipeline <- function(reference, gen_start_col, seed = 5) {
 
   print(g)
 
-  rho_dev
+  list(rho_data, rho_dev)
 
 
 }
+
+#' Perform a parametric bootstrapping correction on an estimated rho vector
+#'
+#' Takes an estimate of rho, and a two-column format genetic data frame
+#' containing both reference and mixture data. Returns a new rho corrected by
+#' parametric bootstrapping
+#'
+#' @param rho_est the rho value previously estimated from MCMC GSI from the
+#' provided reference and mixture data
+#' @param pi_est the pi value previously estimated from MCMC GSI from the
+#' provided reference and mixture data
+#' @param D a two-column genetic dataframe containing the reference and mixture
+#' data from which \code{rho_est} was computed; with "repunit", "collection",
+#' and "indiv" columns
+#' @param gen_start_col the first column of genetic data in D. All columns after
+#' \code{gen_start_col} must be genetic data
+#'
+#' In parametric bootstrapping, 100 new mixture datasets are simulated by
+#' individual from the reference with reporting unit proportions \code{rho_est},
+#' and the mean of their MCMC GSI outputs is used to calculate an average bias.
+#' This bias is subtracted from rho_est to give the output
+#'
+#' @return \code{bootstrap_rho} returns a new rho value, corrected by parametric
+#' bootstrapping.
+#'
+#' @export
+bootstrap_rho <- function(rho_est, pi_est, D, gen_start_col) {
+  ref <- dplyr::filter(D, sample_type == "reference")
+  repidxs <- ref %>%
+    dplyr::mutate(coll_int = as.integer(factor(ref$collection, levels = unique(ref$collection)))) %>%
+    dplyr::select(repunit, coll_int) %>%
+    dplyr::group_by(repunit, coll_int) %>%
+    dplyr::tally()
+
+  ref_star_params <- tcf2param_list(D, gen_start_col, samp_type = "reference", summ = F)
+  rho_mean <- lapply(1:100, function(rep) {
+    sim_ns <- rmultinom(n = 1, size = length(pi_est), prob = pi_est)
+    sim_colls <- lapply(1:length(sim_ns), function(coll){
+      rep(coll, sim_ns[coll])
+    }) %>%
+      unlist()
+    sim_inds <- gprob_sim_ind(ref_star_params, sim_colls)
+    SL <- apply(exp(sim_inds), 2, function(x) x/sum(x))
+    pi_pb <- gsi_mcmc_1(SL = SL,
+                        Pi_init = rep(1 / ref_star_params$C, ref_star_params$C),
+                        lambda = rep(1 / ref_star_params$C, ref_star_params$C),
+                        reps = 2000,
+                        burn_in = 100,
+                        sample_int_Pi = 0,
+                        sample_int_PofZ = 0)
+    rho_pb <- lapply(levels(repidxs$repunit), function(ru){
+      out <- sum(pi_pb$mean$pi[repidxs$coll_int[repidxs$repunit == ru]])
+    }) %>% unlist()
+  }) %>%
+    simplify2array() %>%
+    rowMeans()
+
+  rho_pb <- rho_est - (rho_mean - rho_est)
+  # Low populations can conceivably be assigned negative values with PB, so will rescale
+  rho_pb[rho_pb < 0] <- 0
+  rho_pb <- rho_pb/sum(rho_pb)
+  rho_pb
+}
+
+
 
 #' Test the effects of bias corrections on a reference dataset through cross-validation
 #'
@@ -340,7 +407,7 @@ bias_comparison <- function(reference, gen_start_col, seed = 5) {
 
   #get a dataframe which connects each collection to its reporting unit
   repidxs <- reference %>%
-    dplyr::mutate(coll_int = as.integer(as.factor(collection))) %>%
+    dplyr::mutate(coll_int = as.integer(factor(reference$collection, levels = unique(reference$collection)))) %>%
     dplyr::select(repunit, coll_int) %>%
     dplyr::group_by(repunit, coll_int) %>%
     dplyr::tally()
@@ -408,33 +475,7 @@ bias_comparison <- function(reference, gen_start_col, seed = 5) {
 
     # finally, get a bootstrap-corrected rho estimate
     delin <- rbind(drawn$reference, drawn$mixture)
-    ref_star_params <- tcf2param_list(delin, 15, samp_type = "reference", summ = F)
-    rho_mean <- lapply(1:100, function(rep) {
-      sim_ns <- rmultinom(n = 1, size = length(pi_mcmc), prob = pi_mcmc)
-      sim_colls <- lapply(1:length(sim_ns), function(coll){
-        rep(coll, sim_ns[coll])
-      }) %>%
-        unlist()
-      sim_inds <- gprob_sim_ind(ref_star_params, sim_colls)
-      SL <- apply(exp(sim_inds), 2, function(x) x/sum(x))
-      pi_pb <- gsi_mcmc_1(SL = SL,
-                          Pi_init = rep(1 / ref_star_params$C, ref_star_params$C),
-                          lambda = rep(1 / ref_star_params$C, ref_star_params$C),
-                          reps = 2000,
-                          burn_in = 100,
-                          sample_int_Pi = 0,
-                          sample_int_PofZ = 0)
-      rho_pb <- lapply(levels(reference$repunit), function(ru){
-        out <- sum(pi_pb$mean$pi[repidxs$coll_int[repidxs$repunit == ru]])
-      }) %>% unlist()
-    }) %>%
-      simplify2array() %>%
-      rowMeans()
-
-    rho_pb <- rho_mcmc - (rho_mean - rho_mcmc)
-    # Low populations can conceivably be assigned negative values with PB, so will rescale
-    rho_pb[rho_pb < 0] <- 0
-    rho_pb <- rho_pb/sum(rho_pb)
+    rho_pb <- bootstrap_rho(rho_mcmc, pi_mcmc, delin, 15)
 
     out <- list("true_rho" = rho, "rho_mcmc" = rho_mcmc, "rho_bh" = rho_bh, "rho_pb" = rho_pb)
   })

@@ -9,11 +9,11 @@ gprob_sim_gc_missing(par_list, sim_colls, sim_missing)
 \arguments{
 \item{par_list}{genetic data converted to the param_list format by \code{tcf2param_list}}
 
-\item{sim_colls}{a vector length I of collections from which to sample the genotypes
-for individual i}
+\item{sim_colls}{a vector; element i specifies the collection from which to sample
+the genotypes for individual i}
 
-\item{sim_missing}{a vector of length I of indices for individuals in I_list
-whose missing data should be copied for individual i}
+\item{sim_missing}{a vector; element i specifies the index for the individual in
+params$I whose missing data should be copied for individual i}
 }
 \description{
 Takes a list of parameters from a genetic dataset, and returns a genotype log-likelihood

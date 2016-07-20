@@ -175,10 +175,10 @@ gprob_sim_ind <- function(par_list, sim_colls) {
 #' log-likelihood calculation.
 #'
 #' @param par_list genetic data converted to the param_list format by \code{tcf2param_list}
-#' @param sim_colls a vector length I of collections from which to sample the genotypes
-#' for individual i
-#' @param sim_missing a vector of length I of indices for individuals in I_list
-#' whose missing data should be copied for individual i
+#' @param sim_colls a vector; element i specifies the collection from which to sample
+#' the genotypes for individual i
+#' @param sim_missing a vector; element i specifies the index for the individual in
+#' params$I whose missing data should be copied for individual i
 #'
 #' @examples
 #' example(tcf2param_list)

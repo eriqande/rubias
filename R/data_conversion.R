@@ -94,6 +94,9 @@ reference_allele_counts <- function(D, pop_level = "collection") {
   warning("sample_type should not hold values other than 'reference' and 'mixture';
           other values ignored in allele counting")
   }
+
+  D$collection <- factor(D$collection, levels = unique(D$collection))
+  D$repunit <- factor(D$repunit, levels = unique(D$repunit))
   # generate data frame of alleles for each locus
   loc_alle_names <- D %>%
     dplyr::group_by(locus, allele) %>%

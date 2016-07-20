@@ -5,3 +5,8 @@
 src/*.o
 src/*.so
 src/*.dll
+Basefile*
+MixFile*
+temp
+seedms
+ms2geno_seeds
