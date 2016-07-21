@@ -32,6 +32,7 @@ rho_dev$MSE <- rho_dev$mse
 d <- ggplot2::ggplot(data = rho_dev, ggplot2::aes(x = Method, y = MSE, fill = repunit)) +
   ggplot2::geom_bar(stat = "identity") +
   ggplot2::guides(fill = F) +
+  ggplot2::theme(axis.title.x = ggplot2::element_blank()) +
   ggplot2::facet_wrap(~repunit)
 print(d)
 
@@ -41,3 +42,45 @@ b <- ggplot2::ggplot(data = rho_dev, ggplot2::aes(x = Method, y = mean_bias, fil
   ggplot2::facet_wrap(~repunit)
 print(b)
 
+
+
+# graph demonstrating bootstrapping
+library(ggplot2)
+n <- 5
+true_rho <- seq(.3,.5, length.out = n) + rnorm(n, mean = 0, sd = .025)
+bias <- .05 * rnorm(n, mean = 1, sd = .5)
+first <- true_rho + bias
+second <- first + bias
+corrected <- first - (second - first)
+rho_est <- c(first, second, corrected)
+data <- dplyr::data_frame(true_rho = rep(true_rho,3), rho_est,
+                          step = rep(c("initial", "bootstrap mean", "corrected"), each = n))
+
+
+bootgraph <- ggplot(data, aes(x = true_rho, y = rho_est, colour = step)) +
+  geom_point(data = dplyr::filter(data, step %in% "initial")) +
+  guides(colour = F) +
+  coord_cartesian(xlim = c(.25, .55), ylim = c(.25, .65)) +
+  scale_color_manual(values=c("darkgreen")) +
+  geom_abline(slope = 1, intercept = 0)
+
+print(bootgraph)
+
+
+bootgraph <- ggplot(data, aes(x = true_rho, y = rho_est, colour = step)) +
+  geom_point(data = dplyr::filter(data, step %in% c("initial", "bootstrap mean"))) +
+  guides(colour = F) +
+  coord_cartesian(xlim = c(.25, .55), ylim = c(.25, .65)) +
+  scale_color_manual(values=c("red", "darkgreen")) +
+  geom_abline(slope = 1, intercept = 0)
+
+print(bootgraph)
+
+bootgraph <- ggplot(data, aes(x = true_rho, y = rho_est, colour = step)) +
+  geom_point() +
+  guides(colour = F) +
+  coord_cartesian(xlim = c(.25, .55), ylim = c(.25, .65)) +
+  scale_color_manual(values=c("red", "blue", "darkgreen")) +
+  geom_abline(slope = 1, intercept = 0)
+
+print(bootgraph)

@@ -323,6 +323,7 @@ Hasselman_simulation_pipeline <- function(reference, gen_start_col, seed = 5) {
 #' @export
 bootstrap_rho <- function(rho_est, pi_est, D, gen_start_col) {
   ref <- dplyr::filter(D, sample_type == "reference")
+  mix <- dplyr::filter(D, sample_type == "mixture")
   repidxs <- ref %>%
     dplyr::mutate(coll_int = as.integer(factor(ref$collection, levels = unique(ref$collection)))) %>%
     dplyr::select(repunit, coll_int) %>%
@@ -331,7 +332,7 @@ bootstrap_rho <- function(rho_est, pi_est, D, gen_start_col) {
 
   ref_star_params <- tcf2param_list(D, gen_start_col, samp_type = "reference", summ = F)
   rho_mean <- lapply(1:100, function(rep) {
-    sim_ns <- rmultinom(n = 1, size = length(pi_est), prob = pi_est)
+    sim_ns <- rmultinom(n = 1, size = nrow(mix), prob = pi_est)
     sim_colls <- lapply(1:length(sim_ns), function(coll){
       rep(coll, sim_ns[coll])
     }) %>%

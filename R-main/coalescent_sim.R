@@ -34,7 +34,7 @@ rho50 <- lapply(1:50, function(rep) {
                                          num_sets = 1,
                                          variability_string = " -t 0.3 ",
                                          marker_pars = " -u .15 3 ",
-                                         M_matrix = GSImulator::sh_island_mig_mat(ru = c(2, 3, 12), Min = 50, Mbt = 5.0))
+                                         M_matrix = GSImulator::sh_island_mig_mat(ru = c(2, 3, 12), Min = 70, Mbt = 7.0))
   )
 
   indat <- GSImulator::gsim2bhru(1, reppy_frame)
@@ -62,25 +62,27 @@ rho50x <- rho50 %>% dplyr::bind_rows(.id = "iter")
 rho50x$repunit <- rep(unique(reppy_frame$repunit), 50)
 
 rho_data <- rho50x %>%
-  tidyr::gather(key = "method", value = "rho_est", rho_mcmc:rho_pb)
-
+  tidyr::gather(key = "method", value = "Estimate", rho_mcmc:rho_pb)
+rho_data$method <- rep(c("MCMC", "BH", "PB"), each = 150)
 rho_dev <- rho_data %>%
-  dplyr::mutate(dev = (true_rho - rho_est)^2) %>%
-  dplyr::mutate(prop_bias = (rho_est-true_rho) / true_rho) %>%
-  dplyr::mutate(bias = rho_est-true_rho) %>%
+  dplyr::mutate(dev = (true_rho - Estimate)^2) %>%
+  dplyr::mutate(prop_bias = (Estimate-true_rho) / true_rho) %>%
+  dplyr::mutate(bias = Estimate-true_rho) %>%
   dplyr::group_by(repunit, method) %>%
-  dplyr::summarise(mse = mean(dev), mean_prop_bias = mean(prop_bias), mean_bias = mean(bias))
+  dplyr::summarise(MSE = mean(dev), mean_prop_bias = mean(prop_bias), mean_bias = mean(bias))
 
 
-g <- ggplot2::ggplot(rho_data, ggplot2::aes(x = true_rho, y = rho_est, colour = repunit)) +
+g <- ggplot2::ggplot(rho_data, ggplot2::aes(x = true_rho, y = Estimate, colour = repunit)) +
   ggplot2::geom_point() +
   ggplot2::facet_grid(repunit ~ method) +
   ggplot2::geom_abline(intercept = 0, slope = 1)
 print(g)
 
 # the standard mean error of each method and reporting unit
-d <- ggplot2::ggplot(data = rho_dev, ggplot2::aes(x = method, y = mse, fill = repunit)) +
+d <- ggplot2::ggplot(data = rho_dev, ggplot2::aes(x = method, y = MSE, fill = repunit)) +
   ggplot2::geom_bar(stat = "identity") +
+  ggplot2::guides(fill = F) +
+  ggplot2::theme(axis.title.x = ggplot2::element_blank()) +
   ggplot2::facet_wrap(~repunit)
 print(d)
 
@@ -88,11 +90,13 @@ print(d)
 # on small values than large values
 prop.bias <- ggplot2::ggplot(data = rho_dev, ggplot2::aes(x = method, y = mean_prop_bias, fill = repunit)) +
   ggplot2::geom_bar(stat = "identity") +
-  ggplot2::facet_wrap(~repunit)
+  ggplot2::facet_wrap(~repunit) +
+  ggplot2::guides(fill = F)
 print(prop.bias)
 
 # the unscaled mean bias
 m.bias <- ggplot2::ggplot(data = rho_dev, ggplot2::aes(x = method, y = mean_bias, fill = repunit)) +
   ggplot2::geom_bar(stat = "identity") +
+  ggplot2::guides(fill = F) +
   ggplot2::facet_wrap(~repunit)
 print(m.bias)
