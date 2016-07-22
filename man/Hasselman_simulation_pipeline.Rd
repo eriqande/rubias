@@ -19,14 +19,14 @@ columns}
 Using a reference dataset, creates a genotype-logL matrix based on
 simulation-by-individual with randomly drawn population proportions,
 then uses this in three different estimates of population mixture proportions:
-EM, MCMC, and hierarchical MCMC
+MCMC, MCMC corrected with parametric bootstrapping, and hierarchical MCMC
 }
 \details{
 The reference data set is processed with \code{tcf2param_list},
 and the average-correct-assignment matrix is calculated using
 \code{avg_coll2correctRU}.
 
-50 Hasselman-style simulated mixture samples are then created, run through EM, MCMC,
+50 Hasselman-style simulated mixture samples are then created, run through MCMC, PB,
 and hierarchical MCMC GSI, and plotted against the rho value used to simulate
 the mixture.
 }

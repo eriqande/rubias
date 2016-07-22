@@ -149,7 +149,7 @@ out
 #' simulated individuals, sampled from the collections with probabilities = omega
 #' @export
 Hasselman_sim_colls <- function(RU_starts, RU_vec) {
-  rho <- gtools::rdirichlet(1, c(1.5, 1.5, 1.5))
+  rho <- gtools::rdirichlet(1, rep(1.5, (length(RU_starts) - 1)))
   omega <- numeric(length(RU_vec))
   omega <- sapply(1:(length(RU_starts)-1), function(x) {
     omega[RU_vec[(RU_starts[x] + 1):RU_starts[x+1]]] <- gtools::rdirichlet(1, rep(1.5, RU_starts[x + 1] - RU_starts[x])) * rho[x]
@@ -166,13 +166,13 @@ Hasselman_sim_colls <- function(RU_starts, RU_vec) {
 #' Using a reference dataset, creates a genotype-logL matrix based on
 #' simulation-by-individual with randomly drawn population proportions,
 #' then uses this in three different estimates of population mixture proportions:
-#' EM, MCMC, and hierarchical MCMC
+#' MCMC, MCMC corrected with parametric bootstrapping, and hierarchical MCMC
 #'
 #' The reference data set is processed with \code{tcf2param_list},
 #' and the average-correct-assignment matrix is calculated using
 #' \code{avg_coll2correctRU}.
 #'
-#' 50 Hasselman-style simulated mixture samples are then created, run through EM, MCMC,
+#' 50 Hasselman-style simulated mixture samples are then created, run through MCMC, PB,
 #' and hierarchical MCMC GSI, and plotted against the rho value used to simulate
 #' the mixture.
 #'
@@ -188,6 +188,8 @@ Hasselman_sim_colls <- function(RU_starts, RU_vec) {
 Hasselman_simulation_pipeline <- function(reference, gen_start_col, seed = 5) {
 
   # get the necessary parameters from the reference data
+  reference$collection <- factor(reference$collection, levels = unique(reference$collection))
+  reference$repunit <- factor(reference$repunit, levels = unique(reference$repunit))
   params <- tcf2param_list(reference, gen_start_col, summ = F)
   ref_logL <- geno_logL(params)
   ref_SL <- apply(exp(ref_logL), 2, function(x) x/sum(x))
@@ -197,7 +199,7 @@ Hasselman_simulation_pipeline <- function(reference, gen_start_col, seed = 5) {
   sim_colls <- lapply(1:50, function(x) Hasselman_sim_colls(params$RU_starts, params$RU_vec))
   sim_coll_list <- lapply(1:50, function(x) sim_colls[[x]]$sim_coll)
   rhos <- lapply(1:50, function(x) as.vector(sim_colls[[x]]$rho))
-  rhos <- lapply(rhos, function(x) data.frame(repunit = levels(reference$repunit), rho = x)) %>%
+  rhos <- lapply(rhos, function(x) data.frame(repunit = unique(reference$repunit), rho = x)) %>%
     dplyr::bind_rows(.id = "iter")
   omegas <- lapply(1:50, function(x) sim_colls[[x]]$omega)
   omegas <- lapply(omegas, function(x) data.frame(collection = levels(reference$collection), omega = x)) %>%
@@ -239,22 +241,38 @@ Hasselman_simulation_pipeline <- function(reference, gen_start_col, seed = 5) {
                          sample_int_Pi = 0,
                          sample_int_PofZ = 0)
 
-    em_out <- gsi_em_1(SL, Pi_init = rep(1 / params$C, params$C), max_iterations = 10^6,
-                       tolerance = 10^-7, return_progression = FALSE)
+    pi_mcmc <- pi_out$mean$pi
+    rho_mcmc <- lapply(1:(length(params$RU_starts) - 1), function(ru){
+      out <- sum(pi_mcmc[params$RU_vec[(params$RU_starts[ru] + 1):params$RU_starts[ru + 1]]])
+    }) %>% unlist()
+
+    dummy_mix <- dplyr::sample_n(reference, 1000, replace = TRUE)
+    dummy_mix$sample_type <- rep("mixture", 1000)
+
+    pb_out <- bootstrap_rho(rho_est =rho_mcmc,
+                            pi_est = pi_mcmc,
+                            D = rbind(reference, dummy_mix),
+                            gen_start_col = 15)
+
+    print(x)
 
     out <- list(bh_rho = om_out$mean$rho,
                 bh_om = om_out$mean$omega,
                 mc_pi = pi_out$mean$pi,
-                em_pi = em_out$pi)
+                pb_rho = pb_out)
 
     names(out$bh_rho) <- levels(reference$repunit)
     out$bh_rho <- sapply(1:(length(params$RU_starts)-1), function(i) {
       rep(out$bh_rho[i], params$RU_starts[i+1]- params$RU_starts[i])
     }) %>%
       unlist()
+    names(out$pb_rho) <- levels(reference$repunit)
+    out$pb_rho <- sapply(1:(length(params$RU_starts)-1), function(i) {
+      rep(out$pb_rho[i], params$RU_starts[i+1]- params$RU_starts[i])
+    }) %>%
+      unlist()
     names(out$bh_om) <- levels(reference$collection)
     names(out$mc_pi) <- levels(reference$collection)
-    names(out$em_pi) <- levels(reference$collection)
     out <- data.frame(repunit = names(out$bh_rho), collection = names(out$bh_om), as.data.frame(out))
   })
 
@@ -272,24 +290,24 @@ Hasselman_simulation_pipeline <- function(reference, gen_start_col, seed = 5) {
     dplyr::summarise(true_rho = first(rho),
                      bh_rho = first(bh_rho),
                      mcmc_rho = sum(mc_pi),
-                     em_rho = sum(em_pi))
+                     pb_rho = first(pb_rho))
 
   rho_data <- rho_data %>%
-    tidyr::gather(key = "method", value = "rho_est", bh_rho:em_rho)
+    tidyr::gather(key = "method", value = "rho_est", bh_rho:pb_rho)
+  rho_data$repunit <- factor(rho_data$repunit, levels = unique(reference$repunit))
 
   rho_dev <- rho_data %>%
     dplyr::mutate(dev = (true_rho - rho_est)^2) %>%
     dplyr::mutate(prop_bias = (rho_est-true_rho) / true_rho) %>%
     dplyr::mutate(bias = rho_est-true_rho) %>%
     dplyr::group_by(repunit, method) %>%
-    dplyr::summarise(mean_dev = mean(dev), mean_prop_bias = mean(prop_bias), mean_bias = mean(bias))
+    dplyr::summarise(MSE = mean(dev), mean_prop_bias = mean(prop_bias), mean_bias = mean(bias))
 
   g <- ggplot2::ggplot(rho_data, ggplot2::aes(x = true_rho, y = rho_est, colour = repunit)) +
     ggplot2::geom_point() +
     ggplot2::facet_grid(repunit ~ method) +
     ggplot2::geom_abline(intercept = 0, slope = 1)
-
-  print(g)
+print(g)
 
   list(rho_data, rho_dev)
 
@@ -322,6 +340,8 @@ Hasselman_simulation_pipeline <- function(reference, gen_start_col, seed = 5) {
 #'
 #' @export
 bootstrap_rho <- function(rho_est, pi_est, D, gen_start_col) {
+  D$collection <- factor(D$collection, levels = unique(D$collection))
+  D$repunit <- factor(D$repunit, levels = unique(D$repunit))
   ref <- dplyr::filter(D, sample_type == "reference")
   mix <- dplyr::filter(D, sample_type == "mixture")
   repidxs <- ref %>%
@@ -406,6 +426,8 @@ bootstrap_rho <- function(rho_est, pi_est, D, gen_start_col) {
 #' @export
 bias_comparison <- function(reference, gen_start_col, seed = 5) {
 
+  reference$collection <- factor(reference$collection, levels = unique(reference$collection))
+  reference$repunit <- factor(reference$repunit, levels = unique(reference$repunit))
   #get a dataframe which connects each collection to its reporting unit
   repidxs <- reference %>%
     dplyr::mutate(coll_int = as.integer(factor(reference$collection, levels = unique(reference$collection)))) %>%

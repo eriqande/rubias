@@ -10,6 +10,10 @@
 #' @section rubias functions:
 #' The rubias functions ...
 #'
+#' @input genetic data format
+#' If not provided as factors, the "collection" and "repunit" will be converted to factors,
+#' ordered by their order of appearance, for all functions in the package.
+#'
 #' @section example data:
 #' \code{alewife} & \code{blueback} are examples of good times to use \code{rubias};
 #' there are clearly observable biases based on the number of collections in a

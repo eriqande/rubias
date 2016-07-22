@@ -21,7 +21,7 @@
 #' cross_val <- mixture_draw(D = alewife, rhos = rhos, N = 100, min_remaining = .005)
 #'
 #' @export
-mixture_draw <- function(D, rhos = NULL, omegas = NULL, N, min_remaining = 1/(length(omegas) * 10)) {
+mixture_draw <- function(D, rhos = NULL, omegas = NULL, N, min_remaining = 0) {
   if(!is.null(rhos) && !is.null(omegas)) stop("Cannot specify proportions of both rho and omega")
   repidxs <- D %>%
     dplyr::select(repunit, collection) %>%

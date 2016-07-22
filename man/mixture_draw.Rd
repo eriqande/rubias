@@ -4,8 +4,7 @@
 \alias{mixture_draw}
 \title{Separate a chosen proportion of a reference dataset into a mixture with known population proportions}
 \usage{
-mixture_draw(D, rhos = NULL, omegas = NULL, N,
-  min_remaining = 1/(length(omegas) * 10))
+mixture_draw(D, rhos = NULL, omegas = NULL, N, min_remaining = 0)
 }
 \arguments{
 \item{D}{a two-column genetic dataframe with "indiv", "repunit", and "collection" columns}
