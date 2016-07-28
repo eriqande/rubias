@@ -45,7 +45,7 @@ rho50 <- lapply(1:50, function(rep) {
   ref <- filter(indat, sample_type == "reference")
   mix <- filter(indat, sample_type == "mixture")
 
-  pi_mcmc <- ref_and_mix_pipeline(ref,mix, 5, method = "MCMC")$mean$pi
+  pi_mcmc <- ref_and_mix_pipeline(ref, mix, 5, method = "MCMC")$mean$pi
   rho_mcmc <- lapply(levels(ref$repunit), function(ru){
     reppy <- reppy_frame %>%
       mutate(coll_int = as.integer(factor(reppy_frame$collection, levels = unique(reppy_frame$collection)))) %>%

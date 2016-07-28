@@ -3,13 +3,13 @@
 #' Estimate mixing proportions from reference and mixture datasets
 #'
 #' Takes a mixture and reference dataframe of two-column genetic data, and a
-#' desired method of estimation for the population mixture proportions (EM, MCMC, or BH MCMC)
+#' desired method of estimation for the population mixture proportions (MCMC, PB, or BH MCMC)
 #' Returns the output of the chosen estimation method
 #'
-#' "EM" estimates mixing proportions and individual posterior
-#' probabilities of assignment through a simple expectation maximization,
-#' while "MCMC" does the same with Markov-chain Monte Carlo, and "BH" uses the misassignment-scaled,
-#' hierarchial MCMC.
+#' "MCMC" estimates mixing proportions and individual posterior
+#' probabilities of assignment through Markov-chain Monte Carlo,
+#' while "PB" does the same with a parametric bootstrapping correction,
+#' and "BH" uses the misassignment-scaled, hierarchial MCMC.
 #'
 #' @param reference a dataframe of two-column genetic format data, proceeded by "repunit", "collection",
 #' and "indiv" columns. Does not need "sample_type" column, and will be overwritten if provided
@@ -17,17 +17,19 @@
 #' \code{reference} dataframe, but "collection" and "repunit" columns are ignored.
 #' Does not need "sample_type" column, and will be overwritten if provided
 #' @param gen_start_col the first column of genetic data in both data frames
-#' @param method a choice between "EM", "MCMC", and "BH" methods for estimating mixture proportions
+#' @param method a choice between "MCMC", "PB" and "BH" methods for estimating mixture proportions
 #'
 #' @return \code{mix_proportion_pipeline} returns the standard output of the chosen
-#' mixing proportion estimation method (always a list)
+#' mixing proportion estimation method (always a list). For method "PB",
+#' returns the standard MCMC results, as well as the bootstrap-corrected
+#' collection proportions under \code{$mean$bootstrap}
 #' @examples
 #' reference <- alewife[,-1]
 #' mixture <- alewife[,-1]
 #' gen_start_col <- 14
-#' bh <- mix_proportion_pipeline(reference, mixture, gen_start_col, method = "BH")
-#' mcmc <- mix_proportion_pipeline(reference, mixture, gen_start_col, method = "MCMC")
-#' em <- mix_proportion_pipeline(reference, mixture, gen_start_col, method = "EM")
+#' bh <- ref_and_mix_pipeline(reference, mixture, gen_start_col, method = "BH")
+#' mcmc <- ref_and_mix_pipeline(reference, mixture, gen_start_col, method = "MCMC")
+#' pb <- ref_and_mix_pipeline(reference, mixture, gen_start_col, method = "PB")
 #'
 #' @export
 ref_and_mix_pipeline <- function(reference, mixture, gen_start_col, method = "MCMC") {
@@ -35,7 +37,7 @@ ref_and_mix_pipeline <- function(reference, mixture, gen_start_col, method = "MC
   #check that reference and mixture data sets have identical column names
   if(any(names(reference) != names(mixture))) stop("reference and mixture data frames differ in structure; check # columns and variable names")
   # check for a valid sampling method
-  if(method != "MCMC" && method != "EM" && method != "BH") stop("invalid selection of mixture proportion estimation algorithm: please choose 'EM', 'MCMC', or 'BH'")
+  if(method != "MCMC" && method != "PB" && method != "BH") stop("invalid selection of mixture proportion estimation algorithm: please choose 'EM', 'MCMC', or 'BH'")
   # any existing sample_type columns are removed, to be rewritten based on data frame
   if(any(names(reference) == "sample_type") || any(names(mixture) == "sample_type")) {
     reference <- dplyr::select(reference, -sample_type)
@@ -94,9 +96,29 @@ ref_and_mix_pipeline <- function(reference, mixture, gen_start_col, method = "MC
 
 
   # estimate population parameters based on the chosen algorithm
-  if(method == "EM") {
-    out <- gsi_em_1(SL, Pi_init = rep(1 / params$C, params$C), max_iterations = 10^6, tolerance = 10^-7, return_progression = FALSE)
-    }
+  if(method == "PB") {
+    pi_out <- gsi_mcmc_1(SL = SL,
+                      Pi_init = rep(1 / params$C, params$C),
+                      lambda = rep(1 / params$C, params$C),
+                      reps = 2000,
+                      burn_in = 100,
+                      sample_int_Pi = 0,
+                      sample_int_PofZ = 0)
+    pi_mcmc <- pi_out$mean$pi
+    rho_mcmc <- lapply(1:(length(params$RU_starts) - 1), function(ru){
+      out <- sum(pi_mcmc[params$RU_vec[(params$RU_starts[ru] + 1):params$RU_starts[ru + 1]]])
+    }) %>% unlist()
+
+    dummy_mix <- dplyr::sample_n(reference, nrow(reference), replace = TRUE)
+    dummy_mix$sample_type <- rep("mixture", nrow(reference))
+
+    boot_out <- bootstrap_rho(rho_est = rho_mcmc,
+                            pi_est = pi_mcmc,
+                            D = D,
+                            gen_start_col = gen_start_col)
+    pi_mcmc$mean$bootstrap <- boot_out
+    pi_mcmc
+  }
   if(method == "MCMC") {
     out <- gsi_mcmc_1(SL = SL,
                       Pi_init = rep(1 / params$C, params$C),
@@ -249,10 +271,10 @@ Hasselman_simulation_pipeline <- function(reference, gen_start_col, seed = 5) {
     dummy_mix <- dplyr::sample_n(reference, 1000, replace = TRUE)
     dummy_mix$sample_type <- rep("mixture", 1000)
 
-    pb_out <- bootstrap_rho(rho_est =rho_mcmc,
+    pb_out <- bootstrap_rho(rho_est = rho_mcmc,
                             pi_est = pi_mcmc,
                             D = rbind(reference, dummy_mix),
-                            gen_start_col = 15)
+                            gen_start_col = gen_start_col)
 
     print(x)
 
@@ -489,16 +511,16 @@ bias_comparison <- function(reference, gen_start_col, seed = 5) {
     #split the dataset into "reference" and "mixture", with mixture having the above rho
     drawn <- mixture_draw(reference, rhos = rho, N = 100, min_remaining = .005)
     # get estimates of rho from standard mcmc
-    pi_mcmc <- ref_and_mix_pipeline(drawn$reference, drawn$mixture, 15, method = "MCMC")$mean$pi
+    pi_mcmc <- ref_and_mix_pipeline(drawn$reference, drawn$mixture, gen_start_col, method = "MCMC")$mean$pi
     rho_mcmc <- lapply(levels(reference$repunit), function(ru){
       out <- sum(pi_mcmc[repidxs$coll_int[repidxs$repunit == ru]])
     }) %>% unlist()
     # and from finagled mcmc
-    rho_bh <- ref_and_mix_pipeline(drawn$reference, drawn$mixture, 15, method = "BH")$mean$rho
+    rho_bh <- ref_and_mix_pipeline(drawn$reference, drawn$mixture, gen_start_col, method = "BH")$mean$rho
 
     # finally, get a bootstrap-corrected rho estimate
     delin <- rbind(drawn$reference, drawn$mixture)
-    rho_pb <- bootstrap_rho(rho_mcmc, pi_mcmc, delin, 15)
+    rho_pb <- bootstrap_rho(rho_mcmc, pi_mcmc, delin, gen_start_col)
 
     out <- list("true_rho" = rho, "rho_mcmc" = rho_mcmc, "rho_bh" = rho_bh, "rho_pb" = rho_pb)
   })

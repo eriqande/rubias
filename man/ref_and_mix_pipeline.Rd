@@ -16,30 +16,32 @@ Does not need "sample_type" column, and will be overwritten if provided}
 
 \item{gen_start_col}{the first column of genetic data in both data frames}
 
-\item{method}{a choice between "EM", "MCMC", and "BH" methods for estimating mixture proportions}
+\item{method}{a choice between "MCMC", "PB" and "BH" methods for estimating mixture proportions}
 }
 \value{
 \code{mix_proportion_pipeline} returns the standard output of the chosen
-mixing proportion estimation method (always a list)
+mixing proportion estimation method (always a list). For method "PB",
+returns the standard MCMC results, as well as the bootstrap-corrected
+means under \code{$mean$bootstrap}
 }
 \description{
 Takes a mixture and reference dataframe of two-column genetic data, and a
-desired method of estimation for the population mixture proportions (EM, MCMC, or BH MCMC)
+desired method of estimation for the population mixture proportions (MCMC, PB, or BH MCMC)
 Returns the output of the chosen estimation method
 }
 \details{
-"EM" estimates mixing proportions and individual posterior
-probabilities of assignment through a simple expectation maximization,
-while "MCMC" does the same with Markov-chain Monte Carlo, and "BH" uses the misassignment-scaled,
-hierarchial MCMC.
+"MCMC" estimates mixing proportions and individual posterior
+probabilities of assignment through Markov-chain Monte Carlo,
+while "PB" does the same with a parametric bootstrapping correction,
+and "BH" uses the misassignment-scaled, hierarchial MCMC.
 }
 \examples{
 reference <- alewife[,-1]
 mixture <- alewife[,-1]
 gen_start_col <- 14
-bh <- mix_proportion_pipeline(reference, mixture, gen_start_col, method = "BH")
-mcmc <- mix_proportion_pipeline(reference, mixture, gen_start_col, method = "MCMC")
-em <- mix_proportion_pipeline(reference, mixture, gen_start_col, method = "EM")
+bh <- ref_and_mix_pipeline(reference, mixture, gen_start_col, method = "BH")
+mcmc <- ref_and_mix_pipeline(reference, mixture, gen_start_col, method = "MCMC")
+PB <- ref_and_mix_pipeline(reference, mixture, gen_start_col, method = "PB")
 
 }
 
