@@ -1,8 +1,8 @@
 # rubias --- a package for bias correction in hierarchical GSI
 
-This is an R package designed to diagnose and correct a bias
-which appears in genetic stock identification, when mixture proportion
-estimates are desired for groups of populations (here called reporting units)
+This is an R package designed to diagnose and correct a bias recently 
+documented in genetic stock identification. The bias occurs when mixture 
+proportion estimates are desired for groups of populations (reporting units)
 and the number of populations within each reporting unit are uneven.
 
 In order to run C++ implementations of MCMC, rubias requires the package
