@@ -57,7 +57,7 @@ to sum to 1.
 stock identification functions for standard MCMC, hierarchical assignment-scaled MCMC,
 and a parametric bootstrapping-corrected mixture estimate, respectively. Ease of use is
 best achieved through \code{ref_and_mix_pipeline}, but see the documentation of the
-individual functions for information on trace sampling rates, burn-in, etc.
+individual functions for information on altering trace sampling rates, burn-in, etc.
 
 \code{avg_coll2correctRU} takes a scaled likihood matrix, along with population structure
 information contained in \code{tcf2param_list} output, and returns a matrix of the average

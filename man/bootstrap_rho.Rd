@@ -4,7 +4,7 @@
 \alias{bootstrap_rho}
 \title{Perform a parametric bootstrapping correction on an estimated rho vector}
 \usage{
-bootstrap_rho(rho_est, pi_est, D, gen_start_col)
+bootstrap_rho(rho_est, pi_est, D, gen_start_col, niter = 100)
 }
 \arguments{
 \item{rho_est}{the rho value previously estimated from MCMC GSI from the
@@ -20,10 +20,12 @@ and "indiv" columns}
 \item{gen_start_col}{the first column of genetic data in D. All columns after
 \code{gen_start_col} must be genetic data
 
-In parametric bootstrapping, 100 new mixture datasets are simulated by
+In parametric bootstrapping, \code{niter} new mixture datasets are simulated by
 individual from the reference with reporting unit proportions \code{rho_est},
 and the mean of their MCMC GSI outputs is used to calculate an average bias.
-This bias is subtracted from rho_est to give the output}
+This bias is subtracted from rho_est to give the output. The number of individuals
+in each simulated bootstrap dataset is equal to the number of "mixture" individuals
+in \code{D}.}
 }
 \value{
 \code{bootstrap_rho} returns a new rho value, corrected by parametric

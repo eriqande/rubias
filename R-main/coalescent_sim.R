@@ -67,7 +67,23 @@ rho50x$repunit <- rep(unique(reppy_frame$repunit), 50)
 
 rho_data <- rho50x %>%
   gather(key = "method", value = "Estimate", rho_mcmc:rho_pb)
+rho_data$repunit <- rep(c("Reporting Unit 1", "Reporting Unit 2", "Reporting Unit 3"), 150)
+rho_data$method <- rep(c("MCMC", "Bayes. Hierarch.", "Bootstrap"), each = 150)
+rho_data$method <- as.factor(rho_data$method)
+rho_data$method <- factor(rho_data$method, levels = levels(rho_data$method)[3:1])
+
+
+g <- ggplot(rho_data, aes(x = true_rho, y = Estimate, colour = repunit)) +
+  geom_point() +
+  facet_grid(method ~ repunit) +
+  scale_color_brewer(palette = "Set1") +
+  geom_abline(intercept = 0, slope = 1)
+print(g)
+
 rho_data$method <- rep(c("MCMC", "BH", "PB"), each = 150)
+rho_data$method <- as.factor(rho_data$method)
+rho_data$method <- factor(rho_data$method, levels = levels(rho_data$method)[c(2,3,1)])
+
 rho_dev <- rho_data %>%
   mutate(dev = (true_rho - Estimate)^2) %>%
   mutate(prop_bias = (Estimate-true_rho) / true_rho) %>%
@@ -75,18 +91,12 @@ rho_dev <- rho_data %>%
   group_by(repunit, method) %>%
   summarise(MSE = mean(dev), mean_prop_bias = mean(prop_bias), mean_bias = mean(bias))
 
-
-g <- ggplot(rho_data, aes(x = true_rho, y = Estimate, colour = repunit)) +
-  geom_point() +
-  facet_grid(method ~ repunit) +
-  geom_abline(intercept = 0, slope = 1)
-print(g)
-
 # the standard mean error of each method and reporting unit
 d <- ggplot(data = rho_dev, aes(x = method, y = MSE, fill = repunit)) +
   geom_bar(stat = "identity") +
   guides(fill = F) +
   theme(axis.title.x = element_blank()) +
+  scale_fill_brewer(palette = "Set1") +
   facet_wrap(~repunit)
 print(d)
 
@@ -95,6 +105,7 @@ print(d)
 prop.bias <- ggplot(data = rho_dev, aes(x = method, y = mean_prop_bias, fill = repunit)) +
   geom_bar(stat = "identity") +
   facet_wrap(~repunit) +
+  scale_fill_brewer(palette = "Set1") +
   guides(fill = F)
 print(prop.bias)
 
@@ -102,5 +113,6 @@ print(prop.bias)
 m.bias <- ggplot(data = rho_dev, aes(x = method, y = mean_bias, fill = repunit)) +
   geom_bar(stat = "identity") +
   guides(fill = F) +
+  scale_fill_brewer(palette = "Set1") +
   facet_wrap(~repunit)
 print(m.bias)
