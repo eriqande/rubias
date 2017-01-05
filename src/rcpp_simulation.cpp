@@ -181,16 +181,24 @@ NumericMatrix gprob_sim_ind(List par_list, IntegerVector sim_colls) {
 //' log-likelihood calculation.
 //'
 //' @param par_list genetic data converted to the param_list format by \code{tcf2param_list}
-//' @param sim_colls a vector length I of collections from which to sample the genotypes
-//' for individual i
-//' @param sim_missing a vector of length I of indices for individuals in I_list
-//' whose missing data should be copied for individual i
+//' @param sim_colls a vector; element i specifies the collection from which to sample
+//' the genotypes for individual i
+//' @param sim_missing a vector; element i specifies the index for the individual in
+//' params$I whose missing data should be copied for individual i
 //'
 //' @examples
-//' example(tcf2param_list)
-//' sim_colls <- sample(ale_par_list$C, 1070, replace = T)
-//' sim_miss <- sample(1070, 1070, replace = T)
-//' ale_sim_gprobs_miss <- gprob_sim_gc_missing(ale_par_list, sim_colls, sim_miss)
+//' # If one wanted to simulate the missing data patterns
+//' of a troublesome mixture dataset, one would run tcf2param_list,
+//' selecting samp_type = "mixture", then draw sim_miss from
+//' the mixture individual genotype list
+//'
+//' drawn <- mixture_draw(alewife, rhos = c(1/3, 1/3, 1/3),N = 100)
+//' ref <- drawn$reference
+//' mix <- drawn$mix
+//' params <- tcf2param_list(rbind(ref,mix), 15, samp_type = "mixture")
+//' sim_colls <- sample(params$C, 1070, replace = T)
+//' sim_miss <- sample(length(params$coll), 1070, replace = T)
+//' ale_sim_gprobs_miss <- gprob_sim_gc_missing(params, sim_colls, sim_miss)
 //' @export
 // [[Rcpp::export]]
 NumericMatrix gprob_sim_gc_missing(List par_list, IntegerVector sim_colls, IntegerVector sim_missing) {
