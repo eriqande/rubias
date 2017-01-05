@@ -4,7 +4,7 @@
 \alias{bias_comparison}
 \title{Test the effects of bias corrections on a reference dataset through cross-validation}
 \usage{
-bias_comparison(reference, gen_start_col, seed = 10)
+bias_comparison(reference, gen_start_col, seed = 5)
 }
 \arguments{
 \item{reference}{a two-column format genetic dataset, with a "repunit" column

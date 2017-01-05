@@ -146,15 +146,15 @@ out
 #' both with alpha parameters = 1.5. The third is a vector of origins for
 #' simulated individuals, sampled from the collections with probabilities = omega
 #' @export
-Hasselman_sim_colls <- function(RU_starts, RU_vec) {
-  rho <- gtools::rdirichlet(1, c(1.5, 1.5, 1.5))
+Hasselman_sim_colls <- function(RU_starts, RU_vec, size = 100) {
+  rho <- gtools::rdirichlet(1, rep(1.5, length(RU_starts) - 1))
   omega <- numeric(length(RU_vec))
   omega <- sapply(1:(length(RU_starts)-1), function(x) {
     omega[RU_vec[(RU_starts[x] + 1):RU_starts[x+1]]] <- gtools::rdirichlet(1, rep(1.5, RU_starts[x + 1] - RU_starts[x])) * rho[x]
   }) %>%
     cbind() %>%
     unlist()
-  sim_coll = sample(RU_vec, size = 1000, replace = T, prob = omega)
+  sim_coll = sample(RU_vec, size = size, replace = T, prob = omega)
   out <- list(rho = rho, omega = omega, sim_coll = sim_coll)
 }
 
@@ -191,6 +191,7 @@ Hasselman_simulation_pipeline <- function(reference, gen_start_col, seed = 5) {
   ref_SL <- apply(exp(ref_logL), 2, function(x) x/sum(x))
   avg_correct <- avg_coll2correctRU(ref_SL, params$coll, params$RU_starts, params$RU_vec)
   set.seed(seed)
+
   # generate 50 sets of individuals to simulate, based on the methods in Hasselman et al. 2015
   sim_colls <- lapply(1:50, function(x) Hasselman_sim_colls(params$RU_starts, params$RU_vec))
   sim_coll_list <- lapply(1:50, function(x) sim_colls[[x]]$sim_coll)
