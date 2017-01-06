@@ -5,7 +5,7 @@
 \title{Generate a random population structure and mixture sample, as in
 Hasselman \emph{et al.} 2015}
 \usage{
-Hasselman_sim_colls(RU_starts, RU_vec)
+Hasselman_sim_colls(RU_starts, RU_vec, size = 100)
 }
 \arguments{
 \item{RU_starts}{a vector delineating the reporting units in \code{RU_vec};

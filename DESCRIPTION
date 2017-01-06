@@ -8,6 +8,7 @@ Description: More about what it does (maybe more than one line)
 License: What license is it under?
 LazyData: TRUE
 Imports:
+    gtools,
     Rcpp (>= 0.12.5)
 LinkingTo: Rcpp
 RoxygenNote: 5.0.1
