@@ -4,7 +4,9 @@
 \alias{ref_and_mix_pipeline}
 \title{Estimate mixing proportions from reference and mixture datasets}
 \usage{
-ref_and_mix_pipeline(reference, mixture, gen_start_col, method = "MCMC")
+ref_and_mix_pipeline(reference, mixture, gen_start_col, method = "MCMC",
+  reps = 2000, burn_in = 100, sample_int_Pi = 0, sample_int_PofZ = 0,
+  sample_int_omega = 0, sample_int_rho = 0, sample_int_PofR = 0)
 }
 \arguments{
 \item{reference}{a dataframe of two-column genetic format data, proceeded by "repunit", "collection",
@@ -16,30 +18,55 @@ Does not need "sample_type" column, and will be overwritten if provided}
 
 \item{gen_start_col}{the first column of genetic data in both data frames}
 
-\item{method}{a choice between "EM", "MCMC", and "BH" methods for estimating mixture proportions}
+\item{method}{a choice between "MCMC", "PB" and "BH" methods for estimating mixture proportions}
+
+\item{reps}{the number of iterations to be performed in MCMC}
+
+\item{burn_in}{how many reps to discard in the beginning of MCMC when doing the mean calculation.
+They will still be returned in the traces if desired.}
+
+\item{sample_int_Pi}{the number of reps between samples being taken for pi traces. If 0
+no traces are taken. Only used in methods "MCMC" and "PB".}
+
+\item{sample_int_PofZ}{the number of reps between samples being taken for the posterior
+traces of each individual's collection of origin. If 0 no trace samples are taken.
+Used in all methods}
+
+\item{sample_int_omega}{the number of reps between samples being taken for
+collection proportion traces. If 0 no traces are taken. Only used in method "BH"}
+
+\item{sample_int_rho}{the number of reps between samples being taken for
+reporting unit proportion  traces. If 0 no traces are taken. Only used in method "BH"}
+
+\item{sample_int_PofR}{the number of reps between samples being taken for the posterior
+traces of each individual's reporting unit of origin. If 0 no trace samples are taken.
+Only used in method "BH".}
 }
 \value{
 \code{mix_proportion_pipeline} returns the standard output of the chosen
-mixing proportion estimation method (always a list)
+mixing proportion estimation method (always a list). For method "PB",
+returns the standard MCMC results, as well as the bootstrap-corrected
+collection proportions under \code{$mean$bootstrap}
 }
 \description{
 Takes a mixture and reference dataframe of two-column genetic data, and a
-desired method of estimation for the population mixture proportions (EM, MCMC, or BH MCMC)
+desired method of estimation for the population mixture proportions (MCMC, PB, or BH MCMC)
 Returns the output of the chosen estimation method
 }
 \details{
-"EM" estimates mixing proportions and individual posterior
-probabilities of assignment through a simple expectation maximization,
-while "MCMC" does the same with Markov-chain Monte Carlo, and "BH" uses the misassignment-scaled,
-hierarchial MCMC.
+"MCMC" estimates mixing proportions and individual posterior
+probabilities of assignment through Markov-chain Monte Carlo,
+while "PB" does the same with a parametric bootstrapping correction,
+and "BH" uses the misassignment-scaled, hierarchial MCMC.
+All methods use a uniform 1/(# collections or RUs) prior for pi/omega and rho.
 }
 \examples{
 reference <- alewife[,-1]
 mixture <- alewife[,-1]
 gen_start_col <- 14
-bh <- mix_proportion_pipeline(reference, mixture, gen_start_col, method = "BH")
-mcmc <- mix_proportion_pipeline(reference, mixture, gen_start_col, method = "MCMC")
-em <- mix_proportion_pipeline(reference, mixture, gen_start_col, method = "EM")
+bh <- ref_and_mix_pipeline(reference, mixture, gen_start_col, method = "BH")
+mcmc <- ref_and_mix_pipeline(reference, mixture, gen_start_col, method = "MCMC")
+pb <- ref_and_mix_pipeline(reference, mixture, gen_start_col, method = "PB")
 
 }
 

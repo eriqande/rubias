@@ -6,16 +6,75 @@
 \alias{rubias-package}
 \title{rubias: A package for bias correction in hierarchical GSI}
 \description{
-In order to document and counteract the bias
+In order to document and counteract the bias presented by uneven hierarchical structure
+in genetic stock identification (GSI), this function takes input reference and mixture
+genetic data, and returns GSI results with and without bias correction options. Tests are
+also included to assess the necessity and validity of correction for a given dataset.
 }
 \details{
 GSI is often confronted with a hierarchical population structure (i.e. genetic reference
 sets collected at one level, but with sample proportion estimates needed for a higher
-level made up of groups of collections), conventional GSI obtains higher-level
+level made up of groups of collections). Conventional GSI obtains higher-level mixture
+proportions by summing the lower-level proportions; however, this may lead to bias when
+reporting units contain different numbers of populations, and misassignment inordinately
+favors those reporting units with higher numbers of collections.
 }
-\section{rubias functions}{
+\section{the \code{rubias} functions}{
 
-The rubias functions ...
+
+The following functions are wrappers, designed for user-friendly input and useful output:
+
+\code{ref_and_mix_pipeline} is used to perform a single case of genetic stock identification.
+It takes independent and mixture datasets (with identical structure) and a choice of
+method, and returns GSI estimates of the mixture proportions and posterior probabilities
+of assignment for the mixture dataset. Options include standard MCMC, bootstrap bias
+correction, and hierarchical assignment-scaled MCMC.
+
+\code{Hasselman_simulation_pipeline} submits a provided reference dataset to the validation
+methods used in Hasselman et al. (2015). Populations are simulated from the reference using
+Dirichlet-random mixture proportions, and it returns diagnostic plots and information
+after running standard MCMC, parametric bootstrapping, and hierarchical MCMC.
+
+\code{bias_comparison} runs \code{mixture_draw} with fifty Dirichlet random mixture
+proportions, and returns diagnostic plots and information after running standard MCMC,
+parametric bootstrapping, and hierarchical MCMC.
+
+The following functions are internal:
+
+\code{tcf2param_list} takes two-column format genetic data
+(see \code{alewife} example datset) and returns the information necessary for other
+functions in the package.
+
+\code{gprob_sim_gc}, \code{gprob_sim_ind}, and \code{gprob_sim_ind}, simulate genotype
+log-likelihoods from a reference param_list by gene copy, individual, and by gene copy
+with missing data patterns from individuals, respectively.
+
+\code{geno_logL} calculates the genotype log-likelihoods of a given dataset; for use in
+MCMC, this output must be converted to scaled likelihoods by exponentiating and normalizing
+to sum to 1.
+
+\code{gsi_mcmc_1}, \code{gsi_mcmc_2}, and \code{bootstrap_rho} are the underlying genetic
+stock identification functions for standard MCMC, hierarchical assignment-scaled MCMC,
+and a parametric bootstrapping-corrected mixture estimate, respectively. Ease of use is
+best achieved through \code{ref_and_mix_pipeline}, but see the documentation of the
+individual functions for information on altering trace sampling rates, burn-in, etc.
+
+\code{avg_coll2correctRU} takes a scaled likihood matrix, along with population structure
+information contained in \code{tcf2param_list} output, and returns a matrix of the average
+rates of assignment from each population to its reporting unit; used in the "BH"
+heuristic bias correction method.
+
+\code{mixture_draw} splits a dataset into a mixture and reference dataset,
+with the mixture having specified size and reporting unit or collection proportions,
+for use in cross-validation. \emph{Note}: in the current implmentation,
+both sample size and proportions of the mixture set may not exactly match input,
+due to rounding.
+}
+
+\section{genetic data format}{
+
+If not provided as factors, the "collection" and "repunit" will be converted to factors,
+ordered by their order of appearance, for all functions in the package.
 }
 
 \section{example data}{
