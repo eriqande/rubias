@@ -14,8 +14,7 @@
 #' @param alpha_collection The dirichlet parameter for simulating proportions of collections within reporting units. Default = 1.5
 #'
 #' @return a list with three elements.
-#' The first two are a rho vector and an omega vector, respectively,
-#' both with alpha parameters = 1.5. The third is a vector of origins for
+#' The first two are a rho vector and an omega vector, respectively. The third is a vector of origins for
 #' simulated individuals, sampled from the collections with probabilities = omega
 #' @export
 simulate_random_samples <- function(RU_starts, RU_vec, size = 100, alpha_repunit = 1.5, alpha_collection = 1.5) {

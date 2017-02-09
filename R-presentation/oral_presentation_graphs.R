@@ -6,28 +6,42 @@ Hass <- Hasselman_simulation_pipeline(alewife, 15)
 
 rho_data <- Hass[[1]]
 
+
 rho_data$Estimate <- rho_data$rho_est
-rho_data$Method <- rep(c("BH","MCMC","PB"), each = 150)
-g <- ggplot2::ggplot(rho_data, ggplot2::aes(x = true_rho, y = Estimate, colour = repunit)) +
+rho_data$Repunit <- rep(c("Mid-Atlantic", "N New England", "S New England"), 150)
+rho_data$Repunit <- as.factor(rho_data$Repunit)
+rho_data$Repunit <- factor(rho_data$Repunit, levels = levels(rho_data$Repunit)[c(2,3,1)])
+rho_data$Method <- rep(c("Bayes. Hierarch", "MCMC", "Bootstrap"), each = 150)
+rho_data$Method <- as.factor(rho_data$Method)
+rho_data$Method <- factor(rho_data$Method, levels = levels(rho_data$Method)[3:1])
+
+g <- ggplot2::ggplot(rho_data, ggplot2::aes(x = true_rho, y = Estimate, colour = Repunit)) +
   ggplot2::geom_point() +
-  ggplot2::facet_grid(Method ~ repunit) +
+  ggplot2::facet_grid(Method ~ Repunit) +
+  scale_color_brewer(palette = "Set1") +
   ggplot2::geom_abline(intercept = 0, slope = 1)
 print(g)
 
 rho_dev <- Hass[[2]]
-rho_dev$Method <- rep(c("BH", "MCMC", "PB"), 3)
-rho_dev$repunit <- factor(rho_dev$repunit, levels = unique(alewife$repunit))
+rho_dev$Method <- rep(c("BH", "MCMC", "PB"), 3) %>%
+  as.factor()
+rho_dev$Method <- factor(rho_dev$Method, levels = levels(rho_dev$Method)[c(2,3,1)])
+rho_dev$repunit <- rep(c("N New England", "S New England", "Mid-Atlantic"), each = 3) %>%
+  as.factor()
+rho_dev$repunit <- factor(rho_dev$repunit, levels = levels(rho_dev$repunit)[c(2,3,1)])
 
 d <- ggplot2::ggplot(data = rho_dev, ggplot2::aes(x = Method, y = MSE, fill = repunit)) +
   ggplot2::geom_bar(stat = "identity") +
   ggplot2::guides(fill = F) +
   ggplot2::theme(axis.title.x = ggplot2::element_blank()) +
+  scale_fill_brewer(palette = "Set1") +
   ggplot2::facet_wrap(~repunit)
 print(d)
 
 b <- ggplot2::ggplot(data = rho_dev, ggplot2::aes(x = Method, y = mean_bias, fill = repunit)) +
   ggplot2::geom_bar(stat = "identity") +
   ggplot2::guides(fill = F) +
+  scale_fill_brewer(palette = "Set1") +
   ggplot2::facet_wrap(~repunit)
 print(b)
 
@@ -42,27 +56,42 @@ rho50x$repunit <- rep(unique(alewife$repunit), 50)
 
 rho_data <- rho50x %>%
   tidyr::gather(key = "Method", value = "Estimate", rho_mcmc:rho_pb)
-rho_data$Method <- rep(c("MCMC", "BH", "PB"), each = 150)
-g <- ggplot2::ggplot(rho_data, ggplot2::aes(x = true_rho, y = Estimate, colour = repunit)) +
+rho_data$Repunit <- rep(c("N New England", "S New England", "Mid-Atlantic"), 150)
+rho_data$Repunit <- as.factor(rho_data$Repunit)
+rho_data$Repunit <- factor(rho_data$Repunit, levels = levels(rho_data$Repunit)[c(2,3,1)])
+rho_data$Method <- rep(c("MCMC", "Bayes. Hierarch", "Bootstrap"), each = 150)
+rho_data$Method <- as.factor(rho_data$Method)
+rho_data$Method <- factor(rho_data$Method, levels = levels(rho_data$Method)[3:1])
+
+g <- ggplot2::ggplot(rho_data, ggplot2::aes(x = true_rho, y = Estimate, colour = Repunit)) +
   ggplot2::geom_point() +
-  ggplot2::facet_grid(Method ~ repunit) +
+  ggplot2::facet_grid(Method ~ Repunit) +
+  scale_color_brewer(palette = "Set1") +
   ggplot2::geom_abline(intercept = 0, slope = 1)
 print(g)
 
 
 rho_dev <- boot$rho_dev
-rho_dev$Method <- rep(c("BH", "MCMC", "PB"), 3)
+rho_dev$Method <- rep(c("BH", "MCMC", "PB"), 3) %>%
+  as.factor()
+rho_dev$Method <- factor(rho_dev$Method, levels = levels(rho_dev$Method)[c(2,3,1)])
+rho_dev$repunit <- rep(c("N New England", "S New England", "Mid-Atlantic"), each = 3) %>%
+  as.factor()
+rho_dev$repunit <- factor(rho_dev$repunit, levels = levels(rho_dev$repunit)[c(2,3,1)])
+
 rho_dev$MSE <- rho_dev$mse
 d <- ggplot2::ggplot(data = rho_dev, ggplot2::aes(x = Method, y = MSE, fill = repunit)) +
   ggplot2::geom_bar(stat = "identity") +
   ggplot2::guides(fill = F) +
   ggplot2::theme(axis.title.x = ggplot2::element_blank()) +
+  scale_fill_brewer(palette = "Set1") +
   ggplot2::facet_wrap(~repunit)
 print(d)
 
 b <- ggplot2::ggplot(data = rho_dev, ggplot2::aes(x = Method, y = mean_bias, fill = repunit)) +
   ggplot2::geom_bar(stat = "identity") +
   ggplot2::guides(fill = F) +
+  scale_fill_brewer(palette = "Set1") +
   ggplot2::facet_wrap(~repunit)
 print(b)
 
