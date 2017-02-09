@@ -1,7 +1,7 @@
 library(ggplot2)
 library(tidyr)
 library(dplyr)
-
+load("~/R/rubias/cjfas_data.RData")
 ################################# Hasselman Recreation Graphs
 
 
@@ -58,7 +58,7 @@ rho50x$repunit <- rep(unique(alewife$repunit), 50)
 
 rho_data <- rho50x %>%
   tidyr::gather(key = "Method", value = "Estimate", rho_mcmc:rho_pb)
-rho_data$Method <- rep(c("MCMC", "BH", "PB"), each = 200)
+rho_data$Method <- rep(c("MCMC", "BH", "PB"), each = 150)
 rho_data <- rho_data[-(151:300),]
 g <- ggplot2::ggplot(rho_data, ggplot2::aes(x = true_rho, y = Estimate, colour = repunit)) +
   ggplot2::geom_point() +
@@ -110,7 +110,6 @@ print(g)
 
 rho_data$method <- rep(c("MCMC", "PB"), each = 150)
 rho_data$method <- as.factor(rho_data$method)
-rho_data$method <- factor(rho_data$method, levels = levels(rho_data$method)[c(2,3,1)])
 
 rho_dev <- rho_data %>%
   mutate(dev = (true_rho - Estimate)^2) %>%
@@ -137,3 +136,20 @@ m.bias <- ggplot(data = rho_dev, aes(x = method, y = mean_bias, fill = repunit))
   scale_fill_brewer(palette = "Set1") +
   facet_wrap(~repunit)
 print(m.bias)
+
+######################## Graph depicting effects of Nc/P on the residuals
+coal_data <- coal_data %>% filter(method != "BH")
+coal_data$prop_diff <- (coal_data$Estimate - coal_data$true_rho) / coal_data$true_rho
+coal_data$diff <- (coal_data$Estimate - coal_data$true_rho)
+coal_data$Np_C <- rep(c(2/17, 3/17, 12/17), 100)
+coal_data$Np_diff <- coal_data$Np_C - coal_data$true_rho
+
+cbp <- ggplot2::ggplot(coal_data, aes(x = Np_diff, y = diff)) +
+  geom_point() +
+  facet_grid(method ~ .) +
+  geom_abline(intercept = 0, slope = 0, linetype = "dashed") +
+  geom_vline(xintercept = 0, linetype = "dashed") +
+  geom_smooth(method = "lm", colour = "red", level = 0) +
+  labs(x= expression(over(N[C],P) - rho), y = expression(Residual~(hat(rho)-rho))) +
+  scale_color_brewer(palette = "Set1")
+print(cbp)
