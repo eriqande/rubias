@@ -122,7 +122,7 @@ reference_allele_counts <- function(D, pop_level = "collection") {
 
     # counts of each allele paired
     pop_tab <- suppressMessages(dplyr::left_join(lefties, ref_col_alle)) %>%
-      dplyr::select(collection, everything()) %>%
+      dplyr::select(collection, dplyr::everything()) %>%
       dplyr::arrange(collection, locus, allele)
 
     pop_tab$counts[is.na(pop_tab$counts)] <- 0
@@ -144,7 +144,7 @@ reference_allele_counts <- function(D, pop_level = "collection") {
 
     # counts of each allele paired
     pop_tab <- suppressMessages(dplyr::left_join(lefties, ref_col_alle)) %>%
-      dplyr::select(repunit, everything()) %>%
+      dplyr::select(repunit, dplyr::everything()) %>%
       dplyr::arrange(repunit, locus, allele)
 
     pop_tab$counts[is.na(pop_tab$counts)] <- 0
