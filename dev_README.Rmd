@@ -1,0 +1,57 @@
+---
+title: "Development README for rubias"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: 
+  github_document:
+    toc: true
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, echo = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "dev-readme-figs/"
+)
+```
+
+
+THESE HAVE BEEN SUPERSEDED BY OTHER STUFF.
+
+
+These are just some notes Eric is keeping as he overhauls a few things and writes 
+some functions.
+
+## Making a function that will do the mixed stock analysis
+
+We need a high-level function that users can use to simply do an analysis given
+a large data set.  This will be in `high-level-functions` and it will be called
+`do_gsi()`.  
+
+The input is a data frame that has columns `sample_type`, `repunit`,   `collection`,  and 
+`indiv`.  `repunit` and `collection` have to be factors.  
+
+`sample_type` has to be "mixture" or "reference".  
+
+There can be different collections of mixtures, and they will all be analyzed separately, all
+in one big loop, with all the results coming out in a big data frame.  
+
+To make a data set that is appropriate for this, I bunged `chinook` and `chinook_mix` together, after
+arbitrarily splitting the `chinook_mix` into three different categories "in_river", "inner_waters", and "outer_waters".
+
+The tricky thing here is that we want to have the collections be factors, but I'm not sure yet what happens if
+we add the mixture collections to those levels....
+```{r, eval=FALSE}
+library(dplyr)
+mix_colls <- c("in_river", "inner_waters", "outer_waters")
+cmix <- chinook_mix %>% 
+  mutate(collection = factor(sample(mix_colls, size = n(), replace = TRUE, prob = c(1,2,3) ), 
+                             levels = c(levels(chinook$collection), mix_colls)))
+cnew <- chinook %>%
+  mutate(collection = factor(collection, levels = c(levels(chinook$collection), mix_colls)))
+
+chinook_all <- bind_rows(cnew, cmix)
+
+save(chinook_all, file = "data/chinook_all.rda", compress = "xz")
+```

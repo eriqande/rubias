@@ -29,6 +29,29 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// gsi_mcmc_bh
+List gsi_mcmc_bh(NumericMatrix SL, NumericVector Rho_init, NumericVector Omega_init, NumericVector lambda_rho, NumericVector lambda_omega, int reps, int burn_in, int sample_int_omega, int sample_int_rho, int sample_int_PofZ, int sample_int_PofR, IntegerVector RU_starts, IntegerVector RU_vec);
+RcppExport SEXP rubias_gsi_mcmc_bh(SEXP SLSEXP, SEXP Rho_initSEXP, SEXP Omega_initSEXP, SEXP lambda_rhoSEXP, SEXP lambda_omegaSEXP, SEXP repsSEXP, SEXP burn_inSEXP, SEXP sample_int_omegaSEXP, SEXP sample_int_rhoSEXP, SEXP sample_int_PofZSEXP, SEXP sample_int_PofRSEXP, SEXP RU_startsSEXP, SEXP RU_vecSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type SL(SLSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type Rho_init(Rho_initSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type Omega_init(Omega_initSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type lambda_rho(lambda_rhoSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type lambda_omega(lambda_omegaSEXP);
+    Rcpp::traits::input_parameter< int >::type reps(repsSEXP);
+    Rcpp::traits::input_parameter< int >::type burn_in(burn_inSEXP);
+    Rcpp::traits::input_parameter< int >::type sample_int_omega(sample_int_omegaSEXP);
+    Rcpp::traits::input_parameter< int >::type sample_int_rho(sample_int_rhoSEXP);
+    Rcpp::traits::input_parameter< int >::type sample_int_PofZ(sample_int_PofZSEXP);
+    Rcpp::traits::input_parameter< int >::type sample_int_PofR(sample_int_PofRSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type RU_starts(RU_startsSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type RU_vec(RU_vecSEXP);
+    rcpp_result_gen = Rcpp::wrap(gsi_mcmc_bh(SL, Rho_init, Omega_init, lambda_rho, lambda_omega, reps, burn_in, sample_int_omega, sample_int_rho, sample_int_PofZ, sample_int_PofR, RU_starts, RU_vec));
+    return rcpp_result_gen;
+END_RCPP
+}
 // geno_logL
 NumericMatrix geno_logL(List par_list);
 RcppExport SEXP rubias_geno_logL(SEXP par_listSEXP) {

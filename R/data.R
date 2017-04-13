@@ -77,3 +77,13 @@ NULL
 #' @docType data
 #' @name chinook_mix
 NULL
+
+
+#' SNP data from Chinook reference and mixtures mixed together
+#'
+#' gotta say more
+#' @source Southwest Fisheries Science Center, Santa Cruz, CA
+#' @docType data
+#' @name chinook_all
+#' NULL
+

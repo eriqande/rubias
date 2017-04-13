@@ -63,6 +63,66 @@ gsi_mcmc_2 <- function(SL, Rho_init, Omega_init, lambda_rho, lambda_omega, reps,
     .Call('rubias_gsi_mcmc_2', PACKAGE = 'rubias', SL, Rho_init, Omega_init, lambda_rho, lambda_omega, reps, burn_in, sample_int_omega, sample_int_rho, sample_int_PofZ, sample_int_PofR, RU_starts, RU_vec, coll2correctRU)
 }
 
+#' MCMC from a hierarchical GSI model for rho, pi, and the individual posterior probabilities,
+#' with misassignment-scaling
+#'
+#' This is a mild re-write.  Eric wanted to remove the coll2correctRU scaling.
+#'
+#' Using a matrix of scaled likelihoods, this function samples the posteriors and values of rho,
+#' then samples values of omega scaled by their corresponding rho and the inverse of their
+#' average rate of correct assignment.  It returns the output in a list.
+#'
+#'
+#' @param SL  matrix of the scaled likelihoods.  This is should have values for each
+#' individual in a column (going down in the rows are values for different populations).
+#' @param Omega_init  Starting value for the omega (collection mixing proportion) vector.
+#' @param Rho_init Starting value for the rho (reporting unit mixing proportion) vector.
+#' @param lambda_rho the prior to be added to the reporting unit allocations, in order to
+#' generate pseudo-count Dirichlet parameters for the simulation of a new rho vector
+#' @param lambda_omega the prior to be added to the collection allocations, in order to
+#' generate pseudo-count Dirichlet parameters for the simulation of a new omega vector
+#' @param reps total number of reps (sweeps) to do.
+#' @param burn_in how many reps to discard in the beginning when doing the mean calculation.
+#' They will still be returned in the traces if desired
+#' @param sample_int_omega the number of reps between samples being taken for omega
+#' traces. If 0 no trace samples are taken.
+#' @param sample_int_rho the number of reps between samples being taken for rho.
+#' If 0 no trace samples are taken.
+#' @param sample_int_PofZ the number of reps between samples being taken for the posterior
+#' traces of each individual's collection of origin. If 0 no trace samples are taken.
+#' @param sample_int_PofR the number of reps between samples being taken for the posterior
+#' traces of each individual's reporting unit of origin. If 0 no trace samples are taken.
+#' @param RU_starts a vector of length(rho.size()) + 1, where each element delineates
+#' the starting index of a reporting unit in RU_vec (last element is total # collections)
+#' @param RU_vec a vector of collection indices, grouped by reporting unit, with groups
+#' delineated in RU_starts
+#'
+#' @examples
+#' params <- tcf2param_list(alewife, 15)
+#' logl <- geno_logL(params)
+#' SL <- apply(exp(logl), 2, function(x) x/sum(x))
+#' lambda_omega <- rep(1/params$C, params$C)
+#' lambda_rho <- rep(1/(length(params$RU_starts)-1), length(params$RU_starts)-1 )
+#' test_bh_mcmc <- gsi_mcmc_bh(SL, lambda_rho, lambda_omega, lambda_rho, lambda_omega, 10000, 2500, 50, 50, 50, 50, params$RU_starts, params$RU_vec, avg_correct)
+#'
+#' @return \code{gsi_mcmc_2} returns a nested list of MCMC results.
+#'
+#' \code{$mean} records the mean
+#' sampled values for rho and omega in vectors, as well as a matrix of the posterior probability of
+#' assignment for every in individual (column) to a collection (PofZ, rows) or reporting unit (PofR, rows)
+#'
+#' \code{$sd} records the standard deviations for the same values. Sampling for both \code{sd}
+#' and \code{mean} are only begun after the burn-in period.
+#'
+#' \code{$trace} is a list, with each element being a list of samples for the relevant variable
+#' (rho, omega, PofZ, PofR) taken at the chosen sampling interval. If the sampling interval for
+#' any parameter = 0, that list is empty.
+#'
+#' @export
+gsi_mcmc_bh <- function(SL, Rho_init, Omega_init, lambda_rho, lambda_omega, reps, burn_in, sample_int_omega, sample_int_rho, sample_int_PofZ, sample_int_PofR, RU_starts, RU_vec) {
+    .Call('rubias_gsi_mcmc_bh', PACKAGE = 'rubias', SL, Rho_init, Omega_init, lambda_rho, lambda_omega, reps, burn_in, sample_int_omega, sample_int_rho, sample_int_PofZ, sample_int_PofR, RU_starts, RU_vec)
+}
+
 #' Calculate a matrix of genotype log-likelihoods for a genetic dataset
 #'
 #' Takes a list of key parameters from a genetic dataset, and calculates

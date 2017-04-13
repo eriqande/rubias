@@ -34,7 +34,7 @@ MCMC.
 This is hard-wired at the moment to do something like Hasselman et al.
 }
 \examples{
-ale_dev <- Hasselman_simulation_pipeline(alewife, 15)
+ale_dev <- simulate_and_assess_reference(alewife, 15)
 
 }
 

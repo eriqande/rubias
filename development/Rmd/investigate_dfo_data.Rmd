@@ -1,0 +1,96 @@
+---
+title: "Trying out DFO's data"
+output: 
+  html_notebook:
+    toc: true
+---
+
+
+```{r setup, include=FALSE}
+# set the working directory always to the project directory (one level up)
+knitr::opts_knit$set(root.dir = normalizePath(rprojroot::find_rstudio_root_file())) 
+```
+
+libraries:
+```{r load-libs}
+library(tidyverse)
+library(rubias)
+library(stringr)
+```
+## Introduction
+
+The guys at DFO have been using GSI_SIM to run some tests on a big data set of theirs.
+This seemed like it would be a great chance to squash their data into rubias to see how 
+it works.  Huge baseline with 28,000 individuals and 302 SNPs...
+
+## Getting Data into R
+
+Just for our records (i.e. these chunks are not set to evaluate), the data are in a GSI_SIM file, which I have turned into a space-delimited file 
+that will be appropriate for `rubias` like so:
+```{sh crunch-it, eval=FALSE}
+# in: /Users/eriq/Downloads/mco_Apr6
+le2unix bco_GSI_SIM_Mar_31_2017.txt | awk '
+  BEGIN {printf("sample_type repunit collection indiv")} 
+  NF==1 {printf(" %s %s.1", $1, $1);} 
+  $1=="POP" {if(go==0) printf("\n"); go=1; pop=$2; next;} 
+  NF>100 {printf("reference lumped %s %s", pop, $1); for(i=2;i<=NF;i++) printf(" %s", $i); printf("\n");}
+'  > bco.txt 
+```
+
+The read it in with readr and format it to be appropriate for rubias.   Note that we don't have
+any reporting unit designations from them, so we just put everyone into a single reporting
+unit called "lumped."  I'm curious to see if having only a sinble reporting unit breaks anything.
+
+After reading it we compress it into an RDS file that only takes up 2.4 Mb.  Way better than
+the 35 Mb text file format it was before.
+```{r read-it, eval=FALSE}
+bco <- read_delim("~/Downloads/mco_Apr6/bco.txt", delim = " ", progress = FALSE, na = "0") %>%
+  mutate(repunit = factor(repunit, levels = unique(repunit)),
+         collection = factor(collection, levels = unique(collection)))
+
+# save it into development/data
+saveRDS(bco, file = "development/data/bco_baseline.rds", compress = "xz")
+```
+
+Now we can just read that into R easily:
+```{r really-read-it}
+bco <- readRDS("development/data/bco_baseline.rds")
+```
+As it turns out, I think that having a single reporting unit does break things.  So, for now, I will
+just arbitrarily break it into two (A-M) and (N-Z).
+```{r break-lumps}
+bco2 <- bco %>%
+  mutate(repunit = ifelse(str_detect(collection, "^[A-M]"), "first", "second")) %>%
+  mutate(repunit = factor(repunit))
+```
+
+## Running Some Simulations
+
+We will set `alpha_collection` to 0.01 which gives us about 4 to 6 populations with 
+a fair number of individuals in it for each mixture (the rest are typically 0).  If
+we do 600 of these, then each population should have a chance to have appreciable number
+at least a few times.   We need to write a simulation function that we have more control over!
+
+```{r big-set-o-sims}
+big_ugly <- simulate_and_assess_reference(reference = bco2, 
+                                          gen_start_col = 5, 
+                                          reps = 600, 
+                                          mixsize = 100, 
+                                          seed = 5,
+                                          alpha_repunit = 100, 
+                                          alpha_collection = 0.01)
+```
+
+## Plot those simulations
+
+We can make a big ol' bunch of scatterplots like this:
+```{r make-scatters}
+g <- ggplot(big_ugly, aes(x = n/100, y = post_mean)) + 
+  geom_point() +
+  geom_abline(intercept = 0, slope = 1, linetype = "dashed", colour = "blue") + 
+  facet_wrap(~collection, ncol = 12)
+
+ggsave(g, filename = "scatters.pdf", width = 15, height = 40)
+
+
+```
