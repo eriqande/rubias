@@ -4,7 +4,8 @@
 \alias{bias_comparison}
 \title{Test the effects of bias corrections on a reference dataset through cross-validation}
 \usage{
-bias_comparison(reference, gen_start_col, seed = 5)
+bias_comparison(reference, gen_start_col, seed = 5, nreps = 50,
+  mixsize = 100)
 }
 \arguments{
 \item{reference}{a two-column format genetic dataset, with a "repunit" column
@@ -17,6 +18,10 @@ All columns should be genetic format following this column, and gene copies from
 same locus should be adjacent}
 
 \item{seed}{the random seed for simulations}
+
+\item{nreps}{The number of reps to do.}
+
+\item{mixsize}{The size of each simulated mixture sample.}
 }
 \value{
 \code{bias_comparison} returns a list; the first element is

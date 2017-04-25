@@ -33,11 +33,13 @@ correction, and hierarchical assignment-scaled MCMC.
 \code{\link{Hasselman_simulation_pipeline}} submits a provided reference dataset to the validation
 methods used in Hasselman et al. (2015). Populations are simulated from the reference using
 Dirichlet-random mixture proportions, and it returns diagnostic plots and information
-after running standard MCMC, parametric bootstrapping, and hierarchical MCMC.
+after running standard MCMC, parametric bootstrapping, and hierarchical MCMC.  Eric cleaned
+this up into \code{\link{simulate_and_assess_reference}}.
 
 \code{\link{bias_comparison}} runs \code{\link{mixture_draw}} with fifty Dirichlet random mixture
 proportions, and returns diagnostic plots and information after running standard MCMC,
-parametric bootstrapping, and hierarchical MCMC.
+parametric bootstrapping, and hierarchical MCMC.  This has been changed and cleaned
+and modified for more user control into \code{\link{assess_bp_bias_correction}}.
 
 The following functions are internal:
 

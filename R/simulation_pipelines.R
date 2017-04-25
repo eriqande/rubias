@@ -450,6 +450,8 @@ bootstrap_rho <- function(rho_est, pi_est, D, gen_start_col, niter = 100) {
 #' All columns should be genetic format following this column, and gene copies from the
 #' same locus should be adjacent
 #' @param seed the random seed for simulations
+#' @param nreps The number of reps to do.
+#' @param mixsize The size of each simulated mixture sample.
 #'
 #' @return \code{bias_comparison} returns a list; the first element is
 #' a list of the relevant rho values generated on each iteration of the random "mixture"
@@ -467,7 +469,7 @@ bootstrap_rho <- function(rho_est, pi_est, D, gen_start_col, niter = 100) {
 #' ale_bias <- bias_comparison(alewife, 15)
 #'
 #' @export
-bias_comparison <- function(reference, gen_start_col, seed = 5) {
+bias_comparison <- function(reference, gen_start_col, seed = 5, nreps = 50, mixsize = 100) {
 
   reference$collection <- factor(reference$collection, levels = unique(reference$collection))
   reference$repunit <- factor(reference$repunit, levels = unique(reference$repunit))
@@ -488,7 +490,6 @@ bias_comparison <- function(reference, gen_start_col, seed = 5) {
   if(any(is.na(reference$collection))) stop("collection values may not be NAs")
   ref_params <- tcf2param_list(reference, gen_start_col, summ = F)
   set.seed(seed)
-  N <- 100
 
   # get the constraints on the number of individuals to be drawn during the cross-validation
   # a minimum of 5 individuals must be left in the reference for each collection,
@@ -499,7 +500,7 @@ bias_comparison <- function(reference, gen_start_col, seed = 5) {
   #}) %>% unlist()
 
   #fifty iterations of a system for comparing reporting unit proportion methods
-  rho50 <- lapply(1:50, function(rr) {
+  rho50 <- lapply(1:nreps, function(rr) {
     #get a random rho, constrained by a minimum of 5 individuals per population after the draw
     # using a stick breaking model of the Dirichlet distribution
     #rho <- numeric(length(ru_max_draw))
@@ -528,9 +529,10 @@ bias_comparison <- function(reference, gen_start_col, seed = 5) {
     #rho <- rho/sum(rho)
     #omega <- omega/sum(omega)
     #if(!identical(all.equal(sum(omega),1), TRUE)) print(omega)
+    message("Starting bias_comparison rep ", rr, "   ", Sys.time())
     rho <- as.vector(gtools::rdirichlet(1, rep(1.5, length(unique(reference$repunit)))))
     #split the dataset into "reference" and "mixture", with mixture having the above rho
-    drawn <- mixture_draw(reference, rhos = rho, N = 100, min_remaining = .005)
+    drawn <- mixture_draw(reference, rhos = rho, N = mixsize, min_remaining = .0005)
     # get estimates of rho from standard mcmc
     pi_mcmc <- ref_and_mix_pipeline(drawn$reference, drawn$mixture, gen_start_col, method = "MCMC")$mean$pi
     rho_mcmc <- lapply(levels(reference$repunit), function(ru){
@@ -539,17 +541,23 @@ bias_comparison <- function(reference, gen_start_col, seed = 5) {
     # and from finagled mcmc
     rho_bh <- ref_and_mix_pipeline(drawn$reference, drawn$mixture, gen_start_col, method = "BH")$mean$rho
 
+    message("    Done with direct estimates. Starting bootstrap-corrected estimate...", "   ", Sys.time())
     # finally, get a bootstrap-corrected rho estimate
     delin <- rbind(drawn$reference, drawn$mixture)
     rho_pb <- bootstrap_rho(rho_mcmc, pi_mcmc, delin, gen_start_col)
+    message("    Done with bootstrap-corrected estimate...", "   ", Sys.time())
 
     out <- list("true_rho" = rho, "rho_mcmc" = rho_mcmc, "rho_bh" = rho_bh, "rho_pb" = rho_pb)
+
+
   })
 
   #format data, calculate summary statistics, and generate plots
-  names(rho50) <- 1:50
-  rho50x <- rho50 %>% dplyr::bind_rows(.id = "iter")
-  rho50x$repunit <- rep(unique(reference$repunit), 50)
+  names(rho50) <- 1:nreps
+  rho50x <- lapply(rho50, tibble::as_tibble) %>%
+    dplyr::bind_rows(.id = "iter")
+
+  rho50x$repunit <- rep(unique(reference$repunit), nreps)
 
   rho_data <- rho50x %>%
     tidyr::gather(key = "method", value = "rho_est", rho_mcmc:rho_pb)

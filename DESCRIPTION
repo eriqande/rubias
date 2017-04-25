@@ -16,6 +16,7 @@ Imports:
     magrittr,
     Rcpp (>= 0.12.5),
     stringr,
+    tibble,
     tidyr
 LinkingTo: Rcpp
 RoxygenNote: 5.0.1
