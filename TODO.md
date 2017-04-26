@@ -69,8 +69,8 @@ even the actual counts).  For this we need to spend some time thinking about how
 10     2          MB 0.16320168 0.07701908 0.17914736 0.11657221
 ```
 But, we need to 
-    - [ ] remove the `rho_bh` calculation and return column.
-    - [ ] include a `true_n` column in the output, which gives the
+  + [ ] remove the `rho_bh` calculation and the `rho_bh` column in the output.
+  + [ ] include a `true_n` column in the output, which gives the
     actual number of individuals sampled into that population on that iteration.
 
 
