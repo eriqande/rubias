@@ -40,6 +40,9 @@ no reason to have them.) **BEN**.
 
 ### Specific Functions and Issues
 
+- [ ] What is going on with these lines [here](https://github.com/benmoran11/rubias/blob/64a1ba2fcaa1471fc338d37d87abe94bf0655ac6/R/data_conversion.R#L385-L387).  That looks
+like dynamite, potentially---it is rearranging factor levels if things are already a factor.  Did we just decide that we
+would take either a factor or a string as input in those columns and always return characters in the output?
 - [ ] We need a simple function that will take a reference data set in and return a tidy-formatted
 output that includes self-assignment log-likelihoods and posterior probabilities in tidy format. Let's
 call this `self_assign()`.
