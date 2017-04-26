@@ -37,11 +37,11 @@ NumericMatrix geno_logL(List par_list) {
   double sum, gp;
   NumericMatrix out(C, N);
 
-  for(i = 0; i < N; i++) {
-    for(c = 0; c < C; c++) {
+  for(i = 0; i < N; i++) { // cycle over individuals
+    for(c = 0; c < C; c++) { // cycle over collections
       sum = 0.0;
       LOO = c == (coll[i] - 1);
-      for(l = 0; l < L; l++) {
+      for(l = 0; l < L; l++) {  // cycle over loci
         GPROB_DIP(i, l, c, gp);
         sum += log(gp);
       }
