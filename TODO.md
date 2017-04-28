@@ -46,7 +46,7 @@ would take either a factor or a string as input in those columns and always retu
 looked this over more now and it seems that we must have decided to internally do all the calculations with a particular ordering
 of the data.  But, we should be careful that if things were factors on input that they get returned with the same levels in the same
 order.  
-- [ ] We need a simple function that will take a reference data set in and return a tidy-formatted
+- [X] We need a simple function that will take a reference data set in and return a tidy-formatted
 output that includes self-assignment log-likelihoods and posterior probabilities in tidy format. Let's
 call this `self_assign()`.
 - [ ] It would be nice to modify `infer_mixture` so that multiple different mixture samples can
