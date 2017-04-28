@@ -4,7 +4,7 @@
 
 ### Overarching Package Issues
 
-- [ ] Puzzle over why the BH approach gave such different results on the Alewife SNPs than the
+- [x] Puzzle over why the BH approach gave such different results on the Alewife SNPs than the
 vanilla MCMC-and-add-em-up approach.  Ben check that to see if the misassignment factor is still in there.  
 If it is, it might be nice to remove and then we can check again before removing the BH stuff.  __BEN__
 - [ ] Unless there is a good reason to, I think we should remove the BH stuff from our three or
@@ -20,13 +20,13 @@ a number of WARNINGs.  **ERIC**
 - [ ] Use `if(getRversion() >= "2.15.1") utils::globalVariables(c("my_var"))` to
 keep CRAN checks from creating notes for variable `my_var` used in a dplyr context.
 Do this for all variables that create NOTEs  **ERIC**
-- [ ] Deprecate the old "pipeline functions" that have been superseded by the ones in `eca_funcs.R`.
-Use the .Deprecated
+- [x] Deprecate the old "pipeline functions" that have been superseded by the ones in `eca_funcs.R`.
+Use the .Deprecated Just internalize them. __BEN__
 function [here](https://stat.ethz.ch/R-manual/R-devel/library/base/html/Deprecated.html).
 We want to keep them around for a few iterations for getting results
 for the paper, but a lot of the paper
 stuff needed to come out of them. **BEN**
-- [ ] Update documentation to reflect the deprecation, and update the documentation
+- [x] Update documentation to reflect the deprecation, and update the documentation
 for the _main functions_ 
 - [X] Discuss transferring "ownership" of the repo to Eric's GitHub account.
 - [ ] Set Travis-CI up to automatically run CRAN checks.  **ERIC** 
@@ -42,7 +42,7 @@ no reason to have them.) **BEN**.
 
 ### Specific Functions and Issues
 
-- [ ] What is going on with these lines [here](https://github.com/benmoran11/rubias/blob/64a1ba2fcaa1471fc338d37d87abe94bf0655ac6/R/data_conversion.R#L385-L387).  That looks
+- [x] What is going on with these lines [here](https://github.com/benmoran11/rubias/blob/64a1ba2fcaa1471fc338d37d87abe94bf0655ac6/R/data_conversion.R#L385-L387).  That looks
 like dynamite, potentially---it is rearranging factor levels if things are already a factor.  Did we just decide that we
 would take either a factor or a string as input in those columns and always return characters in the output?  Hmmm....Eric has
 looked this over more now and it seems that we must have decided to internally do all the calculations with a particular ordering
@@ -82,7 +82,7 @@ But, we need to
     actual number of individuals sampled into that population on that iteration.
 
 - [ ] Figure out what happens when the simulation breaks during the Monte Carlo cross validation.  __BEN__
-- [ ] We need a Monte Carlo cross-validation function.  The inputs and outputs should be like `assess_reference`, so Eric still needs to clean that up a bit.  __Ben__
+- [ ] We need a Monte Carlo cross-validation function.  The inputs and outputs should be like `assess_reference`, so Eric still needs to clean that up a bit.  __Ben after  eric pulls together the loo version__
 - [ ] Prune the EM-stuff out of ``assess_reference`.   __ERIC__
 
 ## Paper
