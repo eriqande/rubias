@@ -26,7 +26,7 @@ for the paper, but a lot of the paper
 stuff needed to come out of them. **BEN**
 - [ ] Update documentation to reflect the deprecation, and update the documentation
 for the _main functions_ 
-- [ ] Discuss transferring "ownership" of the repo to Eric's GitHub account.
+- [X] Discuss transferring "ownership" of the repo to Eric's GitHub account.
 - [ ] Set Travis-CI up to automatically run CRAN checks.  **ERIC** 
 - [ ] Write a README.Rmd that shows all the different uses of the package in an easy, step-by-step,
 beginner's mind way.  This will eventually turn into a vignette.  **ERIC** and **BEN**. 
