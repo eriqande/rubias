@@ -137,7 +137,7 @@ ref_and_mix_pipeline <- function(reference, mixture, gen_start_col, method = "MC
     pi_out$mean$bootstrap_rho <- boot_out
     out <- pi_out
   }
-  if(method == "MCMC") {
+  if (method == "MCMC") {
     out <- gsi_mcmc_1(SL = SL,
                       Pi_init = rep(1 / params$C, params$C),
                       lambda = rep(1 / params$C, params$C),
@@ -146,8 +146,8 @@ ref_and_mix_pipeline <- function(reference, mixture, gen_start_col, method = "MC
                       sample_int_Pi = sample_int_Pi,
                       sample_int_PofZ = sample_int_PofZ)
   }
-  if(method == "BH") {
-    out <- gsi_mcmc_2(SL = SL,
+  if (method == "BH") {
+    out <- gsi_mcmc_bh(SL = SL,
                       Rho_init = rep(1 / (length(params$RU_starts) - 1), length(params$RU_starts) - 1),
                       Omega_init = rep(1 / params$C, params$C),
                       lambda_rho = rep(1 / (length(params$RU_starts) - 1), length(params$RU_starts) - 1),
