@@ -34,7 +34,7 @@ correction, and hierarchical assignment-scaled MCMC.
 methods used in Hasselman et al. (2015). Populations are simulated from the reference using
 Dirichlet-random mixture proportions, and it returns diagnostic plots and information
 after running standard MCMC, parametric bootstrapping, and hierarchical MCMC.  Eric cleaned
-this up into \code{\link{simulate_and_assess_reference}}.
+this up into \code{\link{assess_reference_loo}}.
 
 \code{\link{bias_comparison}} runs \code{\link{mixture_draw}} with fifty Dirichlet random mixture
 proportions, and returns diagnostic plots and information after running standard MCMC,

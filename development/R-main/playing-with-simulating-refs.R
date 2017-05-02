@@ -14,7 +14,7 @@
 
 # at any rate, this is just some code to play with the chinook in this context.
 
-simmed <- simulate_and_assess_reference(chinook, 5, reps = 50, mixsize = 2000)
+simmed <- assess_reference_loo(chinook, 5, reps = 50, mixsize = 2000)
 whop <- simmed %>% group_by(iter, repunit) %>% summarise(rho = sum(omega), rho_post = sum(post_mean))
 
 ggplot(whop, aes(x = rho, y = rho_post)) +

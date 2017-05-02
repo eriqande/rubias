@@ -72,7 +72,7 @@ we do 600 of these, then each population should have a chance to have appreciabl
 at least a few times.   We need to write a simulation function that we have more control over!
 
 ```{r big-set-o-sims}
-big_ugly <- simulate_and_assess_reference(reference = bco2, 
+big_ugly <- assess_reference_loo(reference = bco2, 
                                           gen_start_col = 5, 
                                           reps = 600, 
                                           mixsize = 100, 
