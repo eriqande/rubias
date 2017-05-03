@@ -33,4 +33,5 @@ rhos <- as.vector(gtools::rdirichlet(1, table(alewife$repunit)))
 cross_val <- mixture_draw(D = alewife, rhos = rhos, N = 100, min_remaining = .005)
 
 }
+\keyword{internal}
 

@@ -17,4 +17,5 @@ the row that was chosen in that column's sampling
 Takes a matrix in which columns sum to one. For each column, performs a
 single multinomial draw from the rows, weighted by their values in that column
 }
+\keyword{internal}
 

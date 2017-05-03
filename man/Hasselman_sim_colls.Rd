@@ -32,4 +32,5 @@ Rho (reporting unit proportions) is chosen with alphas of 1.5,
 and omega (collection proportions) chosen with the same alpha, then scaled by the
 corresponding rho.
 }
+\keyword{internal}
 

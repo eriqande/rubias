@@ -37,4 +37,5 @@ example(tcf2long)  # gets variable ale_long
 ale_rac <- reference_allele_counts(ale_long$long)
 
 }
+\keyword{internal}
 

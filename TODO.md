@@ -32,7 +32,7 @@ for the _main functions_
 - [ ] Set Travis-CI up to automatically run CRAN checks.  **ERIC** 
 - [ ] Write a README.Rmd that shows all the different uses of the package in an easy, step-by-step,
 beginner's mind way.  This will eventually turn into a vignette.  **ERIC** and **BEN**. 
-- [ ] Minimize the number of functions that are exported and, hence, exposes to the user. In
+- [x] Minimize the number of functions that are exported and, hence, exposes to the user. In
 the roxygen block for these functions add a line: `#' @keywords internal` to keep the function
 documentation out of the help files (if users aren't going to use them directly, there is
 no reason to have them.) **BEN**.

@@ -79,4 +79,5 @@ lambda_rho <- rep(1/(length(params$RU_starts)-1), length(params$RU_starts)-1 )
 test_bh_mcmc <- gsi_mcmc_2(SL, lambda_rho, lambda_omega, lambda_rho, lambda_omega, 10000, 2500, 50, 50, 50, 50, params$RU_starts, params$RU_vec, avg_correct)
 
 }
+\keyword{internal}
 

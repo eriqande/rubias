@@ -23,4 +23,5 @@ The categories are labeled in C from 1 up to n.  n is the length of \code{lambda
 which is a vector of priors. Note that all elements of \code{lambda}
 must be strictly greater than 0.
 }
+\keyword{internal}
 

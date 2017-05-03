@@ -8,6 +8,7 @@
 #' then samples values of omega scaled by their corresponding rho and the inverse of their
 #' average rate of correct assignment.  It returns the output in a list.
 #'
+#' @keywords internal
 #'
 #' @param SL  matrix of the scaled likelihoods.  This is should have values for each
 #' individual in a column (going down in the rows are values for different populations).
@@ -132,6 +133,8 @@ gsi_mcmc_bh <- function(SL, Rho_init, Omega_init, lambda_rho, lambda_omega, reps
 #' Leave-One-Out cross-validation is used to avoid bias in log-likelihood for an
 #' individual's known collection of origin
 #'
+#' @keywords internal
+#'
 #' @param par_list genetic data converted to the param_list format by \code{tcf2param_list}
 #'
 #' @return \code{geno_logL} returns a matrix with C rows and I columns. Each column
@@ -151,6 +154,8 @@ geno_logL <- function(par_list) {
 #' Takes a matrix in which columns sum to one. For each column, performs a
 #' single multinomial draw from the rows, weighted by their values in that column
 #'
+#' @keywords internal
+#'
 #' @param M a matrix whose columns are reals summing to one
 #'
 #' @return a vector length = \code{ncol(M)} of indices, with each element being
@@ -168,6 +173,8 @@ samp_from_mat <- function(M) {
 #' In simulation by gene copy, the genotype at a locus for any individual is the result
 #' of two random draws from the allele count matrix of that locus. Draws within an individual
 #' are performed without replacement, but allele counts are replaced between individuals.
+#'
+#' @keywords internal
 #'
 #' @param par_list genetic data converted to the param_list format by \code{tcf2param_list}
 #' @param sim_colls a vector of indices for the collections desired for simulation;
@@ -263,6 +270,7 @@ gprob_sim_gc_missing <- function(par_list, sim_colls, sim_missing) {
 #' Using a matrix of scaled likelihoods, this function does an EM algorithm to climb the
 #' likelihood surface for pi, and computes the plug-in estimate of the posteriors
 #' for all the individuals.  It returns the output in a list.
+#' @keywords internal
 #' @param SL  a matrix of the scaled likelihoods.  This is should have values for each individual in a column
 #' (going down in the rows are values for different collections).
 #' @param Pi_init  Starting value for the pi (collection mixture proportion) vector.
@@ -290,6 +298,7 @@ gsi_em_1 <- function(SL, Pi_init, max_iterations, tolerance, return_progression)
 #'
 #' Using a matrix of scaled likelihoods, this function samples values of pi and the posteriors
 #' for all the individuals.  It returns the output in a list.
+#' @keywords internal
 #' @param SL  matrix of the scaled likelihoods.  This is should have values for each individual in a column
 #' (going down in the rows are values for different populations).
 #' @param Pi_init  Starting value for the pi (collection mixture proportion) vector.
@@ -334,6 +343,8 @@ gsi_mcmc_1 <- function(SL, Pi_init, lambda, reps, burn_in, sample_int_Pi, sample
 #' which is a vector of priors. Note that all elements of \code{lambda}
 #' must be strictly greater than 0.
 #'
+#' @keywords internal
+#'
 #' @param C  a vector giving different categories of individual
 #' (not counts of categories - untabulated)
 #' @param lambda priors for the categories
@@ -353,6 +364,7 @@ dirch_from_allocations <- function(C, lambda) {
 #' The categories are labeled in C from 1 up to n.  n is the length of \code{lambda},
 #' which is a vector of priors. Note that all elements of \code{lambda}
 #' must be strictly greater than 0.
+#' @keywords internal
 #' @param C  a vector giving counts of categories
 #' @param lambda priors for the categories
 #' @export

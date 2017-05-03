@@ -57,4 +57,5 @@ and uneven collection distribution.
 ale_bias <- bias_comparison(alewife, 15)
 
 }
+\keyword{internal}
 

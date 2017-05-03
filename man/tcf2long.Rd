@@ -32,4 +32,5 @@ and the other with two-column structure intact, but with cleaned allele names.
 ## Convert the alewife dataset for further processing
 ale_long <- tcf2long(alewife,15)
 }
+\keyword{internal}
 
