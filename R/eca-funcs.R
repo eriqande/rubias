@@ -243,7 +243,7 @@ simulate_random_samples <- function(RU_starts, RU_vec, size = 100, alpha_repunit
 #' Do leave-one-out self-assignment of individuals in a reference baseline
 #'
 #' Returns a tidy data frame
-#' @inheritParams simulate_and_assess_reference
+#' @inheritParams assess_reference_loo
 #' @return a tibble ...
 #' @export
 self_assign <- function(reference, gen_start_col) {
@@ -312,10 +312,10 @@ self_assign <- function(reference, gen_start_col) {
 #' @param seed a random seed for simulations
 #' @inheritParams simulate_random_samples
 #' @examples
-#' ale_dev <- simulate_and_assess_reference(alewife, 15)
+#' ale_dev <- assess_reference_loo(alewife, 15)
 #'
 #' @export
-simulate_and_assess_reference <- function(reference, gen_start_col, reps = 50, mixsize = 100, seed = 5,
+assess_reference_loo <- function(reference, gen_start_col, reps = 50, mixsize = 100, seed = 5,
                                           alpha_repunit = 1.5, alpha_collection = 1.5) {
 
   # get the necessary parameters from the reference data

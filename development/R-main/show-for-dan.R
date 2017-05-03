@@ -8,7 +8,7 @@ library(ggplot2)
 library(readr)
 library(stringr)
 
-ale <- simulate_and_assess_reference(reference = alewife, gen_start_col = 15, reps = 50, seed = 55)
+ale <- assess_reference_loo(reference = alewife, gen_start_col = 15, reps = 50, seed = 55)
 
 # then plot them by collection
 ggplot(ale, aes(x = omega, y = mle, colour = repunit)) +
@@ -80,7 +80,7 @@ chinook <- left_join(grps, chin3) %>%
 
 
 ### Finally....run it
-chin_sim <- simulate_and_assess_reference(reference = chinook, gen_start_col = 7, reps = 300, seed = 55, alpha_repunit = 0.5, alpha_collection = 1.5)
+chin_sim <- assess_reference_loo(reference = chinook, gen_start_col = 7, reps = 300, seed = 55, alpha_repunit = 0.5, alpha_collection = 1.5)
 
 
 # have a look at the individuals pops.

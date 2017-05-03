@@ -4,12 +4,14 @@
 
 ### Overarching Package Issues
 
-- [ ] Puzzle over why the BH approach gave such different results on the Alewife SNPs than the
-vanilla MCMC-and-add-em-up approach.
+- [x] Puzzle over why the BH approach gave such different results on the Alewife SNPs than the
+vanilla MCMC-and-add-em-up approach.  Ben check that to see if the misassignment factor is still in there.  
+If it is, it might be nice to remove and then we can check again before removing the BH stuff.  __BEN__
 - [ ] Unless there is a good reason to, I think we should remove the BH stuff from our three or
-four high level functions.  (see next item)
+four high level functions.  Before we do this, Eric wants to make sure it is giving the same results as summing the MCMC. (see next item)
+- [ ] Re-run alewife SNP stuff.  __ERIC__
 - [ ] The _main functions_ that users should have to deal with are `infer_mixture()`,
-`simulate_and_assess_reference()` (maybe we should shorten that to `assess_reference()`), `assess_bp_bias_correction()`, and we need one that is `self_assign()`.  These all
+`simulate_and_assess_reference()` (maybe we should shorten that to `assess_reference_loo()`), `assess_bp_bias_correction()`, and we need one that is `self_assign()`, and `assess_reference_mccv()`  These all
 should spit out tidy data, to the extent possible.  We should try to expose very few other 
 functions.  
 - [ ] Clean up code so that it is CRAN compliant. Run Check to
@@ -18,15 +20,15 @@ a number of WARNINGs.  **ERIC**
 - [ ] Use `if(getRversion() >= "2.15.1") utils::globalVariables(c("my_var"))` to
 keep CRAN checks from creating notes for variable `my_var` used in a dplyr context.
 Do this for all variables that create NOTEs  **ERIC**
-- [ ] Deprecate the old "pipeline functions" that have been superseded by the ones in `eca_funcs.R`.
-Use the .Deprecated
+- [x] Deprecate the old "pipeline functions" that have been superseded by the ones in `eca_funcs.R`.
+Use the .Deprecated Just internalize them. __BEN__
 function [here](https://stat.ethz.ch/R-manual/R-devel/library/base/html/Deprecated.html).
 We want to keep them around for a few iterations for getting results
 for the paper, but a lot of the paper
 stuff needed to come out of them. **BEN**
-- [ ] Update documentation to reflect the deprecation, and update the documentation
+- [x] Update documentation to reflect the deprecation, and update the documentation
 for the _main functions_ 
-- [ ] Discuss transferring "ownership" of the repo to Eric's GitHub account.
+- [X] Discuss transferring "ownership" of the repo to Eric's GitHub account.
 - [ ] Set Travis-CI up to automatically run CRAN checks.  **ERIC** 
 - [ ] Write a README.Rmd that shows all the different uses of the package in an easy, step-by-step,
 beginner's mind way.  This will eventually turn into a vignette.  **ERIC** and **BEN**. 
@@ -40,7 +42,7 @@ no reason to have them.) **BEN**.
 
 ### Specific Functions and Issues
 
-- [ ] What is going on with these lines [here](https://github.com/benmoran11/rubias/blob/64a1ba2fcaa1471fc338d37d87abe94bf0655ac6/R/data_conversion.R#L385-L387).  That looks
+- [x] What is going on with these lines [here](https://github.com/benmoran11/rubias/blob/64a1ba2fcaa1471fc338d37d87abe94bf0655ac6/R/data_conversion.R#L385-L387).  That looks
 like dynamite, potentially---it is rearranging factor levels if things are already a factor.  Did we just decide that we
 would take either a factor or a string as input in those columns and always return characters in the output?  Hmmm....Eric has
 looked this over more now and it seems that we must have decided to internally do all the calculations with a particular ordering
@@ -52,13 +54,13 @@ call this `self_assign()`.
 - [ ] It would be nice to modify `infer_mixture` so that multiple different mixture samples can
 be specified in a single data frame input.  With really large baselines, the vast majority of the
 time in the function is spent processing the data, counting alleles, etc., and it is a shame to have
-to do this each time you want to analyze a different mixture sample.  I'm not sure how to go about this, but Ben might!
+to do this each time you want to analyze a different mixture sample.  I'm not sure how to go about this, but Ben might!  __BEN see what this would take__
 - [ ] Try to make almost all user-exposed functions return tidy data.  For example `infer_mixture`
-returns a list at the moment.  Can that be cleaned up.
+returns a list at the moment.  Can that be cleaned up.  __ERIC__
 - [ ] We could really use a way for users to have more control over the simulation parameters---just
 setting alpha is pretty limited.  It would be nice for users to explicitly give proportions (or maybe 
-even the actual counts).  For this we need to spend some time thinking about how to do it elegantly.
-- [ ] `assess_bp_bias_correction` spits out some nice tidy data at this point.  It looks like:
+even the actual counts).  For this we need to spend some time thinking about how to do it elegantly.  __ERIC__
+- [ ] __BEN__:  `assess_bp_bias_correction` spits out some nice tidy data at this point.  It looks like:
 ```
 # A tibble: 700 × 6
     iter     repunit   true_rho   rho_mcmc     rho_bh     rho_pb
@@ -79,6 +81,9 @@ But, we need to
   + [ ] include a `true_n` column in the output, which gives the
     actual number of individuals sampled into that population on that iteration.
 
+- [ ] Figure out what happens when the simulation breaks during the Monte Carlo cross validation.  __BEN__
+- [ ] We need a Monte Carlo cross-validation function.  The inputs and outputs should be like `assess_reference`, so Eric still needs to clean that up a bit.  __Ben after  eric pulls together the loo version__
+- [ ] Prune the EM-stuff out of ``assess_reference`.   __ERIC__
 
 ## Paper
 
