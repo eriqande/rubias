@@ -11,6 +11,8 @@ using namespace Rcpp;
 //' Leave-One-Out cross-validation is used to avoid bias in log-likelihood for an
 //' individual's known collection of origin
 //'
+//' @keywords internal
+//'
 //' @param par_list genetic data converted to the param_list format by \code{tcf2param_list}
 //'
 //' @return \code{geno_logL} returns a matrix with C rows and I columns. Each column

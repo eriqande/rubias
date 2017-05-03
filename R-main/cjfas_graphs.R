@@ -150,6 +150,6 @@ cbp <- ggplot2::ggplot(coal_data, aes(x = Np_diff, y = diff)) +
   geom_abline(intercept = 0, slope = 0, linetype = "dashed") +
   geom_vline(xintercept = 0, linetype = "dashed") +
   geom_smooth(method = "lm", colour = "red", level = 0) +
-  labs(x= expression(over(N[C],P) - rho), y = expression(Residual~(hat(rho)-rho))) +
+  labs(x= expression(over(N[C],P)~~-~rho[r]^{sim}), y = expression(Residual~(hat(rho)[r]-rho[r]^{sim} ))) +
   scale_color_brewer(palette = "Set1")
 print(cbp)

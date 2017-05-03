@@ -4,6 +4,7 @@
 #' or reporting unit level. Randomly samples individuals to satisfy these desired proportions,
 #' and splits them into a new "mixture" dataframe.
 #'
+#' @keywords internal
 #'
 #' @param D a two-column genetic dataframe with "indiv", "repunit", and "collection" columns
 #' @param rhos a vector of the desired reporting unit proportions in the mixture set;
@@ -85,6 +86,10 @@ mixture_draw <- function(D, rhos = NULL, omegas = NULL, N, min_remaining = 0) {
 #' This function differs from \code{round}, which rounds 5 "towards the
 #' even number". Rounding 5s up leads to bias when positive and negative numbers
 #' are expected, but can be desired in some cases.
+#'
+#'
+#'
+#' @keywords internal
 #'
 #' @param x the data to be rounded
 #' @param n the number of digits to round to

@@ -7,6 +7,8 @@
 #' Returns a list of two data frames: one with genetic data condensed into one column,
 #' and the other with two-column structure intact, but with cleaned allele names.
 #'
+#' @keywords internal
+#'
 #' @param D A data frame containing two-column genetic data, optionally preceded by metadata.
 #' The header of the first genetic data column in each pair lists the locus name, the second is ignored.
 #' \strong{Locus names must not have spaces in them!}
@@ -60,6 +62,8 @@ tcf2long <- function(D, gen_start_col) {
 #' The "collection" column should be a key assigning samples to the desired groups,
 #' e.g. collection site, run time, year.
 #' The "sample_type" column must contain either "reference" or "mixture" for each sample.
+#'
+#' @keywords internal
 #'
 #' @param D A data frame containing, at minimum, a column of sample group identifiers named
 #' "collection", a column designating each row as "reference" or "mixture", named "sample_type",
@@ -159,19 +163,21 @@ reference_allele_counts <- function(D, pop_level = "collection") {
 #'
 #' List-izes the output of \code{reference_allele_counts} into a usable format for \code{allelic_list}
 #'
-#'@param D the long-format dataframe of counts by collection, locus, and allele,
-#'output by \code{reference_allele_counts}, to be made into a nested list
+#' @keywords internal
 #'
-#'@return \code{a_freq_list} returns a list named by loci, each element of which is a matrix
-#'containing that locus's allele count data. Rows in the matrix mark alleles, and columns collections
+#' @param D the long-format dataframe of counts by collection, locus, and allele,
+#' output by \code{reference_allele_counts}, to be made into a nested list
 #'
-#'@examples#'
-#' # Generate a list of individual genotypes by allele from
-#' # the alewife data's reference allele count tables
-#' example(reference_allele_counts)
-#' ale_ac <- a_freq_list(ale_rac)
+#' @return \code{a_freq_list} returns a list named by loci, each element of which is a matrix
+#' containing that locus's allele count data. Rows in the matrix mark alleles, and columns collections
 #'
-#'@export
+#' @examples#'
+#'  # Generate a list of individual genotypes by allele from
+#'  # the alewife data's reference allele count tables
+#'  example(reference_allele_counts)
+#'  ale_ac <- a_freq_list(ale_rac)
+#'
+#' @export
 a_freq_list <- function(D, pop_level = "collection") {
   if(pop_level == "collection"){
     tmp <- D %>%
@@ -204,6 +210,8 @@ a_freq_list <- function(D, pop_level = "collection") {
 #'
 #' Uses the allele counts from \code{a_freq_list} and the cleaned short-format output of
 #' \code{tcf2long} to generate a nested list of individual genotypes for each locus
+#'
+#' @keywords internal
 #'
 #' @param cs a clean short genetic data matrix; the second element of the
 #' output from \code{tcf2long}. Must have a column of individual identifiers, named "indiv"
@@ -279,6 +287,8 @@ allelic_list <- function(cs, ac, samp_type = "both") {
 #' by adding the inverse of the number of alleles at a locus to each allele.
 #' \code{sum_AC} and \code{sum_DP} are the summed allele values for each locus
 #' of their parent vectors, ordered by locus and collection.
+#'
+#' @keywords internal
 #'
 #' @param AC_list a list of allele count matrices; output from \code{a_freq_list}
 #' @param I_list a list of genotype vectors; output from \code{allelic_list}

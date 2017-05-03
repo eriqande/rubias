@@ -7,6 +7,7 @@ using namespace Rcpp;
 //'
 //' Using a matrix of scaled likelihoods, this function samples values of pi and the posteriors
 //' for all the individuals.  It returns the output in a list.
+//' @keywords internal
 //' @param SL  matrix of the scaled likelihoods.  This is should have values for each individual in a column
 //' (going down in the rows are values for different populations).
 //' @param Pi_init  Starting value for the pi (collection mixture proportion) vector.

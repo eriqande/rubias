@@ -33,6 +33,8 @@ int randint(int n) {
 //' which is a vector of priors. Note that all elements of \code{lambda}
 //' must be strictly greater than 0.
 //'
+//' @keywords internal
+//'
 //' @param C  a vector giving different categories of individual
 //' (not counts of categories - untabulated)
 //' @param lambda priors for the categories
@@ -65,6 +67,7 @@ NumericVector dirch_from_allocations(IntegerVector C, NumericVector lambda) {
 //' The categories are labeled in C from 1 up to n.  n is the length of \code{lambda},
 //' which is a vector of priors. Note that all elements of \code{lambda}
 //' must be strictly greater than 0.
+//' @keywords internal
 //' @param C  a vector giving counts of categories
 //' @param lambda priors for the categories
 //' @export

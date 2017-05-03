@@ -10,6 +10,7 @@ using namespace Rcpp;
 //' then samples values of omega scaled by their corresponding rho and the inverse of their
 //' average rate of correct assignment.  It returns the output in a list.
 //'
+//' @keywords internal
 //'
 //' @param SL  matrix of the scaled likelihoods.  This is should have values for each
 //' individual in a column (going down in the rows are values for different populations).

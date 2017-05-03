@@ -12,6 +12,8 @@ using namespace Rcpp;
 //' of two random draws from the allele count matrix of that locus. Draws within an individual
 //' are performed without replacement, but allele counts are replaced between individuals.
 //'
+//' @keywords internal
+//'
 //' @param par_list genetic data converted to the param_list format by \code{tcf2param_list}
 //' @param sim_colls a vector of indices for the collections desired for simulation;
 //' each element of the list corresponds to an individual
