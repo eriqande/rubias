@@ -27,7 +27,7 @@ same locus should be adjacent}
 \code{bias_comparison} returns a list; the first element is
 a list of the relevant rho values generated on each iteration of the random "mixture"
 creation. This includes the true rho value, the standard result \code{rho_mcmc},
-the misassignment-scaled \code{rho_bh}, and the parametric bootstrapped \code{rho_pb}.
+and the parametric bootstrapped \code{rho_pb}.
 
 The second element is a dataframe listing summary statistics for each
 reporting unit and estimation method. \code{mse}, the mean squared error, summarizes
@@ -58,7 +58,7 @@ method based on the rate of misassignment, which takes into account both genetic
 and uneven collection distribution.
 }
 \examples{
-ale_bias <- bias_comparison(alewife, 15)
+ale_bias <- assess_bp_bias_correction(alewife, 15)
 
 }
 

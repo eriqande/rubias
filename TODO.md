@@ -54,7 +54,7 @@ call this `self_assign()`.
 - [ ] It would be nice to modify `infer_mixture` so that multiple different mixture samples can
 be specified in a single data frame input.  With really large baselines, the vast majority of the
 time in the function is spent processing the data, counting alleles, etc., and it is a shame to have
-to do this each time you want to analyze a different mixture sample.  I'm not sure how to go about this, but Ben might!  __BEN see what this would take__
+to do this each time you want to analyze a different mixture sample.  I'm not sure how to go about this, but Ben might!  __BEN looked into it, will start on new version__
 - [ ] Try to make almost all user-exposed functions return tidy data.  For example `infer_mixture`
 returns a list at the moment.  Can that be cleaned up.  __ERIC__
 - [ ] We could really use a way for users to have more control over the simulation parameters---just
@@ -77,8 +77,8 @@ even the actual counts).  For this we need to spend some time thinking about how
 10     2          MB 0.16320168 0.07701908 0.17914736 0.11657221
 ```
 But, we need to 
-  + [ ] remove the `rho_bh` calculation and the `rho_bh` column in the output.
-  + [ ] include a `true_n` column in the output, which gives the
+  + [x] remove the `rho_bh` calculation and the `rho_bh` column in the output.
+  + [x] include a `true_n` column in the output, which gives the
     actual number of individuals sampled into that population on that iteration.
 
 - [ ] Figure out what happens when the simulation breaks during the Monte Carlo cross validation.  __BEN__

@@ -444,7 +444,7 @@ assess_reference_loo <- function(reference, gen_start_col, reps = 50, mixsize = 
 #' @return \code{bias_comparison} returns a list; the first element is
 #' a list of the relevant rho values generated on each iteration of the random "mixture"
 #' creation. This includes the true rho value, the standard result \code{rho_mcmc},
-#' the misassignment-scaled \code{rho_bh}, and the parametric bootstrapped \code{rho_pb}.
+#' and the parametric bootstrapped \code{rho_pb}.
 #'
 #' The second element is a dataframe listing summary statistics for each
 #' reporting unit and estimation method. \code{mse}, the mean squared error, summarizes
@@ -454,7 +454,7 @@ assess_reference_loo <- function(reference, gen_start_col, reps = 50, mixsize = 
 #' unlike \code{mse}, this demonstrates the direction of the bias.
 #'
 #' @examples
-#' ale_bias <- bias_comparison(alewife, 15)
+#' ale_bias <- assess_bp_bias_correction(alewife, 15)
 #'
 #' @export
 assess_bp_bias_correction <- function(reference, gen_start_col, seed = 5, nreps = 50, mixsize = 100) {
@@ -479,55 +479,23 @@ assess_bp_bias_correction <- function(reference, gen_start_col, seed = 5, nreps 
   ref_params <- tcf2param_list(reference, gen_start_col, summ = F)
   set.seed(seed)
 
-  # get the constraints on the number of individuals to be drawn during the cross-validation
-  # a minimum of 5 individuals must be left in the reference for each collection,
-  # and 5*(#collections) for each reporting unit
-  #coll_max_draw <- ref_params$coll_N - 5
-  #ru_max_draw <- lapply(levels(reference$repunit), function(ru){
-  #out <- sum(coll_max_draw[repidxs$coll_int[repidxs$repunit == ru]])
-  #}) %>% unlist()
-
   #fifty iterations of a system for comparing reporting unit proportion methods
   rho50 <- lapply(1:nreps, function(rr) {
-    #get a random rho, constrained by a minimum of 5 individuals per population after the draw
-    # using a stick breaking model of the Dirichlet distribution
-    #rho <- numeric(length(ru_max_draw))
-    #omega <- numeric(length(coll_max_draw))
-    #rho_sum <- 0
-    #for(ru in 1:length(ru_max_draw)) {
-    #  rho[ru] <- min(ru_max_draw[ru]/N,
-    #             (1 - rho_sum) * rbeta(1, 1.5, 1.5 * (length(ru_max_draw) - ru)))
-    #  rho_sum <- rho_sum + rho[ru]
-    #  om_sum <- 0
-    #  c <- 1
-    #  for(coll in (ref_params$RU_starts[ru] + 1):ref_params$RU_starts[ru+1]){
-    #    omega[ref_params$RU_vec[coll]] <- min(coll_max_draw[ref_params$RU_vec[coll]]/N,
-    #                       (rho[ru] - om_sum) * rbeta(1, 1.5, 1.5 * (length((ref_params$RU_starts[ru] + 1):ref_params$RU_starts[ru+1]) - c)))
-    #    om_sum <- om_sum + omega[ref_params$RU_vec[coll]]
-    #    c <- c + 1
-    #  }
-    # encountered a bug where if the omega proposal is rejected for the
-    # last collection in a reporting unit, the acceptance of the max/N
-    # causes omega to sum to less than one; the following line should
-    # fix this bug for all but the last collection to be chosen
-    #  rho[ru] <- om_sum
-    #}
-    # quick fix in case the last omega to be chosen is rejected;
-    # should find a better solution
-    #rho <- rho/sum(rho)
-    #omega <- omega/sum(omega)
-    #if(!identical(all.equal(sum(omega),1), TRUE)) print(omega)
     message("Starting bias_comparison rep ", rr, "   ", Sys.time())
     rho <- as.vector(gtools::rdirichlet(1, rep(1.5, length(unique(reference$repunit)))))
     #split the dataset into "reference" and "mixture", with mixture having the above rho
     drawn <- mixture_draw(reference, rhos = rho, N = mixsize, min_remaining = .0005)
+
+    drawn_repidxs <- drawn$mixture %>%
+      dplyr::group_by(repunit) %>%
+      dplyr::tally()
+    true_n <- drawn_repidxs$n
+
     # get estimates of rho from standard mcmc
     pi_mcmc <- ref_and_mix_pipeline(drawn$reference, drawn$mixture, gen_start_col, method = "MCMC")$mean$pi
     rho_mcmc <- lapply(levels(reference$repunit), function(ru){
       out <- sum(pi_mcmc[repidxs$coll_int[repidxs$repunit == ru]])
     }) %>% unlist()
-    # and from finagled mcmc
-    rho_bh <- ref_and_mix_pipeline(drawn$reference, drawn$mixture, gen_start_col, method = "BH")$mean$rho
 
     message("    Done with direct estimates. Starting bootstrap-corrected estimate...", "   ", Sys.time())
     # finally, get a bootstrap-corrected rho estimate
@@ -535,7 +503,7 @@ assess_bp_bias_correction <- function(reference, gen_start_col, seed = 5, nreps 
     rho_pb <- bootstrap_rho(rho_mcmc, pi_mcmc, delin, gen_start_col)
     message("    Done with bootstrap-corrected estimate...", "   ", Sys.time())
 
-    out <- list("true_rho" = rho, "rho_mcmc" = rho_mcmc, "rho_bh" = rho_bh, "rho_pb" = rho_pb)
+    out <- list("true_rho" = rho, "true_n" = true_n, "rho_mcmc" = rho_mcmc, "rho_pb" = rho_pb)
 
 
   })
@@ -548,7 +516,7 @@ assess_bp_bias_correction <- function(reference, gen_start_col, seed = 5, nreps 
   ret <- rho50x %>%
     dplyr::mutate(repunit = rep(unique(reference$repunit), nreps)) %>%
     dplyr::mutate(iter = as.integer(iter)) %>%
-    select(iter, repunit, dplyr::everything())
+    select(iter, repunit, everything())
 
   return(ret)
 
