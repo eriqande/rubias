@@ -79,7 +79,7 @@ infer_mixture <- function(reference,
   if(any(names(reference) != names(mixture))) stop("reference and mixture data frames differ in structure; check # columns and variable names")
 
   # check for a valid sampling method
-  if(method != "MCMC" && method != "PB" && method != "BH") stop("invalid selection of mixture proportion estimation algorithm: please choose 'EM', 'MCMC', or 'BH'")
+  if(method != "MCMC" && method != "PB" && method != "BH") stop("invalid selection of mixture proportion estimation algorithm: please choose 'PB', 'MCMC', or 'BH'")
 
   message("collating data; compiling allele frequencies, etc.", appendLF = FALSE)
 
@@ -97,6 +97,7 @@ infer_mixture <- function(reference,
     sample_type <- c(rep("reference", nrow(reference)), rep("mixture", nrow(mixture)) )
     D <- cbind(sample_type, D)
     gen_start_col <- gen_start_col + 1
+
 
     # clean the data, gather allele count matrices and collection/reporting unit groups from reference data,
     # then prepare other parameters based on the mixture data
