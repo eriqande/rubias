@@ -26,7 +26,7 @@
 #' \code{reference} dataframe, but "collection" and "repunit" columns are ignored.
 #' Does not need "sample_type" column, and will be overwritten if provided
 #' @param gen_start_col the first column of genetic data in both data frames
-#' @param method a choice between "MCMC", "PB" and "BH" methods for estimating mixture proportions
+#' @param method a choice between "MCMC", "PB" methods for estimating mixture proportions
 #' @param reps the number of iterations to be performed in MCMC
 #' @param burn_in how many reps to discard in the beginning of MCMC when doing the mean calculation.
 #' They will still be returned in the traces if desired.
@@ -79,7 +79,7 @@ infer_mixture <- function(reference,
   if(any(names(reference) != names(mixture))) stop("reference and mixture data frames differ in structure; check # columns and variable names")
 
   # check for a valid sampling method
-  if(method != "MCMC" && method != "PB" && method != "BH") stop("invalid selection of mixture proportion estimation algorithm: please choose 'PB', 'MCMC', or 'BH'")
+  if(method != "MCMC" && method != "PB") stop("invalid selection of mixture proportion estimation algorithm: please choose 'PB', 'MCMC'")
 
   message("collating data; compiling allele frequencies, etc.", appendLF = FALSE)
 
@@ -112,6 +112,17 @@ infer_mixture <- function(reference,
       droplevels() %>%
       dplyr::count(repunit, collection) %>%
       dplyr::select(-n)
+
+    # now, after all that rigamorale we can set two variables aside which are the
+    # reporting units names and the collection names in the order that they are
+    # going to be coming out of the mcmc algorithms
+    COLLECTION_NAMES <- as.character(colls_by_RU$collection)
+    REPUNIT_NAMES <- as.character(unique(colls_by_RU$repunit))
+
+    # while we are at it, store the names of the Mixture individuals
+    MIXTURE_INDIV_NAMES <- as.character(mixture$indiv)
+
+
     PC <- rep(0, length(unique(colls_by_RU$repunit)))
     for(i in 1:nrow(colls_by_RU)) {
       PC[colls_by_RU$repunit[i]] <- PC[colls_by_RU$repunit[i]] + 1
@@ -178,27 +189,36 @@ infer_mixture <- function(reference,
                         sample_int_PofZ = sample_int_PofZ)
     })
     message("   time: ", sprintf("%.2f", time_mcmc1["elapsed"]), " seconds")
+
+    ## down here we tidy up the output ##
+    # currently I have only tested this for the MCMC method
+    pi_tidy <- tibble::tibble(collection = COLLECTION_NAMES, pi = out$mean$pi)
+
+    # then get a tidy PofZ
+    pofz_mat <- t(out$mean$PofZ)
+    colnames(pofz_mat) <- COLLECTION_NAMES
+    indiv_tibble <- tibble::tibble(indiv = MIXTURE_INDIV_NAMES)
+
+    pofz_tidy <- dplyr::bind_cols(indiv_tibble,
+                                  tibble::as_tibble(pofz_mat)) %>%
+      tidyr::gather(data = ., key = "inferred_collection", value = "pofz", -indiv) %>%
+      left_join(colls_by_RU, by = c("inferred_collection" = "collection")) %>%
+      rename(inferred_repunit = repunit) %>%
+      select(indiv, inferred_repunit, inferred_collection, pofz) %>%
+      arrange(indiv, inferred_repunit, inferred_collection)
+
+    ### STILL NEED TO DEAL WITH repunits and collections that were originally factors. and sorting the individuals correctly ####
+
+    return(list(pi_tidy = pi_tidy, pofz_tidy = pofz_tidy))
   }
-  if(method == "BH") {
-    message("performing ", burn_in, " burn-in and ", reps, " more sweeps of method \"BH\"", appendLF = FALSE)
-    time_mcmc2 <- system.time({
-      out <- gsi_mcmc_bh(SL = SL,
-                        Rho_init = rep(1 / (length(params$RU_starts) - 1), length(params$RU_starts) - 1),
-                        Omega_init = rep(1 / params$C, params$C),
-                        lambda_rho = rep(1 / (length(params$RU_starts) - 1), length(params$RU_starts) - 1),
-                        lambda_omega = rep(1 / params$C, params$C),
-                        reps = reps,
-                        burn_in = burn_in,
-                        sample_int_omega = sample_int_omega,
-                        sample_int_rho = sample_int_rho,
-                        sample_int_PofZ = sample_int_PofZ,
-                        sample_int_PofR = sample_int_PofR,
-                        RU_starts = params$RU_starts,
-                        RU_vec = params$RU_vec)
-    })
-    message("   time: ", sprintf("%.2f", time_mcmc2["elapsed"]), " seconds")
-  }
+
   out
+
+
+
+
+
+
 }
 
 

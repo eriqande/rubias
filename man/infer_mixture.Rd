@@ -19,7 +19,7 @@ Does not need "sample_type" column, and will be overwritten if provided}
 
 \item{gen_start_col}{the first column of genetic data in both data frames}
 
-\item{method}{a choice between "MCMC", "PB" and "BH" methods for estimating mixture proportions}
+\item{method}{a choice between "MCMC", "PB" methods for estimating mixture proportions}
 
 \item{reps}{the number of iterations to be performed in MCMC}
 
