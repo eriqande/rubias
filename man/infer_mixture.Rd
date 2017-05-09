@@ -5,9 +5,7 @@
 \title{Estimate mixing proportions and origin probabilities from a mixture}
 \usage{
 infer_mixture(reference, mixture, gen_start_col, method = "MCMC",
-  reps = 2000, burn_in = 100, pb_iter = 100, sample_int_Pi = 0,
-  sample_int_PofZ = 0, sample_int_omega = 0, sample_int_rho = 0,
-  sample_int_PofR = 0)
+  reps = 2000, burn_in = 100, pb_iter = 100, sample_int_Pi = 1)
 }
 \arguments{
 \item{reference}{a dataframe of two-column genetic format data, proceeded by "repunit", "collection",
@@ -28,23 +26,6 @@ They will still be returned in the traces if desired.}
 
 \item{pb_iter}{how many bootstrapped data sets to do for bootstrap correction using method PB.  Default
 is 100.}
-
-\item{sample_int_Pi}{the number of reps between samples being taken for pi traces. If 0
-no traces are taken. Only used in methods "MCMC" and "PB".}
-
-\item{sample_int_PofZ}{the number of reps between samples being taken for the posterior
-traces of each individual's collection of origin. If 0 no trace samples are taken.
-Used in all methods}
-
-\item{sample_int_omega}{the number of reps between samples being taken for
-collection proportion traces. If 0 no traces are taken. Only used in method "BH"}
-
-\item{sample_int_rho}{the number of reps between samples being taken for
-reporting unit proportion  traces. If 0 no traces are taken. Only used in method "BH"}
-
-\item{sample_int_PofR}{the number of reps between samples being taken for the posterior
-traces of each individual's reporting unit of origin. If 0 no trace samples are taken.
-Only used in method "BH".}
 }
 \value{
 \code{mix_proportion_pipeline} returns the standard output of the chosen

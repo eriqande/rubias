@@ -1,6 +1,109 @@
 
 
+#' A helper function to tidy up the output from the gsi_mcmc functions
+#'
+#' This makes a tidy data frame of stuff, and also changes things back to
+#' factors, if the levels are provided.
+#' @param field  The output to tidy (i.e.. out$mean)
+#' @param p the name of the parameter whose values you want to extract (like "pi")
+#' @param pname the name that you want the parameter to be called in the output
+#' @param car_tib  a tibble with repunit and collection in the order they appear in the output
+#' @param coll_levs a vector of levels for the collection (or NULL if none)
+#' @param repu_levs a vector of levels for the repunit (or NULL if none)
+#' @keywords internal
+tidy_mcmc_coll_rep_stuff <- function(field, p, pname, car_tib, coll_levs = NULL, repu_levs = NULL) {
+  ret <- tibble::tibble(collection = car_tib$collection, value = field[[p]]) %>%
+    dplyr::left_join(car_tib, ., by = "collection")
 
+  # change the name
+  names(ret)[names(ret) == "value"] <- pname
+
+  if (!is.null(coll_levs)) {
+    ret$collection = factor(ret$collection, levels = coll_levs)
+  }
+  if (!is.null(repu_levs)) {
+    ret$repunit = factor(ret$repunit, levels = repu_levs)
+
+  }
+  ret
+}
+
+
+
+
+
+
+#' A helper function to tidy up the PofZ-like output from the gsi_mcmc functions
+#'
+#' This makes a tidy data frame of stuff, and also changes things back to
+#' factors, if the levels are provided.
+#' @param input  The output to tidy (i.e.. out$mean$PofZ)
+#' @param pname the name that you want the parameter to be called in the output
+#' @param car_tib  a tibble with repunit and collection in the order they appear in the output
+#' @param mix_indiv_tib  a tibble with the individuals in the order they appear in the output
+#' @param coll_levs a vector of levels for the collection (or NULL if none)
+#' @param repu_levs a vector of levels for the repunit (or NULL if none)
+#' @keywords internal
+tidy_mcmc_pofz <- function(input, pname, car_tib, mix_indiv_tib, coll_levs = NULL, repu_levs = NULL) {
+  pofz_mat <- t(input)
+  colnames(pofz_mat) <- car_tib$collection
+
+  ret <- dplyr::bind_cols(mix_indiv_tib,
+                                tibble::as_tibble(pofz_mat)) %>%
+    tidyr::gather(data = ., key = "collection", value = "pofz", -indiv) %>%
+    dplyr::left_join(car_tib, by = "collection") %>%
+    dplyr::select(indiv, repunit, collection, pofz) %>%
+    dplyr::mutate(repunit = factor(repunit, levels = unique(car_tib$repunit)),   # this is heinous uglyness to get populations sorted in the order they came in the data set if they aren't factors to begin with
+                  collection = factor(collection, levels = car_tib$collection)) %>%
+    dplyr::arrange(indiv, repunit, collection) %>%
+    dplyr::mutate(repunit = as.character(repunit),
+                  collection = as.character(collection)) %>%
+    dplyr::left_join(mix_indiv_tib, ., by = "indiv")
+
+  names(ret)[names(ret) == "pofz"] <- pname
+
+  # deal with the factor levels if present
+  if (!is.null(coll_levs)) {
+    ret$collection = factor(ret$collection, levels = coll_levs)
+  }
+  if (!is.null(repu_levs)) {
+    ret$repunit = factor(ret$repunit, levels = repu_levs)
+
+  }
+  ret
+}
+
+
+#' a helper function to tidy up the pi-traces that come out of the mcmc functions
+#'
+#' This makes a tidy data frame of stuff, and also changes things back to
+#' factors, if the levels are provided.
+#' @param input  The output to tidy (i.e.. out$trace$pi)
+#' @param pname the name that you want the parameter to be called in the output
+#' @param car_tib  a tibble with repunit and collection in the order they appear in the output
+#' @param mix_indiv_tib  a tibble with the individuals in the order they appear in the output
+#' @param coll_levs a vector of levels for the collection (or NULL if none)
+#' @param repu_levs a vector of levels for the repunit (or NULL if none)
+#' @param interval the thinning interval that was used
+#' @keywords internal
+tidy_pi_traces <- function(input, pname, car_tib, coll_levs, repu_levs, interval) {
+  ret <- lapply(input, function(x) tibble::tibble(collection = car_tib$collection,
+                                            pi = x)) %>%
+    dplyr::bind_rows(.id = "sweep") %>%
+    dplyr::mutate(sweep = as.integer(sweep) * as.integer(interval)) %>%
+    dplyr::left_join(., car_tib, by = "collection") %>%
+    dplyr::select(sweep, repunit, collection, pi)
+
+  names(ret)[names(ret) == "pi"] <- pname
+
+  if (!is.null(coll_levs)) {
+    ret$collection = factor(ret$collection, levels = coll_levs)
+  }
+  if (!is.null(repu_levs)) {
+    ret$repunit = factor(ret$repunit, levels = repu_levs)
+  }
+  ret
+}
 
 
 
@@ -32,18 +135,6 @@
 #' They will still be returned in the traces if desired.
 #' @param pb_iter how many bootstrapped data sets to do for bootstrap correction using method PB.  Default
 #' is 100.
-#' @param sample_int_Pi the number of reps between samples being taken for pi traces. If 0
-#' no traces are taken. Only used in methods "MCMC" and "PB".
-#' @param sample_int_PofZ the number of reps between samples being taken for the posterior
-#' traces of each individual's collection of origin. If 0 no trace samples are taken.
-#' Used in all methods
-#' @param sample_int_omega the number of reps between samples being taken for
-#' collection proportion traces. If 0 no traces are taken. Only used in method "BH"
-#' @param sample_int_rho the number of reps between samples being taken for
-#' reporting unit proportion  traces. If 0 no traces are taken. Only used in method "BH"
-#' @param sample_int_PofR the number of reps between samples being taken for the posterior
-#' traces of each individual's reporting unit of origin. If 0 no trace samples are taken.
-#' Only used in method "BH".
 #'
 #' @return \code{mix_proportion_pipeline} returns the standard output of the chosen
 #' mixing proportion estimation method (always a list). For method "PB",
@@ -65,27 +156,52 @@ infer_mixture <- function(reference,
                           reps = 2000,
                           burn_in = 100,
                           pb_iter = 100,
-                          sample_int_Pi = 0,
-                          sample_int_PofZ = 0,
-                          sample_int_omega = 0,
-                          sample_int_rho = 0,
-                          sample_int_PofR = 0) {
+                          sample_int_Pi = 1) {
 
-  # check that repunit and population are factors in reference
-  if(!is.factor(reference$repunit)) stop("repunit column in input reference must be a factor")
-  if(!is.factor(reference$collection)) stop("collection column in input reference must be a factor")
+  # Eric has simplified the interface.  We never expect the user to ask for
+  # a trace of the individual PofZ values.  But we will always return an unthinned
+  # trace of pi
+
+  if (sample_int_Pi == 0) {
+    stop("Sorry, you can't have sample_int_Pi == 0")
+  }
+  if ((reps + burn_in) / sample_int_Pi < 10) {
+    stop("Sorry, sample_int_Pi can't be so large that you take fewer than 10 samples during burn-in and reps")
+  }
+
+  sample_int_PofZ = 0
+  sample_int_omega = 0
+  sample_int_rho = 0
+  sample_int_PofR = 0
+
+
+  ## check whether repunit and collection are factors in reference and other checking... ##
+  if (is.factor(reference$repunit)) {
+    repu_orig_levels <- levels(reference$repunit)
+  } else {
+    repu_orig_levels <- NULL
+    reference$repunit <- factor(reference$repunit, levels = unique(reference$repunit))
+  }
+
+  if (is.factor(reference$collection)) {
+    coll_orig_levels <- levels(reference$collection)
+  } else {
+    coll_orig_levels <- NULL
+    reference$collection <- factor(reference$collection, levels = unique(reference$collection))
+  }
 
   # check that reference and mixture data sets have identical column names
-  if(any(names(reference) != names(mixture))) stop("reference and mixture data frames differ in structure; check # columns and variable names")
+  if (any(names(reference) != names(mixture))) stop("reference and mixture data frames differ in structure; check # columns and variable names")
 
   # check for a valid sampling method
-  if(method != "MCMC" && method != "PB") stop("invalid selection of mixture proportion estimation algorithm: please choose 'PB', 'MCMC'")
+  if (method != "MCMC" && method != "PB") stop("invalid selection of mixture proportion estimation algorithm: please choose 'PB', 'MCMC'")
 
+  ## cleaning and summarizing data ##
   message("collating data; compiling allele frequencies, etc.", appendLF = FALSE)
 
   time1 <- system.time({
     # any existing sample_type columns are removed, to be rewritten based on data frame
-    if(any(names(reference) == "sample_type") || any(names(mixture) == "sample_type")) {
+    if (any(names(reference) == "sample_type") || any(names(mixture) == "sample_type")) {
       reference <- dplyr::select(reference, -sample_type)
       mixture <- dplyr::select(mixture, -sample_type)
       gen_start_col <- gen_start_col - 1
@@ -97,6 +213,7 @@ infer_mixture <- function(reference,
     sample_type <- c(rep("reference", nrow(reference)), rep("mixture", nrow(mixture)) )
     D <- cbind(sample_type, D)
     gen_start_col <- gen_start_col + 1
+
 
 
     # clean the data, gather allele count matrices and collection/reporting unit groups from reference data,
@@ -111,20 +228,18 @@ infer_mixture <- function(reference,
     colls_by_RU <- dplyr::filter(clean$clean_short, sample_type == "reference") %>%
       droplevels() %>%
       dplyr::count(repunit, collection) %>%
-      dplyr::select(-n)
+      dplyr::select(-n) %>%
+      dplyr::ungroup()
 
-    # now, after all that rigamorale we can set two variables aside which are the
-    # reporting units names and the collection names in the order that they are
-    # going to be coming out of the mcmc algorithms
-    COLLECTION_NAMES <- as.character(colls_by_RU$collection)
-    REPUNIT_NAMES <- as.character(unique(colls_by_RU$repunit))
 
-    # while we are at it, store the names of the Mixture individuals
-    MIXTURE_INDIV_NAMES <- as.character(mixture$indiv)
-
+    # while we are at it, store the names of the Mixture individuals and the collections and repunits
+    MIXTURE_INDIV_TIBBLE <- tibble::tibble(indiv = as.character(mixture$indiv))
+    COLLS_AND_REPS_TIBBLE_CHAR <- colls_by_RU %>%
+      dplyr::mutate(repunit = as.character(repunit),
+             collection = as.character(collection))
 
     PC <- rep(0, length(unique(colls_by_RU$repunit)))
-    for(i in 1:nrow(colls_by_RU)) {
+    for (i in 1:nrow(colls_by_RU)) {
       PC[colls_by_RU$repunit[i]] <- PC[colls_by_RU$repunit[i]] + 1
     }
     RU_starts <- c(0, cumsum(PC))
@@ -134,7 +249,7 @@ infer_mixture <- function(reference,
   }) # close time 1 block
   message("   time: ", sprintf("%.2f", time1["elapsed"]), " seconds")
 
-  # calculate genotype log-Likelihoods for the mixture individuals
+  ## calculate genotype log-Likelihoods for the mixture individuals ##
   message("calculating log-likelihoods of the mixture individuals.", appendLF = FALSE)
   time2 <- system.time({
     logl <- geno_logL(params)
@@ -143,24 +258,30 @@ infer_mixture <- function(reference,
   message("   time: ", sprintf("%.2f", time2["elapsed"]), " seconds")
 
 
-  # estimate population parameters based on the chosen algorithm
-  if(method == "PB") {
-    message("performing ", burn_in, " burn-in and ", reps, " more sweeps in first round of method \"PB\"", appendLF = FALSE)
-    time_mcmc1 <- system.time({
-      pi_out <- gsi_mcmc_1(SL = SL,
-                           Pi_init = rep(1 / params$C, params$C),
-                           lambda = rep(1 / params$C, params$C),
-                           reps = reps,
-                           burn_in = burn_in,
-                           sample_int_Pi = sample_int_Pi,
-                           sample_int_PofZ = sample_int_PofZ)
+  ## regardless of whether the method is PB or MCMC, you are going to run the MCMC once, at least ##
+  message("performing ", burn_in, " burn-in and ", reps, " more sweeps of method \"MCMC\"", appendLF = FALSE)
+  time_mcmc1 <- system.time({
+    out <- gsi_mcmc_1(SL = SL,
+                      Pi_init = rep(1 / params$C, params$C),
+                      lambda = rep(1 / params$C, params$C),
+                      reps = reps,
+                      burn_in = burn_in,
+                      sample_int_Pi = sample_int_Pi,
+                      sample_int_PofZ = sample_int_PofZ)
+  })
+  message("   time: ", sprintf("%.2f", time_mcmc1["elapsed"]), " seconds")
 
-      pi_mcmc <- pi_out$mean$pi
-      rho_mcmc <- lapply(1:(length(params$RU_starts) - 1), function(ru){
-        out <- sum(pi_mcmc[params$RU_vec[(params$RU_starts[ru] + 1):params$RU_starts[ru + 1]]])
-      }) %>% unlist()
-    })
-    message("   time: ", sprintf("%.2f", time_mcmc1["elapsed"]), " seconds")
+
+
+
+  ## block of code for estimating mixture using parametric bootstrap ##
+  if (method == "PB") {
+
+    # get the reporting unit proportion estimates from the original MCMC
+    pi_mcmc <- out$mean$pi
+    rho_mcmc <- lapply(1:(length(params$RU_starts) - 1), function(ru){
+      sum(pi_mcmc[params$RU_vec[(params$RU_starts[ru] + 1):params$RU_starts[ru + 1]]])
+    }) %>% unlist()
 
     #dummy_mix <- dplyr::sample_n(reference, nrow(reference), replace = TRUE)
     #dummy_mix$sample_type <- rep("mixture", nrow(reference))
@@ -172,52 +293,54 @@ infer_mixture <- function(reference,
                                 D = D,
                                 gen_start_col = gen_start_col,
                                 niter = pb_iter)
-      pi_out$mean$bootstrap_rho <- boot_out
-      out <- pi_out
+      out$mean$bootstrap_rho <- boot_out
     })
     message("   time: ", sprintf("%.2f", time_pb["elapsed"]), " seconds")
   }
-  if(method == "MCMC") {
-    message("performing ", burn_in, " burn-in and ", reps, " more sweeps of method \"MCMC\"", appendLF = FALSE)
-    time_mcmc1 <- system.time({
-      out <- gsi_mcmc_1(SL = SL,
-                        Pi_init = rep(1 / params$C, params$C),
-                        lambda = rep(1 / params$C, params$C),
-                        reps = reps,
-                        burn_in = burn_in,
-                        sample_int_Pi = sample_int_Pi,
-                        sample_int_PofZ = sample_int_PofZ)
-    })
-    message("   time: ", sprintf("%.2f", time_mcmc1["elapsed"]), " seconds")
 
-    ## down here we tidy up the output ##
-    # currently I have only tested this for the MCMC method
-    pi_tidy <- tibble::tibble(collection = COLLECTION_NAMES, pi = out$mean$pi)
 
-    # then get a tidy PofZ
-    pofz_mat <- t(out$mean$PofZ)
-    colnames(pofz_mat) <- COLLECTION_NAMES
-    indiv_tibble <- tibble::tibble(indiv = MIXTURE_INDIV_NAMES)
+  ## Now for both PB and MCMC we tidy up the out variable ##
+  # get a tidy pi data frame #
+  pi_tidy <- tidy_mcmc_coll_rep_stuff(field = out$mean,
+                                      p = "pi",
+                                      pname = "pi",
+                                      car_tib = COLLS_AND_REPS_TIBBLE_CHAR,
+                                      coll_levs = coll_orig_levels,
+                                      repu_levs = repu_orig_levels)
 
-    pofz_tidy <- dplyr::bind_cols(indiv_tibble,
-                                  tibble::as_tibble(pofz_mat)) %>%
-      tidyr::gather(data = ., key = "inferred_collection", value = "pofz", -indiv) %>%
-      left_join(colls_by_RU, by = c("inferred_collection" = "collection")) %>%
-      rename(inferred_repunit = repunit) %>%
-      select(indiv, inferred_repunit, inferred_collection, pofz) %>%
-      arrange(indiv, inferred_repunit, inferred_collection)
 
-    ### STILL NEED TO DEAL WITH repunits and collections that were originally factors. and sorting the individuals correctly ####
+  # then get a tidy PofZ
+  pofz_tidy <- tidy_mcmc_pofz(input = out$mean$PofZ,
+                              pname = "PofZ",
+                              car_tib = COLLS_AND_REPS_TIBBLE_CHAR,
+                              mix_indiv_tib = MIXTURE_INDIV_TIBBLE,
+                              coll_levs = coll_orig_levels,
+                              repu_levs = repu_orig_levels)
 
-    return(list(pi_tidy = pi_tidy, pofz_tidy = pofz_tidy))
+  # and a tidy trace of the Pi vectors
+  traces_tidy <- tidy_pi_traces(input = out$trace$pi,
+                                pname = "pi",
+                                car_tib = COLLS_AND_REPS_TIBBLE_CHAR,
+                                coll_levs = coll_orig_levels,
+                                repu_levs = repu_orig_levels,
+                                interval = sample_int_Pi)
+
+  ## and if it was PB, we have further tidying to do to add the bootstrap_rhos ##
+  bootstrap_rhos <- NULL
+  if (method == "PB") {
+    bootstrap_rhos <- tibble::tibble(repunit = unique(COLLS_AND_REPS_TIBBLE_CHAR$repunit),
+                                     bs_corrected_repunit_ppn = out$mean$bootstrap_rho)
+    if (!is.null(repu_orig_levels)) {
+      bootstrap_rhos$repunit <- factor(bootstrap_rhos$repunit, levels = repu_orig_levels)
+    }
   }
 
-  out
 
-
-
-
-
+  # in the end, send back a list of these things
+  list(mixing_proportions = pi_tidy,
+       indiv_posteriors = pofz_tidy,
+       mix_prop_traces = traces_tidy,
+       bootstrapped_proportions = bootstrap_rhos)
 
 }
 
@@ -536,7 +659,7 @@ assess_bp_bias_correction <- function(reference, gen_start_col, seed = 5, nreps 
   ret <- rho50x %>%
     dplyr::mutate(repunit = rep(unique(reference$repunit), nreps)) %>%
     dplyr::mutate(iter = as.integer(iter)) %>%
-    select(iter, repunit, everything())
+    select(iter, repunit, dplyr::everything())
 
   return(ret)
 
