@@ -60,7 +60,7 @@ returns a list at the moment.  Can that be cleaned up.  __ERIC__
 - [ ] We could really use a way for users to have more control over the simulation parameters---just
 setting alpha is pretty limited.  It would be nice for users to explicitly give proportions (or maybe 
 even the actual counts).  For this we need to spend some time thinking about how to do it elegantly.  __ERIC__
-- [ ] __BEN__:  `assess_bp_bias_correction` spits out some nice tidy data at this point.  It looks like:
+- [x] __BEN__:  `assess_bp_bias_correction` spits out some nice tidy data at this point.  It looks like:
 ```
 # A tibble: 700 × 6
     iter     repunit   true_rho   rho_mcmc     rho_bh     rho_pb

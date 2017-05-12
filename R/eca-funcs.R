@@ -202,6 +202,201 @@ infer_mixture <- function(reference,
 }
 
 
+#' Estimate mixing proportions and origin probabilities from multiple mixtures
+#'
+#' THIS IS A MINOR REWRITE OF infer_mixture. BEN IS ATTEMPTING TO BUILD A VERSION
+#' THAT CAN ACCEPT MULITPLE MIXTURE DATASETS AT ONCE
+#'
+#' Takes a mixture and reference dataframe of two-column genetic data, and a
+#' desired method of estimation for the population mixture proportions (MCMC, PB, or BH MCMC)
+#' Returns the output of the chosen estimation method
+#'
+#' "MCMC" estimates mixing proportions and individual posterior
+#' probabilities of assignment through Markov-chain Monte Carlo,
+#' while "PB" does the same with a parametric bootstrapping correction.
+#' All methods use a uniform 1/(# collections or RUs) prior for pi/omega and rho.
+#'
+#' @param reference a dataframe of two-column genetic format data, proceeded by "repunit", "collection",
+#' and "indiv" columns. Does not need "sample_type" column, and will be overwritten if provided
+#' @param mixture a dataframe of two-column genetic format data. Must have the same structure as
+#' \code{reference} dataframe, but "repunit" column is ignored.
+#' Does not need "sample_type" column, and will be overwritten if provided
+#' @param gen_start_col the first column of genetic data in both data frames
+#' @param method a choice between "MCMC", "PB" and "BH" methods for estimating mixture proportions
+#' @param reps the number of iterations to be performed in MCMC
+#' @param burn_in how many reps to discard in the beginning of MCMC when doing the mean calculation.
+#' They will still be returned in the traces if desired.
+#' @param pb_iter how many bootstrapped data sets to do for bootstrap correction using method PB.  Default
+#' is 100.
+#' @param sample_int_Pi the number of reps between samples being taken for pi traces. If 0
+#' no traces are taken. Only used in methods "MCMC" and "PB".
+#' @param sample_int_PofZ the number of reps between samples being taken for the posterior
+#' traces of each individual's collection of origin. If 0 no trace samples are taken.
+#' Used in all methods
+#' @param sample_int_omega the number of reps between samples being taken for
+#' collection proportion traces. If 0 no traces are taken. Only used in method "BH"
+#' @param sample_int_rho the number of reps between samples being taken for
+#' reporting unit proportion  traces. If 0 no traces are taken. Only used in method "BH"
+#' @param sample_int_PofR the number of reps between samples being taken for the posterior
+#' traces of each individual's reporting unit of origin. If 0 no trace samples are taken.
+#' Only used in method "BH".
+#'
+#' @return \code{mix_proportion_pipeline} returns the standard output of the chosen
+#' mixing proportion estimation method (always a list). For method "PB",
+#' returns the standard MCMC results, as well as the bootstrap-corrected
+#' collection proportions under \code{$mean$bootstrap}
+#' @examples
+#' reference <- alewife[,-1]
+#' mixture <- alewife[,-1]
+#' gen_start_col <- 14
+#' mcmc <- infer_multi_mixture(reference, mixture, gen_start_col, method = "MCMC")
+#' pb <- ref_and_mix_pipeline(reference, mixture, gen_start_col, method = "PB")
+#'
+#' @export
+infer_multi_mixture <- function(reference,
+                          mixture,
+                          gen_start_col,
+                          method = "MCMC",
+                          reps = 2000,
+                          burn_in = 100,
+                          pb_iter = 100,
+                          sample_int_Pi = 0,
+                          sample_int_PofZ = 0,
+                          sample_int_omega = 0,
+                          sample_int_rho = 0,
+                          sample_int_PofR = 0) {
+
+  # check that repunit and population are factors in reference
+  if(!is.factor(reference$repunit)) stop("repunit column in input reference must be a factor")
+  if(!is.factor(reference$collection)) stop("collection column in input reference must be a factor")
+
+  # check that reference and mixture data sets have identical column names
+  if(any(names(reference) != names(mixture))) stop("reference and mixture data frames differ in structure; check # columns and variable names")
+
+  # check for a valid sampling method
+  if(method != "MCMC" && method != "PB" && method != "BH") stop("invalid selection of mixture proportion estimation algorithm: please choose 'PB', 'MCMC', or 'BH'")
+
+  message("collating data; compiling allele frequencies, etc.", appendLF = FALSE)
+
+  time1 <- system.time({
+    # any existing sample_type columns are removed, to be rewritten based on data frame
+    if(any(names(reference) == "sample_type") || any(names(mixture) == "sample_type")) {
+      reference <- dplyr::select(reference, -sample_type)
+      mixture <- dplyr::select(mixture, -sample_type)
+      gen_start_col <- gen_start_col - 1
+    }
+
+
+    # create single data frame for further processing
+    D <- rbind(reference, mixture)
+    sample_type <- c(rep("reference", nrow(reference)), rep("mixture", nrow(mixture)) )
+    D <- cbind(sample_type, D)
+    gen_start_col <- gen_start_col + 1
+
+
+    # clean the data, gather allele count matrices and collection/reporting unit groups from reference data,
+    # then prepare other parameters based on the mixture data
+
+    clean <- tcf2long(D, gen_start_col)
+    rac <- reference_allele_counts(clean$long)
+    ac <- a_freq_list(rac)
+    mix_colls <- levels(mixture$collection)
+    lapply(mix_colls, )
+    mix_I <- allelic_list(clean$clean_short, ac, samp_type = "mixture")$int
+    coll <- rep(0,length(mix_I[[1]]$a))  # populations of each individual in mix_I; not applicable for mixture samples
+    coll_N <- rep(0, ncol(ac[[1]])) # the number of individuals in each population; not applicable for mixture samples
+    colls_by_RU <- dplyr::filter(clean$clean_short, sample_type == "reference") %>%
+      droplevels() %>%
+      dplyr::count(repunit, collection) %>%
+      dplyr::select(-n)
+    PC <- rep(0, length(unique(colls_by_RU$repunit)))
+    for(i in 1:nrow(colls_by_RU)) {
+      PC[colls_by_RU$repunit[i]] <- PC[colls_by_RU$repunit[i]] + 1
+    }
+    RU_starts <- c(0, cumsum(PC))
+    RU_vec <- as.integer(factor(colls_by_RU$collection,
+                                levels = unique(colls_by_RU$collection)))
+    params <- list_diploid_params(ac, mix_I, coll, coll_N, RU_vec, RU_starts)
+  }) # close time 1 block
+  message("   time: ", sprintf("%.2f", time1["elapsed"]), " seconds")
+
+  # calculate genotype log-Likelihoods for the mixture individuals
+  message("calculating log-likelihoods of the mixture individuals.", appendLF = FALSE)
+  time2 <- system.time({
+    logl <- geno_logL(params)
+    SL <- apply(exp(logl), 2, function(x) x/sum(x))
+  })
+  message("   time: ", sprintf("%.2f", time2["elapsed"]), " seconds")
+
+
+  # estimate population parameters based on the chosen algorithm
+  if(method == "PB") {
+    message("performing ", burn_in, " burn-in and ", reps, " more sweeps in first round of method \"PB\"", appendLF = FALSE)
+    time_mcmc1 <- system.time({
+      pi_out <- gsi_mcmc_1(SL = SL,
+                           Pi_init = rep(1 / params$C, params$C),
+                           lambda = rep(1 / params$C, params$C),
+                           reps = reps,
+                           burn_in = burn_in,
+                           sample_int_Pi = sample_int_Pi,
+                           sample_int_PofZ = sample_int_PofZ)
+
+      pi_mcmc <- pi_out$mean$pi
+      rho_mcmc <- lapply(1:(length(params$RU_starts) - 1), function(ru){
+        out <- sum(pi_mcmc[params$RU_vec[(params$RU_starts[ru] + 1):params$RU_starts[ru + 1]]])
+      }) %>% unlist()
+    })
+    message("   time: ", sprintf("%.2f", time_mcmc1["elapsed"]), " seconds")
+
+    #dummy_mix <- dplyr::sample_n(reference, nrow(reference), replace = TRUE)
+    #dummy_mix$sample_type <- rep("mixture", nrow(reference))
+
+    message("performing ", pb_iter, " bootstrapping rounds for method \"PB\"", appendLF = FALSE)
+    time_pb <- system.time({
+      boot_out <- bootstrap_rho(rho_est = rho_mcmc,
+                                pi_est = pi_mcmc,
+                                D = D,
+                                gen_start_col = gen_start_col,
+                                niter = pb_iter)
+      pi_out$mean$bootstrap_rho <- boot_out
+      out <- pi_out
+    })
+    message("   time: ", sprintf("%.2f", time_pb["elapsed"]), " seconds")
+  }
+  if(method == "MCMC") {
+    message("performing ", burn_in, " burn-in and ", reps, " more sweeps of method \"MCMC\"", appendLF = FALSE)
+    time_mcmc1 <- system.time({
+      out <- gsi_mcmc_1(SL = SL,
+                        Pi_init = rep(1 / params$C, params$C),
+                        lambda = rep(1 / params$C, params$C),
+                        reps = reps,
+                        burn_in = burn_in,
+                        sample_int_Pi = sample_int_Pi,
+                        sample_int_PofZ = sample_int_PofZ)
+    })
+    message("   time: ", sprintf("%.2f", time_mcmc1["elapsed"]), " seconds")
+  }
+  if(method == "BH") {
+    message("performing ", burn_in, " burn-in and ", reps, " more sweeps of method \"BH\"", appendLF = FALSE)
+    time_mcmc2 <- system.time({
+      out <- gsi_mcmc_bh(SL = SL,
+                         Rho_init = rep(1 / (length(params$RU_starts) - 1), length(params$RU_starts) - 1),
+                         Omega_init = rep(1 / params$C, params$C),
+                         lambda_rho = rep(1 / (length(params$RU_starts) - 1), length(params$RU_starts) - 1),
+                         lambda_omega = rep(1 / params$C, params$C),
+                         reps = reps,
+                         burn_in = burn_in,
+                         sample_int_omega = sample_int_omega,
+                         sample_int_rho = sample_int_rho,
+                         sample_int_PofZ = sample_int_PofZ,
+                         sample_int_PofR = sample_int_PofR,
+                         RU_starts = params$RU_starts,
+                         RU_vec = params$RU_vec)
+    })
+    message("   time: ", sprintf("%.2f", time_mcmc2["elapsed"]), " seconds")
+  }
+  out
+}
 
 
 
