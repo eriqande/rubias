@@ -609,7 +609,7 @@ assess_reference_loo <- function(reference, gen_start_col, reps = 50, mixsize = 
 #' @export
 assess_reference_mc <- function(reference, gen_start_col, reps = 50, mixsize = 100, seed = 5,
                                  alpha_collection = 1.5, min_remaining = 5) {
-  params <- tcf2param_list(reference, 15)
+  params <- tcf2param_list(reference, 15, summ = F)
   # get a data frame that has the repunits and collections
   reps_and_colls <- reference %>%
     dplyr::select(repunit, collection) %>%
@@ -628,12 +628,16 @@ assess_reference_mc <- function(reference, gen_start_col, reps = 50, mixsize = 1
   out <- sum(coll_max_draw[reps_and_colls$coll_int[reps_and_colls$repunit == ru]])
   }) %>% unlist()
 
+  reps_and_colls <- dplyr::select(reps_and_colls, - coll_int)
+
   #get a random omega (and therefore rho), constrained by a minimum of min_remaing
   # individuals per population after the draw
   # using a stick breaking model of the Dirichlet distribution
   draw_colls <- lapply(1:reps, function(x){
     rho <- numeric(length(ru_max_draw))
     omega <- numeric(length(coll_max_draw))
+
+
     om_sum <- 0
     c <- 1
     for(coll in 1:length(coll_max_draw)){
@@ -649,7 +653,7 @@ assess_reference_mc <- function(reference, gen_start_col, reps = 50, mixsize = 1
     # However, include the following quick guarantee in case this doesn't work out as planned:
     rho <- rho/sum(rho)
     omega <- omega/sum(omega)
-    true_n <- round2(omega * mixsize,0)
+    true_n <- round(omega * mixsize,0)
     names(true_n) <- levels(reference$collection)
     list(rho=rho, omega = omega, true_n = true_n)
   })
@@ -669,17 +673,46 @@ assess_reference_mc <- function(reference, gen_start_col, reps = 50, mixsize = 1
 
     reps_and_colls <- reps_and_colls %>%
     dplyr::select(-n)
+
   #### cycle over the reps data sets, split mixture and reference, and get proportion estimates from each ####
   estimates <- lapply(1:reps, function(x) {
-    draw <- lapply(levels(reference$collection), function(coll) {
-      samp <- dplyr::sample_n(reference[reference$collection == coll, ], draw_colls[[x]]$true_n[coll], replace = FALSE)
-    }) %>%
-      do.call("rbind", .)
-    new_ref <- dplyr::setdiff(reference, draw)
-    new_repidxs <- new_ref %>%
-      dplyr::select(repunit, collection) %>%
-      dplyr::group_by(repunit, collection) %>%
-      dplyr::tally()
+
+    # designate random indivuals as mixture samples, based on previosly chosen proportions
+    mc_data <- lapply(names(draw_colls[[x]]$true_n), function(coll){
+      coll_split <- reference %>%
+        dplyr::filter(collection == coll)
+      mix_idx <- sample(1:nrow(coll_split), draw_colls[[x]]$true_n[coll], replace = F)
+      coll_split$sample_type[mix_idx] <- "mixture"
+      coll_split
+      }) %>%
+      dplyr::bind_rows()
+
+    #get MCMC parameters (unique to each MC draw)
+    mc_params <- tcf2param_list(mc_data, gen_start_col, samp_type = "both", summ = F)
+
+    logl <- geno_logL(mc_params)
+    SL <- apply(exp(logl), 2, function(x) x/sum(x))
+
+    # get the posterior mean estimates by MCMC
+    pi_out <- gsi_mcmc_1(SL = SL,
+                         Pi_init = rep(1 / mc_params$C, mc_params$C),
+                         lambda = rep(1 / mc_params$C, mc_params$C),
+                         reps = 2000,
+                         burn_in = 100,
+                         sample_int_Pi = 0,
+                         sample_int_PofZ = 0)
+
+
+
+    # get the MLEs by EM-algorithm
+    #em_out <- gsi_em_1(SL, Pi_init = rep(1 / mc_params$C, mc_params$C), max_iterations = 10^6,
+                       #tolerance = 10^-7, return_progression = FALSE)
+
+    # put those in a data_frame
+    dplyr::data_frame(collection = levels(reference$collection),
+                      post_mean = pi_out$mean$pi#,
+                      #mle = em_out$pi
+    )
 
   }) %>%
     dplyr::bind_rows(.id = "iter") %>%
@@ -691,7 +724,7 @@ assess_reference_mc <- function(reference, gen_start_col, reps = 50, mixsize = 1
     dplyr::mutate(n = ifelse(is.na(n), 0, n),
                   collection = factor(collection, levels = levels(reps_and_colls$collection))) %>%
     dplyr::left_join(., reps_and_colls) %>%
-    dplyr::select(iter, repunit, dplyr::everything())
+    dplyr::select(iter, repunit, everything())
 
   # return that data frame
   ret
