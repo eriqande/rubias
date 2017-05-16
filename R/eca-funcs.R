@@ -608,7 +608,7 @@ assess_reference_loo <- function(reference, gen_start_col, reps = 50, mixsize = 
 #'
 #' @export
 assess_reference_mc <- function(reference, gen_start_col, reps = 50, mixsize = 100, seed = 5,
-                                 alpha_collection = 1.5, min_remaining = 5) {
+                                 alpha_repunit = 1.5, alpha_collection = 1.5, min_remaining = 5) {
   params <- tcf2param_list(reference, 15, summ = F)
   # get a data frame that has the repunits and collections
   reps_and_colls <- reference %>%
@@ -636,17 +636,21 @@ assess_reference_mc <- function(reference, gen_start_col, reps = 50, mixsize = 1
   draw_colls <- lapply(1:reps, function(x){
     rho <- numeric(length(ru_max_draw))
     omega <- numeric(length(coll_max_draw))
+    rho_sum <- 0
 
-
-    om_sum <- 0
-    c <- 1
-    for(coll in 1:length(coll_max_draw)){
-      omega[coll] <- min(coll_max_draw[coll]/mixsize,
-                         (1 - om_sum) * rbeta(1, alpha_collection, alpha_collection * (length(coll_max_draw) - coll)))
-      om_sum <- om_sum + omega[coll]
-    }
-    for(ru in 1:length(ru_max_draw)){
-      rho[ru] <- sum(omega[(params$RU_starts[ru] + 1):params$RU_starts[ru+1]])
+    for(ru in 1:length(ru_max_draw)) {
+        rho[ru] <- min(ru_max_draw[ru]/mixsize,
+                   (1 - rho_sum) * rbeta(1, alpha_repunit, 1.5 * (length(ru_max_draw) - ru)))
+        rho_sum <- rho_sum + rho[ru]
+        om_sum <- 0
+        c <- 1
+        for(coll in (params$RU_starts[ru] + 1):params$RU_starts[ru+1]){
+          omega[params$RU_vec[coll]] <- min(coll_max_draw[params$RU_vec[coll]]/mixsize,
+                             (rho[ru] - om_sum) * rbeta(1, 1.5, 1.5 * (length((params$RU_starts[ru] + 1):params$RU_starts[ru+1]) - c)))
+          om_sum <- om_sum + omega[params$RU_vec[coll]]
+          c <- c + 1
+        }
+      rho[ru] <- om_sum
     }
     # Since the maximum any given collection can be is its coll_max_draw as a proportion of mixsize,
     # the omegas should always sum to one so long as there is a reasonable reference dataset size
@@ -678,7 +682,7 @@ assess_reference_mc <- function(reference, gen_start_col, reps = 50, mixsize = 1
   estimates <- lapply(1:reps, function(x) {
 
     # designate random indivuals as mixture samples, based on previosly chosen proportions
-    mc_data <- lapply(names(draw_colls[[x]]$true_n), function(coll){
+    mc_data <- lapply(levels(reference$collection), function(coll){
       coll_split <- reference %>%
         dplyr::filter(collection == coll)
       mix_idx <- sample(1:nrow(coll_split), draw_colls[[x]]$true_n[coll], replace = F)
@@ -688,7 +692,29 @@ assess_reference_mc <- function(reference, gen_start_col, reps = 50, mixsize = 1
       dplyr::bind_rows()
 
     #get MCMC parameters (unique to each MC draw)
-    mc_params <- tcf2param_list(mc_data, gen_start_col, samp_type = "both", summ = F)
+    clean <- tcf2long(mc_data, gen_start_col)
+    rac <- reference_allele_counts(clean$long)
+    ac <- a_freq_list(rac)
+    coll_N <- rep(0, ncol(ac[[1]])) # the number of individuals in each population; not applicable for mixture samples
+
+    colls_by_RU <- dplyr::filter(clean$clean_short, sample_type == "reference") %>%
+      droplevels() %>%
+      dplyr::count(repunit, collection) %>%
+      dplyr::select(-n) %>%
+      dplyr::ungroup()
+
+    PC <- rep(0, length(unique(colls_by_RU$repunit)))
+    for (i in 1:nrow(colls_by_RU)) {
+      PC[colls_by_RU$repunit[i]] <- PC[colls_by_RU$repunit[i]] + 1
+    }
+    RU_starts <- c(0, cumsum(PC))
+    RU_vec <- as.integer(factor(colls_by_RU$collection,
+                                levels = unique(colls_by_RU$collection)))
+
+    mix_I <- allelic_list(clean$clean_short, ac, samp_type = "mixture")$int
+    coll <- rep(0,length(mix_I[[1]]$a))  # populations of each individual in mix_I; not applicable for mixture samples
+
+    mc_params <- list_diploid_params(ac, mix_I, coll, coll_N, RU_vec, RU_starts)
 
     logl <- geno_logL(mc_params)
     SL <- apply(exp(logl), 2, function(x) x/sum(x))
@@ -705,13 +731,13 @@ assess_reference_mc <- function(reference, gen_start_col, reps = 50, mixsize = 1
 
 
     # get the MLEs by EM-algorithm
-    #em_out <- gsi_em_1(SL, Pi_init = rep(1 / mc_params$C, mc_params$C), max_iterations = 10^6,
-                       #tolerance = 10^-7, return_progression = FALSE)
+    em_out <- gsi_em_1(SL, Pi_init = rep(1 / mc_params$C, mc_params$C), max_iterations = 10^6,
+                       tolerance = 10^-7, return_progression = FALSE)
 
     # put those in a data_frame
     dplyr::data_frame(collection = levels(reference$collection),
-                      post_mean = pi_out$mean$pi#,
-                      #mle = em_out$pi
+                      post_mean = pi_out$mean$pi,
+                      mle = em_out$pi
     )
 
   }) %>%
@@ -724,7 +750,7 @@ assess_reference_mc <- function(reference, gen_start_col, reps = 50, mixsize = 1
     dplyr::mutate(n = ifelse(is.na(n), 0, n),
                   collection = factor(collection, levels = levels(reps_and_colls$collection))) %>%
     dplyr::left_join(., reps_and_colls) %>%
-    dplyr::select(iter, repunit, everything())
+    dplyr::select(iter, repunit, dplyr::everything())
 
   # return that data frame
   ret
