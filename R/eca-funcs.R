@@ -621,8 +621,8 @@ assess_reference_mc <- function(reference, gen_start_col, reps = 50, mixsize = 1
   set.seed(seed)
 
   # get the constraints on the number of individuals to be drawn during the cross-validation
-  # a minimum of 5 individuals must be left in the reference for each collection,
-  # and 5*(#collections) for each reporting unit
+  # min_remaining individuals must be left in the reference for each collection,
+  # and min_remaining * (#collections) for each reporting unit
   coll_max_draw <- reps_and_colls$n - min_remaining
   ru_max_draw <- lapply(levels(reference$repunit), function(ru){
   out <- sum(coll_max_draw[reps_and_colls$coll_int[reps_and_colls$repunit == ru]])
@@ -630,8 +630,8 @@ assess_reference_mc <- function(reference, gen_start_col, reps = 50, mixsize = 1
 
   reps_and_colls <- dplyr::select(reps_and_colls, - coll_int)
 
-  #get a random omega (and therefore rho), constrained by a minimum of min_remaing
-  # individuals per population after the draw
+  # Get random rhos and omegas, constrained by a minimum of min_remaing
+  # reference individuals per population after the draw
   # using a stick breaking model of the Dirichlet distribution
   draw_colls <- lapply(1:reps, function(x){
     rho <- numeric(length(ru_max_draw))
@@ -678,7 +678,7 @@ assess_reference_mc <- function(reference, gen_start_col, reps = 50, mixsize = 1
     reps_and_colls <- reps_and_colls %>%
     dplyr::select(-n)
 
-  #### cycle over the reps data sets, split mixture and reference, and get proportion estimates from each ####
+  #### cycle over the reps data sets, get parameters for the new reference, and get proportion estimates from each
   estimates <- lapply(1:reps, function(x) {
 
     # designate random indivuals as mixture samples, based on previosly chosen proportions
