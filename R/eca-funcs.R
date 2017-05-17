@@ -652,9 +652,9 @@ assess_reference_mc <- function(reference, gen_start_col, reps = 50, mixsize = 1
         }
       rho[ru] <- om_sum
     }
-    # Since the maximum any given collection can be is its coll_max_draw as a proportion of mixsize,
-    # the omegas should always sum to one so long as there is a reasonable reference dataset size
-    # However, include the following quick guarantee in case this doesn't work out as planned:
+    # The omegas should always sum to one so long as there is a reasonable reference dataset size
+    # However, could sum to less than one if the proposal for the last rho/omega is rejected
+    # Therefore, include the following quick guarantee:
     rho <- rho/sum(rho)
     omega <- omega/sum(omega)
     true_n <- round(omega * mixsize,0)
