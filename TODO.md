@@ -60,7 +60,7 @@ returns a list at the moment.  Can that be cleaned up.  __ERIC__
 - [ ] We could really use a way for users to have more control over the simulation parameters---just
 setting alpha is pretty limited.  It would be nice for users to explicitly give proportions (or maybe 
 even the actual counts).  For this we need to spend some time thinking about how to do it elegantly.  __ERIC__
-- [ ] __BEN__:  `assess_bp_bias_correction` spits out some nice tidy data at this point.  It looks like:
+- [x] __BEN__:  `assess_bp_bias_correction` spits out some nice tidy data at this point.  It looks like:
 ```
 # A tibble: 700 × 6
     iter     repunit   true_rho   rho_mcmc     rho_bh     rho_pb
@@ -81,8 +81,8 @@ But, we need to
   + [x] include a `true_n` column in the output, which gives the
     actual number of individuals sampled into that population on that iteration.
 
-- [ ] Figure out what happens when the simulation breaks during the Monte Carlo cross validation.  __BEN__
-- [ ] We need a Monte Carlo cross-validation function.  The inputs and outputs should be like `assess_reference`, so Eric still needs to clean that up a bit.  __Ben after  eric pulls together the loo version__
+- [x] Figure out what happens when the simulation breaks during the Monte Carlo cross validation.  __BEN__
+- [x] We need a Monte Carlo cross-validation function.  The inputs and outputs should be like `assess_reference`, so Eric still needs to clean that up a bit.  __Ben after  eric pulls together the loo version__
 - [ ] Prune the EM-stuff out of ``assess_reference`.   __ERIC__
 
 ## Paper

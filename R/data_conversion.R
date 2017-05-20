@@ -124,7 +124,7 @@ reference_allele_counts <- function(D, pop_level = "collection") {
     lefties <- lapply(unique(ref_col_alle$collection), function(x) cbind(collection = x, loc_alle_names, stringsAsFactors = FALSE)) %>%
       dplyr::bind_rows()
 
-    # counts of each allele paired
+    # counts of each allele pair
     pop_tab <- suppressMessages(dplyr::left_join(lefties, ref_col_alle)) %>%
       dplyr::select(collection, dplyr::everything()) %>%
       dplyr::arrange(collection, locus, allele)
