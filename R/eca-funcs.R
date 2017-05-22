@@ -433,8 +433,9 @@ self_assign <- function(reference, gen_start_col) {
   # get the log-likelihoods
   logl <- t(geno_logL(par_list = params))
 
-  # put the collection names at the top of them.  (I'm not sure why they are named RU_vec, but there you go...)
-  colnames(logl) <- names(params$RU_vec)
+  # put the collection names at the top of them. To do this, we put RU_vec into sorted
+  # order and then grab the names off it
+  colnames(logl) <- names(sort(params$RU_vec))
 
   # then make a tibble of it and put the meta data (indiv, collection, repuunit) from
   # "reference" back on the results, and the gather the log-likelihoods into two columns
@@ -451,7 +452,7 @@ self_assign <- function(reference, gen_start_col) {
                                          levels = levels(result$collection))
   }
 
-  # and finally, we use a join to put a column on there for "inferred_collection".
+  # and finally, we use a join to put a column on there for "inferred_repunit".
   # this ugly thing just gets a tibble that associates repunits with collections
   repu_assoc <- result %>%
     dplyr::count(collection, repunit) %>%
@@ -465,7 +466,7 @@ self_assign <- function(reference, gen_start_col) {
   # scaled likelihoods for each individual, then ungroups and returns
   # the result
   result %>%
-    dplyr::left_join(., repu_assoc) %>%
+    dplyr::left_join(., repu_assoc, by = "inferred_collection") %>%
     dplyr::select(indiv:inferred_collection, inferred_repunit, log_likelihood) %>%
     dplyr::group_by(indiv) %>%
     dplyr::mutate(scaled_likelihood = exp(log_likelihood) / sum(exp(log_likelihood))) %>%
