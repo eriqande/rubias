@@ -107,21 +107,16 @@ tidy_pi_traces <- function(input, pname, car_tib, coll_levs, repu_levs, interval
 
 
 
-#' Estimate mixing proportions and origin probabilities from a mixture
-#'
-#' THIS IS A MINOR REWRITE OF ref_and_mix_pipeline. ERIC JUST WANTED TO CHANGE
-#' THE OUTPUT A LITTLE BIT SO IT IS RETURNING DATA FRAMES. AND MORE FLEXIBILITY
-#' IN SPECIFYING PRIORS.
+#' Estimate mixing proportions and origin probabilities from one or several mixtures
 #'
 #' Takes a mixture and reference dataframe of two-column genetic data, and a
-#' desired method of estimation for the population mixture proportions (MCMC, PB, or BH MCMC)
+#' desired method of estimation for the population mixture proportions (MCMC, PB)
 #' Returns the output of the chosen estimation method
 #'
 #' "MCMC" estimates mixing proportions and individual posterior
 #' probabilities of assignment through Markov-chain Monte Carlo,
-#' while "PB" does the same with a parametric bootstrapping correction,
-#' and "BH" uses the misassignment-scaled, hierarchial MCMC.
-#' All methods use a uniform 1/(# collections or RUs) prior for pi/omega and rho.
+#' while "PB" does the same with a parametric bootstrapping correction
+#' All methods use a uniform 1/(# collections or RUs) prior for the mixing proportions.
 #'
 #' @param reference a dataframe of two-column genetic format data, proceeded by "repunit", "collection",
 #' and "indiv" columns. Does not need "sample_type" column, and will be overwritten if provided
@@ -135,18 +130,21 @@ tidy_pi_traces <- function(input, pname, car_tib, coll_levs, repu_levs, interval
 #' They will still be returned in the traces if desired.
 #' @param pb_iter how many bootstrapped data sets to do for bootstrap correction using method PB.  Default
 #' is 100.
+#' @param sample_int_Pi how many iterations between storing the mixing proportions trace. Default is 1.
+#' Can't be 0. Can't be so large that fewer than 10 samples are taken from the burn in and the sweeps.
 #'
-#' @return \code{mix_proportion_pipeline} returns the standard output of the chosen
-#' mixing proportion estimation method (always a list). For method "PB",
-#' returns the standard MCMC results, as well as the bootstrap-corrected
-#' collection proportions under \code{$mean$bootstrap}
+#' @return Tidy data frames in a list with the following components:
+#' mixing_proportions: the estimated mixing proportions of the different collections.
+#' indiv_posteriors: the posterior probs of fish being from each of the collections.
+#' mix_prop_traces: the traces of the mixing proportions.  Useful for computing credible intervals.
+#' bootstrapped_proportions: If using method "BH" this returns the bootstrap corrected
+#' reporting unit proportions.
+#'
 #' @examples
-#' reference <- alewife[,-1]
-#' mixture <- alewife[,-1]
-#' gen_start_col <- 14
-#' bh <- ref_and_mix_pipeline(reference, mixture, gen_start_col, method = "BH")
-#' mcmc <- ref_and_mix_pipeline(reference, mixture, gen_start_col, method = "MCMC")
-#' pb <- ref_and_mix_pipeline(reference, mixture, gen_start_col, method = "PB")
+#' mcmc <- infer_mixture(reference = chinook,
+#'                       mixture = chinook_mix,
+#'                       gen_start_col = 5,
+#'                       method = "MCMC")
 #'
 #' @export
 infer_mixture <- function(reference,
@@ -435,8 +433,9 @@ self_assign <- function(reference, gen_start_col) {
   # get the log-likelihoods
   logl <- t(geno_logL(par_list = params))
 
-  # put the collection names at the top of them.  (I'm not sure why they are named RU_vec, but there you go...)
-  colnames(logl) <- names(params$RU_vec)
+  # put the collection names at the top of them. To do this, we put RU_vec into sorted
+  # order and then grab the names off it
+  colnames(logl) <- names(sort(params$RU_vec))
 
   # then make a tibble of it and put the meta data (indiv, collection, repuunit) from
   # "reference" back on the results, and the gather the log-likelihoods into two columns
@@ -453,7 +452,7 @@ self_assign <- function(reference, gen_start_col) {
                                          levels = levels(result$collection))
   }
 
-  # and finally, we use a join to put a column on there for "inferred_collection".
+  # and finally, we use a join to put a column on there for "inferred_repunit".
   # this ugly thing just gets a tibble that associates repunits with collections
   repu_assoc <- result %>%
     dplyr::count(collection, repunit) %>%
@@ -467,7 +466,7 @@ self_assign <- function(reference, gen_start_col) {
   # scaled likelihoods for each individual, then ungroups and returns
   # the result
   result %>%
-    dplyr::left_join(., repu_assoc) %>%
+    dplyr::left_join(., repu_assoc, by = "inferred_collection") %>%
     dplyr::select(indiv:inferred_collection, inferred_repunit, log_likelihood) %>%
     dplyr::group_by(indiv) %>%
     dplyr::mutate(scaled_likelihood = exp(log_likelihood) / sum(exp(log_likelihood))) %>%

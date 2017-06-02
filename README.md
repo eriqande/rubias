@@ -1,7 +1,7 @@
 rubias --- a package for bias correction in hierarchical GSI
 ============================================================
 ================
-07 May, 2017
+20 May, 2017
 
 -   [Input Data](#input-data)
     -   [An example reference data file](#an-example-reference-data-file)
@@ -66,14 +66,14 @@ Here is the same for the mixture data frame that goes along with that reference 
 ``` r
 head(chinook_mix[, 1:8])
 #> # A tibble: 6 × 8
-#>   sample_type repunit  collection   indiv Ots_94857.232 Ots_94857.232.1
-#>         <chr>   <lgl>       <chr>   <chr>         <int>           <int>
-#> 1     mixture      NA rec_fishery T124711             4               2
-#> 2     mixture      NA rec_fishery T124719             4               2
-#> 3     mixture      NA rec_fishery T124727             4               4
-#> 4     mixture      NA rec_fishery T124735             4               4
-#> 5     mixture      NA rec_fishery T124743             2               2
-#> 6     mixture      NA rec_fishery T124759             4               2
+#>   sample_type repunit collection   indiv Ots_94857.232 Ots_94857.232.1
+#>         <chr>   <lgl>     <fctr>   <chr>         <int>           <int>
+#> 1     mixture      NA       rec2 T124711             4               2
+#> 2     mixture      NA       rec2 T124719             4               2
+#> 3     mixture      NA       rec2 T124727             4               4
+#> 4     mixture      NA       rec1 T124735             4               4
+#> 5     mixture      NA       rec1 T124743             2               2
+#> 6     mixture      NA       rec1 T124759             4               2
 #> # ... with 2 more variables: Ots_102213.210 <int>, Ots_102213.210.1 <int>
 ```
 
