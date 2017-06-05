@@ -304,13 +304,17 @@ infer_mixture <- function(reference,
         sum(pi_mcmc[params$RU_vec[(params$RU_starts[ru] + 1):params$RU_starts[ru + 1]]])
       }) %>% unlist()
 
-
+      sample_type <- rep("reference", nrow(reference))
+      boot_ref <- cbind(sample_type, reference)
+      boot_mix <- little_mix
+      names(boot_mix) <- names(boot_ref)
+      boot_D <- rbind(boot_ref, boot_mix)
 
       message("  performing ", pb_iter, " bootstrapping rounds for method \"PB\"", appendLF = FALSE)
       time_pb <- system.time({
         boot_out <- bootstrap_rho(rho_est = rho_mcmc,
                                   pi_est = pi_mcmc,
-                                  D = D,
+                                  D = boot_D,
                                   gen_start_col = gen_start_col,
                                   niter = pb_iter)
         out$mean$bootstrap_rho <- boot_out
