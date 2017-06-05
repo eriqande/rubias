@@ -41,7 +41,7 @@ describing the structure of the dataset, as well as the presence of missing data
 enabling verification of proper data conversion.
 }
 \examples{
-ale_par_list <- tcf2param_list(alewife, 15)
+ale_par_list <- tcf2param_list(alewife, 17)
 
 }
 

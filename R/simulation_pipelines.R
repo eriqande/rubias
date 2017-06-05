@@ -228,7 +228,7 @@ Hasselman_sim_colls <- function(RU_starts, RU_vec, size = 100) {
 #' @param seed a random seed for simulations
 #'
 #' @examples
-#' ale_dev <- Hasselman_simulation_pipeline(alewife, 15)
+#' ale_dev <- Hasselman_simulation_pipeline(alewife, 17)
 #'
 #' @export
 Hasselman_simulation_pipeline <- function(reference, gen_start_col, seed = 5) {
@@ -253,7 +253,7 @@ Hasselman_simulation_pipeline <- function(reference, gen_start_col, seed = 5) {
     dplyr::bind_rows(.id = "iter")
 
   sim_coll_tabs <- lapply(sim_coll_list, function(x) as.data.frame(table(factor(levels(reference$collection)[x], levels = levels(reference$collection))))) %>%
-    setNames(1:length(sim_coll_list)) %>% dplyr::bind_rows(.id = "iter")
+    stats::setNames(1:length(sim_coll_list)) %>% dplyr::bind_rows(.id = "iter")
   names(sim_coll_tabs) <- c("iter","collection","n")
   # get proportion estimates from these sets
   props50 <- lapply(1:50, function(x) {
@@ -388,7 +388,7 @@ print(g)
 #' bootstrapping.
 #'
 #' @export
-bootstrap_rho <- function(rho_est, pi_est, D, gen_start_col, niter = 100) {
+bootstrap_rho <- function(rho_est, pi_est, D, gen_start_col, niter = 100, reps = 2000, burn_in = 100) {
   D$collection <- factor(D$collection, levels = unique(D$collection))
   D$repunit <- factor(D$repunit, levels = unique(D$repunit))
   ref <- dplyr::filter(D, sample_type == "reference")
@@ -411,8 +411,8 @@ bootstrap_rho <- function(rho_est, pi_est, D, gen_start_col, niter = 100) {
     pi_pb <- gsi_mcmc_1(SL = SL,
                         Pi_init = rep(1 / ref_star_params$C, ref_star_params$C),
                         lambda = rep(1 / ref_star_params$C, ref_star_params$C),
-                        reps = 2000,
-                        burn_in = 100,
+                        reps = reps,
+                        burn_in = burn_in,
                         sample_int_Pi = 0,
                         sample_int_PofZ = 0)
     rho_pb <- lapply(levels(repidxs$repunit), function(ru){
@@ -475,7 +475,7 @@ bootstrap_rho <- function(rho_est, pi_est, D, gen_start_col, niter = 100) {
 #' unlike \code{mse}, this demonstrates the direction of the bias.
 #'
 #' @examples
-#' ale_bias <- bias_comparison(alewife, 15)
+#' ale_bias <- bias_comparison(alewife, 17)
 #'
 #' @export
 bias_comparison <- function(reference, gen_start_col, seed = 5, nreps = 50, mixsize = 100) {

@@ -31,7 +31,7 @@ and hierarchical MCMC GSI, and plotted against the rho value used to simulate
 the mixture.
 }
 \examples{
-ale_dev <- Hasselman_simulation_pipeline(alewife, 15)
+ale_dev <- Hasselman_simulation_pipeline(alewife, 17)
 
 }
 \keyword{internal}
