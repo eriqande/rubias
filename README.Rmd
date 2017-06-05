@@ -77,10 +77,11 @@ repunits, you can always change them into factors after analysis with `rubias`. 
 extra columns in your original data frame (for example `repunit_f` or `collection_f`) in which the repunits or 
 the collections are stored as factors.  See, for example the data file `alewife`
 - The file can have any number of other meta data columns; however, _they must all occur in the data frame **before** the columns of genetic data_.
-- When you pass a file into any of these functions, you have to tell it which column the genetic data starts
+- When you pass a data frame into any of these functions, you have to tell it which column the genetic data starts
 in, and it is assumed that all the columns after that one contain genetic data.
 - If you are doing a mixture analyis, the data frame of mixture fish and of the reference fish must have the
-same column structure.
+same column structure, i.e., they must have exactly the same number of columns with exactly the same
+column names, in the same order.
 
 
 ## An example reference data file
@@ -112,7 +113,7 @@ different functions you might use:
 
 1. `assess_reference_loo()`: This function carries out simulation of mixtures using the leave-one-out
 approach of @Andersonetal2008.
-2. `assess_reference_mccv()`: This functions breaks the reference data set into different subsets, one of which
+2. `assess_reference_mc()`: This functions breaks the reference data set into different subsets, one of which
 is used as the reference data set and the other the mixture.  It is difficult to simulate very large mixture 
 samples using this method, because it is constrained by the number of fish in the reference data set.  
 Additionally, there are constraints on the mixing proportions that can be simulated because of variation in the 
