@@ -35,7 +35,7 @@ MCMC.
 This is hard-wired at the moment to do something like Hasselman et al.
 }
 \examples{
-ale_dev <- assess_reference_loo(alewife, 15)
+ale_dev <- assess_reference_mc(alewife, 17)
 
 }
 

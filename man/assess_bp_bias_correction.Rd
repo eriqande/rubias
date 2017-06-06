@@ -58,7 +58,7 @@ method based on the rate of misassignment, which takes into account both genetic
 and uneven collection distribution.
 }
 \examples{
-ale_bias <- assess_bp_bias_correction(alewife, 15)
+ale_bias <- assess_bp_bias_correction(alewife, 17)
 
 }
 

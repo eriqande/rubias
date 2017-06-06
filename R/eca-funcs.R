@@ -1,5 +1,35 @@
 
 
+#' A helper function to check that the input data frame is OK
+#'
+#' Just checks to make sure that column types are correct
+#' @param D the data frame
+#' @param gen_start_col  the column in which the genetic data starts
+#' @param type For writing errors, supply "mixture" or "reference" as appropriate.
+#' @keywords internal
+check_refmix <- function(D, gen_start_col, type = "reference") {
+
+  # first check to make sure that the repunit, collection, and indiv columns are present
+  if(!("repunit") %in% names(D)) stop("Missing column \"repunit\" in", type)
+  if(!("collection") %in% names(D)) stop("Missing column \"collection\" in", type)
+  if(!("indiv") %in% names(D)) stop("Missing column \"indiv\" in", type)
+
+  # now check to see if any of those are not character vectors
+  if(!is.character(D$repunit)) stop("Column \"repunit\" must be a character vector.  It is not in ", type, " data frame")
+  if(!is.character(D$collection)) stop("Column \"collection\" must be a character vector.  It is not in ", type, " data frame")
+  if(!is.character(D$indiv)) stop("Column \"indiv\" must be a character vector.  It is not in ", type, " data frame")
+
+  # now, check to make sure that all the locus columns are character or integer:
+  tmp <- D[, -(1:(gen_start_col - 1))]
+  char_or_int <- sapply(tmp, is.character) | sapply(tmp, is.integer)
+  if(any(!char_or_int)) {
+    stop("All locus columns must be of characters or integers.  These in ", type, " are not: ",
+         paste(names(char_or_int[!char_or_int]), collapse = ", "))
+  }
+
+}
+
+
 #' A helper function to tidy up the output from the gsi_mcmc functions
 #'
 #' This makes a tidy data frame of stuff, and also changes things back to
@@ -156,6 +186,15 @@ infer_mixture <- function(reference,
                           pb_iter = 100,
                           sample_int_Pi = 1) {
 
+  # check that reference and mixture are OK
+  check_refmix(reference, gen_start_col, "reference")
+  check_refmix(mixture, gen_start_col, "mixture")
+
+  # once we are sure that repunit and collection are characters, turn them to factors
+  reference$repunit <- factor(reference$repunit, levels = unique(reference$repunit))
+  reference$collection <- factor(reference$collection, levels = unique(reference$collection))
+
+
   # Eric has simplified the interface.  We never expect the user to ask for
   # a trace of the individual PofZ values.  But we will always return an unthinned
   # trace of pi
@@ -173,23 +212,13 @@ infer_mixture <- function(reference,
   sample_int_PofR = 0
 
 
-  ## check whether repunit and collection are factors in reference and other checking... ##
-  if (is.factor(reference$repunit)) {
-    repu_orig_levels <- levels(reference$repunit)
-  } else {
-    repu_orig_levels <- NULL
-    reference$repunit <- factor(reference$repunit, levels = unique(reference$repunit))
-  }
-
-  if (is.factor(reference$collection)) {
-    coll_orig_levels <- levels(reference$collection)
-  } else {
-    coll_orig_levels <- NULL
-    reference$collection <- factor(reference$collection, levels = unique(reference$collection))
-  }
-
   # check that reference and mixture data sets have identical column names
-  if (any(names(reference) != names(mixture))) stop("reference and mixture data frames differ in structure; check # columns and variable names")
+  if (any(names(reference) != names(mixture))) stop("reference and mixture data frames differ in structure; check # of columns and variable names")
+
+  # check to make sure that the type of each of the locus colums is the same
+  type_cols_differ <- sapply(reference[-(1:(gen_start_col - 1))], class) != sapply(mixture[-(1:(gen_start_col - 1))], class)
+  if(any(type_cols_differ)) stop("Data types of locus columns differ between reference and mixture at: ",
+                                 paste(names(type_cols_differ[type_cols_differ]), collapse = ", "), ". Please fix that and rerun.")
 
   # check for a valid sampling method
   if (method != "MCMC" && method != "PB") stop("invalid selection of mixture proportion estimation algorithm: please choose 'PB', 'MCMC'")
@@ -304,19 +333,29 @@ infer_mixture <- function(reference,
         sum(pi_mcmc[params$RU_vec[(params$RU_starts[ru] + 1):params$RU_starts[ru + 1]]])
       }) %>% unlist()
 
-      sample_type <- rep("reference", nrow(reference))
-      boot_ref <- cbind(sample_type, reference)
-      boot_mix <- little_mix
-      names(boot_mix) <- names(boot_ref)
-      boot_D <- rbind(boot_ref, boot_mix)
-
       message("  performing ", pb_iter, " bootstrapping rounds for method \"PB\"", appendLF = FALSE)
       time_pb <- system.time({
+        # we have to pull the training " a" and " b"'s off the locus names
+        # that got stuck there by tcf2long.  In fact, we have to rename the loci as they are in D
+        little_mix_forpb <- little_mix
+        names(little_mix_forpb)[gen_start_col:ncol(little_mix_forpb)] <- names(D)[gen_start_col:ncol(D)]
+
+        ref_tmp <- D %>%
+          filter(sample_type == "reference") %>%
+          dplyr::mutate(repunit = as.character(repunit), collection = as.character(collection))
+
+        mix_tmp <- little_mix_forpb %>%
+          dplyr::mutate(repunit = as.character(repunit), collection = as.character(collection))
+
+        bootD <- rbind(ref_tmp, mix_tmp)  # bung reference and small mixture data together as required for bootstrap_rho
         boot_out <- bootstrap_rho(rho_est = rho_mcmc,
                                   pi_est = pi_mcmc,
-                                  D = boot_D,
+                                  D = bootD,
                                   gen_start_col = gen_start_col,
-                                  niter = pb_iter)
+                                  niter = pb_iter,
+                                  reps = reps,
+                                  burn_in = burn_in)
+
         out$mean$bootstrap_rho <- boot_out
       })
       message("   time: ", sprintf("%.2f", time_pb["elapsed"]), " seconds")
@@ -329,8 +368,8 @@ infer_mixture <- function(reference,
                                         p = "pi",
                                         pname = "pi",
                                         car_tib = COLLS_AND_REPS_TIBBLE_CHAR,
-                                        coll_levs = coll_orig_levels,
-                                        repu_levs = repu_orig_levels)
+                                        coll_levs = NULL,
+                                        repu_levs = NULL)
 
 
     # then get a tidy PofZ
@@ -338,15 +377,15 @@ infer_mixture <- function(reference,
                                 pname = "PofZ",
                                 car_tib = COLLS_AND_REPS_TIBBLE_CHAR,
                                 mix_indiv_tib = MIXTURE_INDIV_TIBBLE,
-                                coll_levs = coll_orig_levels,
-                                repu_levs = repu_orig_levels)
+                                coll_levs = NULL,
+                                repu_levs = NULL)
 
     # and a tidy trace of the Pi vectors
     traces_tidy <- tidy_pi_traces(input = out$trace$pi,
                                   pname = "pi",
                                   car_tib = COLLS_AND_REPS_TIBBLE_CHAR,
-                                  coll_levs = coll_orig_levels,
-                                  repu_levs = repu_orig_levels,
+                                  coll_levs = NULL,
+                                  repu_levs = NULL,
                                   interval = sample_int_Pi)
 
     ## and if it was PB, we have further tidying to do to add the bootstrap_rhos ##
@@ -354,9 +393,6 @@ infer_mixture <- function(reference,
     if (method == "PB") {
       bootstrap_rhos <- tibble::tibble(repunit = unique(COLLS_AND_REPS_TIBBLE_CHAR$repunit),
                                        bs_corrected_repunit_ppn = out$mean$bootstrap_rho)
-      if (!is.null(repu_orig_levels)) {
-        bootstrap_rhos$repunit <- factor(bootstrap_rhos$repunit, levels = repu_orig_levels)
-      }
     }
 
 
@@ -380,15 +416,7 @@ infer_mixture <- function(reference,
       dplyr::bind_rows(.id = "mixture_collection")
   )
 
-  # if the mixture collections were factors, restore them as such
-  ret2 <- lapply(ret, function(x) {
-    if (is.factor(mixture$collection)) {
-      x$mixture_collection <- factor(x$mixture_collection, levels = levels(mixture$collection))
-    }
-    x
-  })
-
-  ret2
+  ret
 }
 
 
@@ -497,12 +525,16 @@ self_assign <- function(reference, gen_start_col) {
 #' @param seed a random seed for simulations
 #' @inheritParams simulate_random_samples
 #' @examples
-#' ale_dev <- assess_reference_loo(alewife, 15)
+#' ale_dev <- assess_reference_loo(alewife, 17)
 #'
 #' @export
 assess_reference_loo <- function(reference, gen_start_col, reps = 50, mixsize = 100, seed = 5,
                                           alpha_repunit = 1.5, alpha_collection = 1.5) {
 
+  # check that reference is formatted OK
+  check_refmix(reference, gen_start_col, "reference")
+
+  # then coerce those repunit and collection to factor to prepare them for tcf2param_list
   reference$repunit <- factor(reference$repunit, levels = unique(reference$repunit))
   reference$collection <- factor(reference$collection, levels = unique(reference$collection))
 
@@ -613,12 +645,20 @@ assess_reference_loo <- function(reference, gen_start_col, reps = 50, mixsize = 
 #' @param seed a random seed for simulations
 #' @inheritParams simulate_random_samples
 #' @examples
-#' ale_dev <- assess_reference_loo(alewife, 15)
+#' ale_dev <- assess_reference_mc(alewife, 17)
 #'
 #' @export
 assess_reference_mc <- function(reference, gen_start_col, reps = 50, mixsize = 100, seed = 5,
                                  alpha_repunit = 1.5, alpha_collection = 1.5, min_remaining = 5) {
-  params <- tcf2param_list(reference, 15, summ = F)
+
+  # check that reference is formatted appropriately
+  check_refmix(reference, gen_start_col, "reference")
+
+  reference$repunit <- factor(reference$repunit, levels = unique(reference$repunit))
+  reference$collection <- factor(reference$collection, levels = unique(reference$collection))
+
+  params <- tcf2param_list(reference, gen_start_col, summ = F)
+
   # get a data frame that has the repunits and collections
   reps_and_colls <- reference %>%
     dplyr::select(repunit, collection) %>%
@@ -626,6 +666,7 @@ assess_reference_mc <- function(reference, gen_start_col, reps = 50, mixsize = 1
     dplyr::tally() %>%
     dplyr::ungroup() %>%
     dplyr::mutate(coll_int = 1:length(unique(reference$collection)))
+
   # set seed
   set.seed(seed)
 
@@ -634,7 +675,7 @@ assess_reference_mc <- function(reference, gen_start_col, reps = 50, mixsize = 1
   # and min_remaining * (#collections) for each reporting unit
   coll_max_draw <- reps_and_colls$n - min_remaining
   ru_max_draw <- lapply(levels(reference$repunit), function(ru){
-  out <- sum(coll_max_draw[reps_and_colls$coll_int[reps_and_colls$repunit == ru]])
+    out <- sum(coll_max_draw[reps_and_colls$coll_int[reps_and_colls$repunit == ru]])
   }) %>% unlist()
 
   reps_and_colls <- dplyr::select(reps_and_colls, - coll_int)
@@ -753,12 +794,16 @@ assess_reference_mc <- function(reference, gen_start_col, reps = 50, mixsize = 1
     dplyr::bind_rows(.id = "iter") %>%
     dplyr::mutate(iter = as.integer(iter))
 
-  #### Now, join the estimates to the truth, re-factor everything so it is in the same order, and return ####
+  #### Now, join the estimates to the truth and coerce factors back to characters ####
+  # first off, reps_and_colls must be converted to characters
+  reps_and_colls_char <- reps_and_colls %>%
+    mutate(repunit = as.character(repunit),
+           collection = as.character(collection))
+
   ret <- dplyr::left_join(true_omega_df, true_sim_nums) %>%
     dplyr::left_join(., estimates) %>%
-    dplyr::mutate(n = ifelse(is.na(n), 0, n),
-                  collection = factor(collection, levels = levels(reps_and_colls$collection))) %>%
-    dplyr::left_join(., reps_and_colls) %>%
+    dplyr::mutate(n = ifelse(is.na(n), 0, n)) %>%
+    dplyr::left_join(., reps_and_colls_char) %>%
     dplyr::select(iter, repunit, dplyr::everything())
 
   # return that data frame
@@ -812,10 +857,13 @@ assess_reference_mc <- function(reference, gen_start_col, reps = 50, mixsize = 1
 #' unlike \code{mse}, this demonstrates the direction of the bias.
 #'
 #' @examples
-#' ale_bias <- assess_bp_bias_correction(alewife, 15)
+#' ale_bias <- assess_bp_bias_correction(alewife, 17)
 #'
 #' @export
 assess_bp_bias_correction <- function(reference, gen_start_col, seed = 5, nreps = 50, mixsize = 100) {
+
+  # check that reference is formatted appropriately
+  check_refmix(reference, gen_start_col, "reference")
 
   reference$collection <- factor(reference$collection, levels = unique(reference$collection))
   reference$repunit <- factor(reference$repunit, levels = unique(reference$repunit))

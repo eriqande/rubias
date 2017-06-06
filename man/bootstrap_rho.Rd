@@ -4,7 +4,8 @@
 \alias{bootstrap_rho}
 \title{Perform a parametric bootstrapping correction on an estimated rho vector}
 \usage{
-bootstrap_rho(rho_est, pi_est, D, gen_start_col, niter = 100)
+bootstrap_rho(rho_est, pi_est, D, gen_start_col, niter = 100, reps = 2000,
+  burn_in = 100)
 }
 \arguments{
 \item{rho_est}{the rho value previously estimated from MCMC GSI from the

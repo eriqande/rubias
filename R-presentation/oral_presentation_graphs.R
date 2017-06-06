@@ -2,7 +2,7 @@ library(rubias)
 
 ## Alewife Graphs
 ## Hasselman
-Hass <- Hasselman_simulation_pipeline(alewife, 15)
+Hass <- Hasselman_simulation_pipeline(alewife, 17)
 
 rho_data <- Hass[[1]]
 
@@ -48,7 +48,7 @@ print(b)
 
 
 ## Bootstrap
-boot <- bias_comparison(alewife, 15)
+boot <- bias_comparison(alewife, 17)
 rho50 <- boot$rho_iterations
 names(rho50) <- 1:50
 rho50x <- rho50 %>% dplyr::bind_rows(.id = "iter")

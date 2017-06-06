@@ -25,7 +25,7 @@
 #'
 #' @examples
 #' ## Convert the alewife dataset for further processing
-#' ale_long <- tcf2long(alewife,15)
+#' ale_long <- tcf2long(alewife,17)
 #' @export
 tcf2long <- function(D, gen_start_col) {
   n = ncol(D)
@@ -225,7 +225,7 @@ a_freq_list <- function(D, pop_level = "collection") {
 #'
 #' @examples
 #' example(a_freq_list)
-#' ale_cs <- tcf2long(alewife, 15)$clean_short
+#' ale_cs <- tcf2long(alewife, 17)$clean_short
 #' # Get the vectors of gene copies a and b for all loci in integer index form
 #' ale_alle_list <- allelic_list(ale_cs, ale_ac)$int
 #'
@@ -387,12 +387,13 @@ list_diploid_params <- function(AC_list, I_list, PO, coll_N, RU_vec, RU_starts) 
 #'
 #'
 #' @examples
-#' ale_par_list <- tcf2param_list(alewife, 15)
+#' ale_par_list <- tcf2param_list(alewife, 17)
 #'
 #' @export
 tcf2param_list <- function(D, gen_start_col, samp_type = "both", summ = T){
 
-  #confirm that collection and repunit are factors; important for later processing
+  # coerce collection and repunit to be factors.  This is important since things get turned
+  # into integers
   D$collection <- factor(D$collection, levels = unique(D$collection))
   D$repunit <- factor(D$repunit, levels = unique(D$repunit))
 
@@ -476,7 +477,7 @@ tcf2param_list <- function(D, gen_start_col, samp_type = "both", summ = T){
 #' correct assignment at the collection level, which is too low and variable to serve
 #'  as a stable metric for \code{omega} scaling.
 #' @examples
-#' params <- tcf2param_list(alewife, 15)
+#' params <- tcf2param_list(alewife, 17)
 #' SL <- geno_logL(params) %>% exp() %>% apply(2, function(x) x/sum(x))
 #' correct <- avg_coll2correctRU(SL, params$coll, params$RU_starts, params$RU_vec)
 #'
