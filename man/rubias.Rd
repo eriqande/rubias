@@ -39,7 +39,7 @@ this up into \code{\link{assess_reference_loo}}.
 \code{\link{bias_comparison}} runs \code{\link{mixture_draw}} with fifty Dirichlet random mixture
 proportions, and returns diagnostic plots and information after running standard MCMC,
 parametric bootstrapping, and hierarchical MCMC.  This has been changed and cleaned
-and modified for more user control into \code{\link{assess_bp_bias_correction}}.
+and modified for more user control into \code{\link{assess_pb_bias_correction}}.
 
 The following functions are internal:
 

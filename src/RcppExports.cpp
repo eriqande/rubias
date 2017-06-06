@@ -167,23 +167,3 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-
-static const R_CallMethodDef CallEntries[] = {
-    {"rubias_gsi_mcmc_2", (DL_FUNC) &rubias_gsi_mcmc_2, 14},
-    {"rubias_gsi_mcmc_bh", (DL_FUNC) &rubias_gsi_mcmc_bh, 13},
-    {"rubias_geno_logL", (DL_FUNC) &rubias_geno_logL, 1},
-    {"rubias_samp_from_mat", (DL_FUNC) &rubias_samp_from_mat, 1},
-    {"rubias_gprob_sim_gc", (DL_FUNC) &rubias_gprob_sim_gc, 2},
-    {"rubias_gprob_sim_ind", (DL_FUNC) &rubias_gprob_sim_ind, 2},
-    {"rubias_gprob_sim_gc_missing", (DL_FUNC) &rubias_gprob_sim_gc_missing, 3},
-    {"rubias_gsi_em_1", (DL_FUNC) &rubias_gsi_em_1, 5},
-    {"rubias_gsi_mcmc_1", (DL_FUNC) &rubias_gsi_mcmc_1, 7},
-    {"rubias_dirch_from_allocations", (DL_FUNC) &rubias_dirch_from_allocations, 2},
-    {"rubias_dirch_from_counts", (DL_FUNC) &rubias_dirch_from_counts, 2},
-    {NULL, NULL, 0}
-};
-
-RcppExport void R_init_rubias(DllInfo *dll) {
-    R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
-    R_useDynamicSymbols(dll, FALSE);
-}

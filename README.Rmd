@@ -36,7 +36,7 @@ to view further documentation.
 The script "/R-main/coalescent_sim" was used to generate coalescent simulations
 for bias correction validation. This is unnecessary for testing the applicability
 of our methods to any particular dataset, which should be done using
-`assess_reference_loo()` and  `assess_bp_bias_correction()`.
+`assess_reference_loo()` and  `assess_pb_bias_correction()`.
 `coalescent_sim()`  creates simulated populations using the `ms` coalescent simulation 
 program, available from the Hudson lab at UChicago, and the `GSImulator`
 and `ms2geno` packages, available at [https://github.com/eriqande](https://github.com/eriqande),
