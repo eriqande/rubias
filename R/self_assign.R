@@ -4,7 +4,13 @@
 #' @inheritParams assess_reference_loo
 #' @return a tibble ...
 #' @export
+#' @examples
+#' ale_sa <- self_assign(alewife, 17)
 self_assign <- function(reference, gen_start_col) {
+
+  # make sure the reference file is OK
+  check_refmix(reference, gen_start_col, "reference")
+
   # get the necessary parameters from the reference data
   params <- tcf2param_list(reference, gen_start_col, summ = T)
 
@@ -22,13 +28,10 @@ self_assign <- function(reference, gen_start_col) {
     dplyr::select(indiv, collection, repunit) %>%
     dplyr::bind_cols(., tibble::as_tibble(logl)) %>%
     tidyr::gather(data = ., key = "inferred_collection", value = "log_likelihood", -indiv, -collection, -repunit) %>%
-    dplyr::arrange(indiv, desc(log_likelihood))
+    dplyr::mutate(indiv = factor(indiv, levels = unique(indiv))) %>% # this lets us keep indivs in input order
+    dplyr::arrange(indiv, desc(log_likelihood)) %>%
+    dplyr::mutate(indiv = as.character(indiv))  # when done, coerce indiv back to character
 
-  # then, if collection is a factor, we make inferred_collection a factor with the same levels
-  if (is.factor(result$collection)) {
-    result$inferred_collection <- factor(result$inferred_collection,
-                                         levels = levels(result$collection))
-  }
 
   # and finally, we use a join to put a column on there for "inferred_repunit".
   # this ugly thing just gets a tibble that associates repunits with collections
@@ -41,13 +44,16 @@ self_assign <- function(reference, gen_start_col) {
 
   # and this joins the inferred_repunits column on there and then
   # orders the columns in a good way, and finally adds a column of
-  # scaled likelihoods for each individual, then ungroups and returns
-  # the result
+  # scaled likelihoods for each individual, then ungroups and left_joins
+  # to the number of loci.
   result %>%
     dplyr::left_join(., repu_assoc, by = "inferred_collection") %>%
     dplyr::select(indiv:inferred_collection, inferred_repunit, log_likelihood) %>%
     dplyr::group_by(indiv) %>%
     dplyr::mutate(scaled_likelihood = exp(log_likelihood) / sum(exp(log_likelihood))) %>%
-    dplyr::ungroup()
+    dplyr::ungroup() %>%
+    left_join(., count_missing_data(reference, gen_start_col), by = "indiv")
+
+
 }
 
