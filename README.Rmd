@@ -60,8 +60,13 @@ specific format:
 of locus columns.  The header on the second column is ignored.
 - the data frame must have four columns of meta data for each individual:
     * `sample_type`:  a column telling whether the sample is a `reference` sample or a `mixture` sample.
-    * `repunit`: the reporting unit that an individual belongs to. This is required if sample_type is `reference`.
-       And if  sample_type  is `mixture` then repunit must be `NA`.  This must be a character vector. Not a factor.
+    * `repunit`: the reporting unit that an individual/collection belongs to.  This is required if sample_type is 
+       `reference`. And if  sample_type  is `mixture` then repunit must be `NA`.  
+       This must be a character vector. Not a factor. The idea of a "reporting unit"
+       is well-known amongst people doing genetic stock identfication of salmon, but might not be familiar
+       elsewhere.  Briefly, a reporting unit is a group of populations (which we call "collections") that 
+       are typically closely related genetically, and which will likely be aggregrated in the results of the 
+       GSI exercise.
     * `collection`: for reference samples, the name of the population that the individual is from. For mixture
     samples, this is the name of the particular sample (i.e. stratum or port that is to be treated together in 
     space and time.). This must be a character, not a factor.
@@ -69,19 +74,21 @@ of locus columns.  The header on the second column is ignored.
 - When we started developing `rubias`, we intended to allow both the `repunit` and the `collection` columns to be 
 either character vectors or factors.  Having them as factors might be desirable if, for example, a certain
 sort order of the collections or repunits was desired.  _However_ at some point it became clear to Eric that,
-given our approach to converting all the data to a C++ data structure of integers, 
+given our approach to converting all the data to a C++ data structure of integers, for rapid analyis,
 we would be exposing ourselves to greater opportunities for bugginess
 by allowing `repunit` and `collection` to be factors.  Accordingly, they **must** be character vectors.  If they
 are not, `rubias` will throw an error.  **Note**: if you do have a specific sort order for your collections or 
 repunits, you can always change them into factors after analysis with `rubias`.  Additionally, you can keep 
 extra columns in your original data frame (for example `repunit_f` or `collection_f`) in which the repunits or 
-the collections are stored as factors.  See, for example the data file `alewife`
+the collections are stored as factors.  See, for example the data file `alewife`. Or you can just keep a character
+vector that has the sort order you would like, so as to use it when changing things to factors
+after `rubias` analysis.  (See, for instance, `chinook_repunit_levels`.)
 - The file can have any number of other meta data columns; however, _they must all occur in the data frame **before** the columns of genetic data_.
 - When you pass a data frame into any of these functions, you have to tell it which column the genetic data starts
 in, and it is assumed that all the columns after that one contain genetic data.
 - If you are doing a mixture analyis, the data frame of mixture fish and of the reference fish must have the
 same column structure, i.e., they must have exactly the same number of columns with exactly the same
-column names, in the same order.
+column names, in the same order and of the same type.
 
 
 ## An example reference data file
@@ -103,7 +110,111 @@ head(chinook_mix[, 1:8])
 
 # Performing a Genetic Mixture Analysis
 
-Not written.
+This is done with the `infer_mixture` function.  In the example data 
+`chinook_mix` our data consist of fish caught in three different fisheries, `rec1`,
+`rec2`, and `rec3` as denoted in the collection column. Each of those collections is 
+treated as a separate sample, getting its own mixing proportion estimate.  This is how
+it is run with the default options:
+```{r, cache=TRUE}
+mix_est <- infer_mixture(reference = chinook, 
+                         mixture = chinook_mix, 
+                         gen_start_col = 5)
+```
+
+The result comes back as a list of four tidy data frames:
+
+1. `mixing_proportions`: the mixing proportions.  The column `pi` holds the estimated mixing proportion for each collection.
+2. `indiv_posteriors`: this holds, for each individual, the posterior means of group membership in each
+collection.  Column `PofZ` holds those values.  It also includes `n_non_miss_loci` and `n_miss_loci` which are
+the number of observed loci and the number of missing loci at the individual.
+3. `mix_prop_traces:` MCMC traces of the mixing proportions for each collection.
+4. `bootstrapped_proportions`: This is NULL in the above example, but if we had chosen
+`method = "PB"` then this would be a tibble of bootstrap-corrected reporting unit
+mixing proportions.
+
+```{r}
+mix_est
+```
+
+
+## Aggregating collection into reporting units
+
+This is a simple operation in the [tidyverse](http://tidyverse.org/):
+```{r}
+# for mixing proportions
+rep_mix_ests <- mix_est$mixing_proportions %>%
+  group_by(mixture_collection, repunit) %>%
+  summarise(repprop = sum(pi))  # adding mixing proportions over collections in the repunit
+
+# for individuals posteriors
+rep_indiv_ests <- mix_est$indiv_posteriors %>%
+  group_by(mixture_collection, indiv, repunit) %>%
+  summarise(rep_pofz = sum(PofZ))
+```
+
+
+## Creating Posterior Density Curves from the Traces
+
+The full MCMC output for the mixing proportions is available by default in the
+field `$mix_prop_traces`.  This
+can be used to obtain an estimate of the posterior density of the mixing proportions.
+
+Here we plot kernel density estimates for the 6 most abundant repunits from the
+`rec1` fishery:
+```{r}
+# find the top 6 most abundant:
+top6 <- rep_mix_ests %>%
+  filter(mixture_collection == "rec1") %>% 
+  arrange(desc(repprop)) %>%
+  slice(1:6)
+
+# check how many MCMC sweeps were done:
+nsweeps <- max(mix_est$mix_prop_traces$sweep)
+
+# keep only rec1, then discard the first 200 sweeps as burn-in,
+# and then aggregate over reporting units
+# and then keep only the top6 from above
+trace_subset <- mix_est$mix_prop_traces %>%
+  filter(mixture_collection == "rec1", sweep > 200) %>%
+  group_by(sweep, repunit) %>%
+  summarise(repprop = sum(pi)) %>% 
+  filter(repunit %in% top6$repunit)
+
+
+# now we can plot those:
+ggplot(trace_subset, aes(x = repprop, colour = repunit)) +
+  geom_density()
+```
+
+
+## Bootstrap-Corrected Reporting Unit Proportions
+
+These are obtained using `method = "PB"` in `infer_mixture()`.  When invoked, this will return the 
+regular MCMC results as before, but also will population the `bootstrapped_proportions` field
+of the output.  Doing so takes a little bit longer, computationally, because there is a good deal 
+of simulation involved:
+```{r, cache=TRUE}
+mix_est_pb <- infer_mixture(reference = chinook, 
+                         mixture = chinook_mix, 
+                         gen_start_col = 5,
+                         method = "PB")
+```
+
+And now we can compare the estimates, showing here the 10 most prevalent
+repunits, in the `rec1` fishery:
+```{r, cache=TRUE}
+mix_est_pb$mixing_proportions %>%
+  group_by(mixture_collection, repunit) %>%
+  summarise(repprop = sum(pi)) %>%
+  left_join(mix_est_pb$bootstrapped_proportions) %>%
+  ungroup() %>%
+  filter(mixture_collection == "rec1") %>%
+  arrange(desc(repprop)) %>%
+  slice(1:10)
+```
+
+So, we see that the proportion of Central Valley Fall Run has been reduced in the 
+bootstrap correction, and the proprtion of Central Valley Spring Run has been increased.
 
 # Simulation Assessment of Genetic References
 
@@ -121,6 +232,16 @@ number of fish from each collection in the reference.
 
 Both of the functions take two required arguments: 1) a data frame of reference genetic data, and 2) the 
 number of the column in which the genetic data start.
+
+Here we use the `alewife` data to simulate 50 mixture samples of size 200 fish 
+using the default values (Dirichlet parameters of 1.5 for each reporting unit, and
+Dirichlet parameters of 1.5 for each collection within a reporting unit...)
+```{r}
+ale_sims <- assess_reference_loo(reference = alewife, 
+                     gen_start_col = 17, 
+                     reps = 100, 
+                     mixsize = 200)
+```
 
 ## Specifying mixture proportions in `assess_reference_loo()`
 
@@ -141,12 +262,29 @@ a repunit or collection is specified that does not exist in the reference.  Howe
 specify a value for every reporting unit or collection.  (If they are absent, the value is assumed to be zero.)
 
 The second column of the data frame must be one of `count`, `ppn` or `dirichlet`.  These specify, respectively,
-1) the exact count of individuals to be simulated from each repunit (or collection); 2) the proportion
-of individuals from each repunit (or collection); or 3) the parameters of a Dirichlet distribution from which
-the proportion of individuals should be simulated.  These `ppn` values will be normalized to sum to one if 
-they do not.  As such, they can be regarded as weights.
 
+1. the exact count of individuals to be simulated from each repunit (or collection);
+2. the proportion of individuals from each repunit (or collection); or 
+3. the parameters of a Dirichlet distribution from which the proportion of individuals should be simulated.
+These `ppn` values will be normalized to sum to one if they do not.  As such, they can be regarded as weights.
 
+Let's say that we want to simulate data that roughly have proportions like what we saw in the
+Chinook `rec1` fishery.  We have those estimates in the variable `top6`:
+```{r}
+top6
+```
+
+We could, if we put those `repprop` values into a `ppn` column, simulate mixtures with 
+exactly those proportions.  Or if we wanted to simulate exact numbers of fish in a sample
+of `r sum(round(top6$repprop * 350))` fish, we could get those values like this:
+```{r}
+round(top6$repprop * 350)
+```
+and then put them in a `cnts` column.  
+
+However, in this case, we want to simulate mixtures that look similar to the one we 
+estimated, but have some variation.  For that we will want supply Dirichlet random variable
+parmaters in a column named `dirichlet`.  
 
 
 
