@@ -72,6 +72,9 @@ assess_reference_loo <- function(reference, gen_start_col, reps = 50, mixsize = 
 
   #### cycle over the reps data sets and get proportion estimates from each ####
   estimates <- lapply(1:reps, function(x) {
+
+    message("Doing LOO simulations rep ", x, " of ", reps)
+
     coll_vec <- sim_colls[[x]]$sim_coll
 
     # sampling SLs from the reference dataset at the individual level (like Hasselman et al. 2015)
@@ -106,16 +109,19 @@ assess_reference_loo <- function(reference, gen_start_col, reps = 50, mixsize = 
 
 
   #### Now, join the estimates to the truth, re-factor everything so it is in the same order, and return ####
-  ret <- dplyr::left_join(true_omega_df, true_sim_nums) %>%
-    dplyr::left_join(., estimates) %>%
+  ret <- dplyr::left_join(true_omega_df, true_sim_nums, by = c("iter", "collection")) %>%
+    dplyr::left_join(., estimates, by = c("iter", "collection")) %>%
     dplyr::mutate(n = ifelse(is.na(n), 0, n),
                   collection = factor(collection, levels = levels(reps_and_colls$collection))) %>%
-    dplyr::left_join(., reps_and_colls) %>%
+    dplyr::left_join(., reps_and_colls, by = "collection") %>%
     dplyr::select(iter, repunit, dplyr::everything())
 
   # coerce repunit and collection back to character
-  # and return that data frame
+  # and return that data frame after renaming the variables their final form
   ret %>%
     dplyr::mutate(collection = as.character(collection),
-                  repunit = as.character(repunit))
+                  repunit = as.character(repunit)) %>%
+    dplyr::rename(true_pi = omega,
+                  post_mean_pi = post_mean,
+                  mle_pi)
 }
