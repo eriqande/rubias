@@ -44,4 +44,5 @@ enabling verification of proper data conversion.
 ale_par_list <- tcf2param_list(alewife, 17)
 
 }
+\keyword{internal}
 

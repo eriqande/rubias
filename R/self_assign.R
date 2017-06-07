@@ -16,12 +16,15 @@ self_assign <- function(reference, gen_start_col) {
 
   # get the log-likelihoods
   logl <- t(geno_logL(par_list = params))
+  # and get the sum-of-squares over loci of the logls (for z-score calculation)
+  logl_ssq <- t(geno_logL_ssq(par_list = params))
 
   # put the collection names at the top of them. To do this, we put RU_vec into sorted
   # order and then grab the names off it
   colnames(logl) <- names(sort(params$RU_vec))
+  colnames(logl_ssq) <- names(sort(params$RU_vec))
 
-  # then make a tibble of it and put the meta data (indiv, collection, repuunit) from
+  # then make a tibble of the logls and put the meta data (indiv, collection, repuunit) from
   # "reference" back on the results, and the gather the log-likelihoods into two columns
   # named "inferred_collection" and "log_likelihood"
   result <- reference %>%
@@ -32,6 +35,16 @@ self_assign <- function(reference, gen_start_col) {
     dplyr::arrange(indiv, desc(log_likelihood)) %>%
     dplyr::mutate(indiv = as.character(indiv))  # when done, coerce indiv back to character
 
+  # we need to do something similar with the sums-of-squares of the logls, then
+  # we will left_join it
+  ssq_tibble <- reference %>%
+    dplyr::select(indiv, collection, repunit) %>%
+    dplyr::bind_cols(., tibble::as_tibble(logl_ssq)) %>%
+    tidyr::gather(data = ., key = "inferred_collection", value = "ssq_logl", -indiv, -collection, -repunit)
+
+  # here we join that on
+  result <- left_join(result, ssq_tibble,
+                      by = c("indiv", "collection", "repunit", "inferred_collection"))
 
   # and finally, we use a join to put a column on there for "inferred_repunit".
   # this ugly thing just gets a tibble that associates repunits with collections
@@ -48,7 +61,7 @@ self_assign <- function(reference, gen_start_col) {
   # to the number of loci.
   result %>%
     dplyr::left_join(., repu_assoc, by = "inferred_collection") %>%
-    dplyr::select(indiv:inferred_collection, inferred_repunit, log_likelihood) %>%
+    dplyr::select(indiv:inferred_collection, inferred_repunit, log_likelihood, ssq_logl) %>%
     dplyr::group_by(indiv) %>%
     dplyr::mutate(scaled_likelihood = exp(log_likelihood) / sum(exp(log_likelihood))) %>%
     dplyr::ungroup() %>%

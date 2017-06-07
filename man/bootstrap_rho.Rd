@@ -37,4 +37,5 @@ Takes an estimate of rho, and a two-column format genetic data frame
 containing both reference and mixture data. Returns a new rho corrected by
 parametric bootstrapping
 }
+\keyword{internal}
 

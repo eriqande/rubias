@@ -30,6 +30,7 @@ assess_reference_loo <- function(reference, gen_start_col, reps = 50, mixsize = 
   reference$repunit <- factor(reference$repunit, levels = unique(reference$repunit))
   reference$collection <- factor(reference$collection, levels = unique(reference$collection))
 
+
   # get the necessary parameters from the reference data
   params <- tcf2param_list(reference, gen_start_col, summ = T)
 

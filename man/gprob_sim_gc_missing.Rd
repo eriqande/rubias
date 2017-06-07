@@ -42,4 +42,5 @@ sim_colls <- sample(params$C, 1070, replace = T)
 sim_miss <- sample(length(params$coll), 1070, replace = T)
 ale_sim_gprobs_miss <- gprob_sim_gc_missing(params, sim_colls, sim_miss)
 }
+\keyword{internal}
 

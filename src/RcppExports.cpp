@@ -63,6 +63,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// geno_logL_ssq
+NumericMatrix geno_logL_ssq(List par_list);
+RcppExport SEXP rubias_geno_logL_ssq(SEXP par_listSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< List >::type par_list(par_listSEXP);
+    rcpp_result_gen = Rcpp::wrap(geno_logL_ssq(par_list));
+    return rcpp_result_gen;
+END_RCPP
+}
 // samp_from_mat
 IntegerVector samp_from_mat(NumericMatrix M);
 RcppExport SEXP rubias_samp_from_mat(SEXP MSEXP) {

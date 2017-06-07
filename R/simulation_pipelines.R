@@ -386,8 +386,8 @@ print(g)
 #'
 #' @return \code{bootstrap_rho} returns a new rho value, corrected by parametric
 #' bootstrapping.
-#'
 #' @export
+#' @keywords internal
 bootstrap_rho <- function(rho_est, pi_est, D, gen_start_col, niter = 100, reps = 2000, burn_in = 100) {
   D$collection <- factor(D$collection, levels = unique(D$collection))
   D$repunit <- factor(D$repunit, levels = unique(D$repunit))

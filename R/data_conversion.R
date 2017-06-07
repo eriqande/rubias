@@ -385,7 +385,7 @@ list_diploid_params <- function(AC_list, I_list, PO, coll_N, RU_vec, RU_starts) 
 #' after the original dataset is converted to a usable format and all relevant values
 #' are extracted. See \code{?list_diploid_params} for details
 #'
-#'
+#' @keywords internal
 #' @examples
 #' ale_par_list <- tcf2param_list(alewife, 17)
 #'
@@ -480,8 +480,8 @@ tcf2param_list <- function(D, gen_start_col, samp_type = "both", summ = T){
 #' params <- tcf2param_list(alewife, 17)
 #' SL <- geno_logL(params) %>% exp() %>% apply(2, function(x) x/sum(x))
 #' correct <- avg_coll2correctRU(SL, params$coll, params$RU_starts, params$RU_vec)
-#'
 #' @export
+#' @keywords internal
 avg_coll2correctRU <- function(SL, coll, RU_starts, RU_vec) {
   ru_SL <- lapply(1:(length(RU_starts)-1), function(ru){
     apply(rbind(SL[RU_vec[(RU_starts[ru]+1):RU_starts[ru + 1]], ]), 2, sum)

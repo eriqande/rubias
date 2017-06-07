@@ -113,6 +113,8 @@ NumericMatrix gprob_sim_gc(List par_list, IntegerVector sim_colls) {
 //' reference collection of interest. Selection at the locus and gene copy level
 //' are not independent, and missing data is included in selection.
 //'
+//' @keywords internal
+//'
 //' @examples
 //' example(tcf2param_list)
 //' sim_colls <- sample(ale_par_list$C, 1070, replace = T)
@@ -136,7 +138,7 @@ NumericMatrix gprob_sim_ind(List par_list, IntegerVector sim_colls) {
   IntegerVector CA = as<IntegerVector>(par_list["CA"]);
   NumericVector DP = as<NumericVector>(par_list["DP"]);
   NumericVector sum_DP = as<NumericVector>(par_list["sum_DP"]);
-  double rando, sum, gp;
+  double rando = 0.0, sum, gp;
   NumericMatrix out(C,N);
 
 
@@ -188,6 +190,7 @@ NumericMatrix gprob_sim_ind(List par_list, IntegerVector sim_colls) {
 //' @param sim_missing a vector; element i specifies the index for the individual in
 //' params$I whose missing data should be copied for individual i
 //'
+//' @keywords internal
 //' @examples
 //' # If one wanted to simulate the missing data patterns
 //' of a troublesome mixture dataset, one would run tcf2param_list,

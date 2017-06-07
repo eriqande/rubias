@@ -40,6 +40,6 @@ to scale Dirichlet draws of \code{omega} during misassignment-scaled MCMC.
 params <- tcf2param_list(alewife, 17)
 SL <- geno_logL(params) \%>\% exp() \%>\% apply(2, function(x) x/sum(x))
 correct <- avg_coll2correctRU(SL, params$coll, params$RU_starts, params$RU_vec)
-
 }
+\keyword{internal}
 

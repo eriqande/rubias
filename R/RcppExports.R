@@ -106,6 +106,7 @@ gsi_mcmc_2 <- function(SL, Rho_init, Omega_init, lambda_rho, lambda_omega, reps,
 #' lambda_rho <- rep(1/(length(params$RU_starts)-1), length(params$RU_starts)-1 )
 #' test_bh_mcmc <- gsi_mcmc_bh(SL, lambda_rho, lambda_omega, lambda_rho, lambda_omega, 10000, 2500, 50, 50, 50, 50, params$RU_starts, params$RU_vec, avg_correct)
 #'
+#' @keywords internal
 #' @return \code{gsi_mcmc_2} returns a nested list of MCMC results.
 #'
 #' \code{$mean} records the mean
@@ -147,6 +148,31 @@ gsi_mcmc_bh <- function(SL, Rho_init, Omega_init, lambda_rho, lambda_omega, reps
 #' @export
 geno_logL <- function(par_list) {
     .Call('rubias_geno_logL', PACKAGE = 'rubias', par_list)
+}
+
+#' Calculate a matrix of sum-of-squares of genotype log-likelihoods for a genetic dataset
+#'
+#' Takes a list of key parameters from a genetic dataset, and calculates
+#' the sum of squared log-likelihood of each individual's genotype, given the allele counts
+#' in each collection. This is used for the quick-and-dirty Z-score calculations.
+#'
+#' Leave-One-Out cross-validation is used to avoid bias in log-likelihood for an
+#' individual's known collection of origin
+#'
+#' @keywords internal
+#'
+#' @param par_list genetic data converted to the param_list format by \code{tcf2param_list}
+#'
+#' @return \code{geno_logL} returns a matrix with C rows and I columns. Each column
+#' represents an individual, and each row the log-likelihood of that individual's
+#' genotype, given the allele counts in that collection
+#'
+#' @examples
+#' example(tcf2param_list)
+#' ale_glL <- geno_logL(ale_par_list)
+#' @export
+geno_logL_ssq <- function(par_list) {
+    .Call('rubias_geno_logL_ssq', PACKAGE = 'rubias', par_list)
 }
 
 #' Sample 1 observation from cell probabilities that are columns of a matrix
@@ -218,6 +244,8 @@ gprob_sim_gc <- function(par_list, sim_colls) {
 #' reference collection of interest. Selection at the locus and gene copy level
 #' are not independent, and missing data is included in selection.
 #'
+#' @keywords internal
+#'
 #' @examples
 #' example(tcf2param_list)
 #' sim_colls <- sample(ale_par_list$C, 1070, replace = T)
@@ -247,6 +275,7 @@ gprob_sim_ind <- function(par_list, sim_colls) {
 #' @param sim_missing a vector; element i specifies the index for the individual in
 #' params$I whose missing data should be copied for individual i
 #'
+#' @keywords internal
 #' @examples
 #' # If one wanted to simulate the missing data patterns
 #' of a troublesome mixture dataset, one would run tcf2param_list,

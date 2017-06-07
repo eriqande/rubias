@@ -84,6 +84,11 @@ infer_mixture <- function(reference,
   # check for a valid sampling method
   if (method != "MCMC" && method != "PB") stop("invalid selection of mixture proportion estimation algorithm: please choose 'PB', 'MCMC'")
 
+  # get the number of missing and non-missing loci for the mixture fish and hold it
+  # till the end, when we join it on there
+  mix_num_loci <- count_missing_data(mixture, gen_start_col)
+
+
   ## cleaning and summarizing data ##
   message("Collating data; compiling reference allele frequencies, etc.", appendLF = FALSE)
 
@@ -267,12 +272,14 @@ infer_mixture <- function(reference,
   })
 
 
-  # phew.  At the end of that, we are going to bind_rows so everything is tidy
+  # phew.  At the end of that, we are going to bind_rows so everything is tidy, and we
+  # add missing data numbers to the indiv_posteriors, too.
   ret <- list(
     mixing_proportions = lapply(big_output_list, function(x) x$mixing_proportions) %>%
       dplyr::bind_rows(.id = "mixture_collection"),
     indiv_posteriors = lapply(big_output_list, function(x) x$indiv_posteriors) %>%
-      dplyr::bind_rows(.id = "mixture_collection"),
+      dplyr::bind_rows(.id = "mixture_collection") %>%
+      left_join(., mix_num_loci, by = "indiv"),
     mix_prop_traces = lapply(big_output_list, function(x) x$mix_prop_traces) %>%
       dplyr::bind_rows(.id = "mixture_collection"),
     bootstrapped_proportions = lapply(big_output_list, function(x) x$bootstrapped_proportions) %>%
