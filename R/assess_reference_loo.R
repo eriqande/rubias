@@ -48,7 +48,15 @@ assess_reference_loo <- function(reference, gen_start_col, reps = 50, mixsize = 
   #   (1) rho's ("true" simulated mixing proportions of reporting units)
   #   (2) omegas's  ("true" simulated mixing proportions of collections)
   #   (3) sim_coll's  (a vector giving the origin of each simulated individual in the mixture)
-  sim_colls <- lapply(1:reps, function(x) simulate_random_samples(params$RU_starts, params$RU_vec, size = mixsize, alpha_repunit = alpha_repunit, alpha_collection = alpha_collection))
+  sim_colls <- lapply(1:reps, function(x)  {
+    simulate_random_samples(params$RU_starts,
+                            params$RU_vec,
+                            size = mixsize,
+                            alpha_repunit = alpha_repunit,
+                            alpha_collection = alpha_collection)
+  })
+
+
 
   # now extract the true values of rho and omega from that into some data frames
   true_omega_df <- lapply(sim_colls, function(x) dplyr::data_frame(collection = levels(reference$collection), omega = x$omega)) %>%

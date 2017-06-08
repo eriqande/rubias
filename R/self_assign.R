@@ -43,7 +43,7 @@ self_assign <- function(reference, gen_start_col) {
     tidyr::gather(data = ., key = "inferred_collection", value = "ssq_logl", -indiv, -collection, -repunit)
 
   # here we join that on
-  result <- left_join(result, ssq_tibble,
+  result <- dplyr::left_join(result, ssq_tibble,
                       by = c("indiv", "collection", "repunit", "inferred_collection"))
 
   # and finally, we use a join to put a column on there for "inferred_repunit".
@@ -65,7 +65,7 @@ self_assign <- function(reference, gen_start_col) {
     dplyr::group_by(indiv) %>%
     dplyr::mutate(scaled_likelihood = exp(log_likelihood) / sum(exp(log_likelihood))) %>%
     dplyr::ungroup() %>%
-    left_join(., count_missing_data(reference, gen_start_col), by = "indiv")
+    dplyr::left_join(., count_missing_data(reference, gen_start_col), by = "indiv")
 
 
 }

@@ -115,7 +115,7 @@ This is done with the `infer_mixture` function.  In the example data
 `rec2`, and `rec3` as denoted in the collection column. Each of those collections is 
 treated as a separate sample, getting its own mixing proportion estimate.  This is how
 it is run with the default options:
-```{r, cache=TRUE}
+```{r infer_mixture1, cache=TRUE}
 mix_est <- infer_mixture(reference = chinook, 
                          mixture = chinook_mix, 
                          gen_start_col = 5)
@@ -132,12 +132,14 @@ the number of observed loci and the number of missing loci at the individual.
 `method = "PB"` then this would be a tibble of bootstrap-corrected reporting unit
 mixing proportions.
 
+These data frames look like this:
+
 ```{r}
 mix_est
 ```
 
 
-## Aggregating collection into reporting units
+## Aggregating collections into reporting units
 
 This is a simple operation in the [tidyverse](http://tidyverse.org/):
 ```{r}
@@ -153,7 +155,7 @@ rep_indiv_ests <- mix_est$indiv_posteriors %>%
 ```
 
 
-## Creating Posterior Density Curves from the Traces
+## Creating posterior density curves from the traces
 
 The full MCMC output for the mixing proportions is available by default in the
 field `$mix_prop_traces`.  This
@@ -193,7 +195,7 @@ These are obtained using `method = "PB"` in `infer_mixture()`.  When invoked, th
 regular MCMC results as before, but also will population the `bootstrapped_proportions` field
 of the output.  Doing so takes a little bit longer, computationally, because there is a good deal 
 of simulation involved:
-```{r, cache=TRUE}
+```{r infer_mixture_pb, cache=TRUE}
 mix_est_pb <- infer_mixture(reference = chinook, 
                          mixture = chinook_mix, 
                          gen_start_col = 5,
@@ -216,7 +218,12 @@ mix_est_pb$mixing_proportions %>%
 So, we see that the proportion of Central Valley Fall Run has been reduced in the 
 bootstrap correction, and the proprtion of Central Valley Spring Run has been increased.
 
-# Simulation Assessment of Genetic References
+# Assessment of Genetic References
+
+## Self-assigning fish from the reference
+
+
+## Simulated mixtures using a leave-one-out type of approach
 
 If you want to know how much accuracy you can expect given a set of genetic markers and
 a grouping of populations (`collection`s) into reporting units (`repunit`s), there are two
@@ -284,7 +291,20 @@ and then put them in a `cnts` column.
 
 However, in this case, we want to simulate mixtures that look similar to the one we 
 estimated, but have some variation.  For that we will want supply Dirichlet random variable
-parmaters in a column named `dirichlet`.  
+parmaters in a column named `dirichlet`.  If we make the values proportional to the mixing proportions,
+then, on average that is what they will be.  If the values are large, then there will be little 
+variation between simulated mixtures.  And if the the values are small there will be lots of variation.  
+We'll scale them so that they sum to 10---that should give some variation, but not too much.  Accordingly
+tibble that we pass in as the `alpha_repunit` parameter, which describes the variation in reporting unit
+proportions we would like to simulate would look like this:
+```{r}
+arep <- top6 %>%
+  ungroup() %>%
+  mutate(dirichlet = 10 * repprop) %>%
+  select(repunit, dirichlet)
+
+arep
+```
 
 
 

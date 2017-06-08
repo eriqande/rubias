@@ -229,46 +229,50 @@ infer_mixture <- function(reference,
       message("   time: ", sprintf("%.2f", time_pb["elapsed"]), " seconds")
     }
 
+    message("  tidying output into a tibble.", appendLF = FALSE)
+    time_tidy <- system.time({
+      ## Now for both PB and MCMC we tidy up the out variable ##
+      # get a tidy pi data frame #
+      pi_tidy <- tidy_mcmc_coll_rep_stuff(field = out$mean,
+                                          p = "pi",
+                                          pname = "pi",
+                                          car_tib = COLLS_AND_REPS_TIBBLE_CHAR,
+                                          coll_levs = NULL,
+                                          repu_levs = NULL)
 
-    ## Now for both PB and MCMC we tidy up the out variable ##
-    # get a tidy pi data frame #
-    pi_tidy <- tidy_mcmc_coll_rep_stuff(field = out$mean,
-                                        p = "pi",
-                                        pname = "pi",
-                                        car_tib = COLLS_AND_REPS_TIBBLE_CHAR,
-                                        coll_levs = NULL,
-                                        repu_levs = NULL)
 
-
-    # then get a tidy PofZ
-    pofz_tidy <- tidy_mcmc_pofz(input = out$mean$PofZ,
-                                pname = "PofZ",
-                                car_tib = COLLS_AND_REPS_TIBBLE_CHAR,
-                                mix_indiv_tib = MIXTURE_INDIV_TIBBLE,
-                                coll_levs = NULL,
-                                repu_levs = NULL)
-
-    # and a tidy trace of the Pi vectors
-    traces_tidy <- tidy_pi_traces(input = out$trace$pi,
-                                  pname = "pi",
+      # then get a tidy PofZ
+      pofz_tidy <- tidy_mcmc_pofz(input = out$mean$PofZ,
+                                  pname = "PofZ",
                                   car_tib = COLLS_AND_REPS_TIBBLE_CHAR,
+                                  mix_indiv_tib = MIXTURE_INDIV_TIBBLE,
                                   coll_levs = NULL,
-                                  repu_levs = NULL,
-                                  interval = sample_int_Pi)
+                                  repu_levs = NULL)
 
-    ## and if it was PB, we have further tidying to do to add the bootstrap_rhos ##
-    bootstrap_rhos <- NULL
-    if (method == "PB") {
-      bootstrap_rhos <- tibble::tibble(repunit = unique(COLLS_AND_REPS_TIBBLE_CHAR$repunit),
-                                       bs_corrected_repunit_ppn = out$mean$bootstrap_rho)
-    }
+      # and a tidy trace of the Pi vectors
+      traces_tidy <- tidy_pi_traces(input = out$trace$pi,
+                                    pname = "pi",
+                                    car_tib = COLLS_AND_REPS_TIBBLE_CHAR,
+                                    coll_levs = NULL,
+                                    repu_levs = NULL,
+                                    interval = sample_int_Pi)
 
+      ## and if it was PB, we have further tidying to do to add the bootstrap_rhos ##
+      bootstrap_rhos <- NULL
+      if (method == "PB") {
+        bootstrap_rhos <- tibble::tibble(repunit = unique(COLLS_AND_REPS_TIBBLE_CHAR$repunit),
+                                         bs_corrected_repunit_ppn = out$mean$bootstrap_rho)
+      }
+
+    })
+    message("   time: ", sprintf("%.2f", time_tidy["elapsed"]), " seconds")
 
     # in the end, send back a list of these things
     list(mixing_proportions = pi_tidy,
          indiv_posteriors = pofz_tidy,
          mix_prop_traces = traces_tidy,
          bootstrapped_proportions = bootstrap_rhos)
+
   })
 
 
