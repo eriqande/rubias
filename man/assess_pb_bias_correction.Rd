@@ -61,4 +61,3 @@ and uneven collection distribution.
 ale_bias <- assess_pb_bias_correction(alewife, 17)
 
 }
-

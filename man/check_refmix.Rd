@@ -17,4 +17,3 @@ check_refmix(D, gen_start_col, type = "reference")
 Just checks to make sure that column types are correct
 }
 \keyword{internal}
-

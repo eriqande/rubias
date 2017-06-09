@@ -131,5 +131,5 @@ assess_reference_loo <- function(reference, gen_start_col, reps = 50, mixsize = 
                   repunit = as.character(repunit)) %>%
     dplyr::rename(true_pi = omega,
                   post_mean_pi = post_mean,
-                  mle_pi)
+                  mle_pi = mle)
 }

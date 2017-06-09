@@ -7,6 +7,7 @@
 #' @param gen_start_col  the column in which the genetic data starts
 #' @param type For writing errors, supply "mixture" or "reference" as appropriate.
 #' @keywords internal
+#' @export
 check_refmix <- function(D, gen_start_col, type = "reference") {
 
   # first check to make sure that the repunit, collection, and indiv columns are present

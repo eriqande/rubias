@@ -2,7 +2,10 @@ Package: rubias
 Type: Package
 Title: What the Package Does (Title Case)
 Version: 0.1.0
-Author: Who wrote it
+Authors@R: as.person(c(
+    "Eric Anderson <eric.anderson@noaa.gov> [aut, cre]", 
+    "Ben Moran <moran.ben@husky.neu.edu> [aut]"
+  ))
 Maintainer: Who to complain to <yourfault@somewhere.net>
 Description: More about what it does (maybe more than one line)
 License: What license is it under?
@@ -20,4 +23,4 @@ Imports:
     tibble,
     tidyr
 LinkingTo: Rcpp
-RoxygenNote: 5.0.1
+RoxygenNote: 6.0.1

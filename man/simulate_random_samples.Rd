@@ -31,4 +31,3 @@ Creates random reporting unit (rho) and collection (omega) proportions, and a
 used in Hasselman \emph{et al.} (2015)
 }
 \keyword{internal}
-
