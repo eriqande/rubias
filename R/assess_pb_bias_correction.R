@@ -7,18 +7,16 @@
 #'
 #' Takes a reference two-column genetic dataset, pulls a series of random
 #' "mixture" datasets with varying reporting unit proportions from this reference,
-#' and compares the results of GSI through standard MCMC, misassignment-scaled MCMC,
-#' and parametric-bootstrap MCMC bias correction
+#' and compares the results of GSI through standard MCMC
+#' vs. parametric-bootstrap MCMC bias correction
 #'
 #' The amount of bias in reporting unit proportion calculations increases with the
 #' rate of missassignment between reporting units (decreases with genetic differentiation),
 #' and increases as the number of collections within reporting units becomes more uneven.
 #'
 #' Output from the standard Bayesian MCMC method demonstrates the level of bias to be
-#' expected for the input dataset; parametric bootstrapping is an empirical method
-#' for the removal of any existing bias, while the misassignment-scaled MCMC is a semi-empirical
-#' method based on the rate of misassignment, which takes into account both genetic differentiation
-#' and uneven collection distribution.
+#' expected for the input data set, and parametric bootstrapping is an empirical method
+#' for the removal of any existing bias.
 #'
 #' @param reference a two-column format genetic dataset, with a "repunit" column
 #' specifying each individual's reporting unit of origin, a "collection" column

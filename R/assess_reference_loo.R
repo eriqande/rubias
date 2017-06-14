@@ -1,5 +1,5 @@
 
-#' Simulate mixtures and estimate reporting group and collection proportion estimation.
+#' Simulate mixtures and estimate reporting group and collection proportions.
 #'
 #' From a reference dataset, this creates a genotype-logL matrix based on
 #' simulation-by-individual with randomly drawn population proportions,
