@@ -59,16 +59,16 @@ assess_reference_loo <- function(reference, gen_start_col, reps = 50, mixsize = 
 
 
   # now extract the true values of rho and omega from that into some data frames
-  true_omega_df <- lapply(sim_colls, function(x) dplyr::data_frame(collection = levels(reference$collection), omega = x$omega)) %>%
+  true_omega_df <- lapply(sim_colls, function(x) tibble::enframe(x$omega, name = "collection", value = "omega")) %>%
     dplyr::bind_rows(.id = "iter") %>%
     dplyr::mutate(iter = as.integer(iter))
-  true_rho_df <- lapply(sim_colls, function(x) dplyr::data_frame(collection = levels(reference$repunit), rho = x$rho[1,])) %>%
+  true_rho_df <- lapply(sim_colls, function(x) tibble::enframe(x$rho, name = "repunit", value = "rho")) %>%
     dplyr::bind_rows(.id = "iter") %>%
     dplyr::mutate(iter = as.integer(iter))
 
 
   # and finally, extract the true numbers of individuals from each collection into a data frame
-  true_sim_nums <- lapply(sim_colls, function(x) dplyr::data_frame(collection = names(x$sim_coll))) %>%
+  true_sim_nums <- lapply(sim_colls, function(x) tibble::tibble(collection = names(x$sim_coll))) %>%
     dplyr::bind_rows(.id = "iter") %>%
     dplyr::mutate(iter = as.integer(iter)) %>%
     dplyr::group_by(iter, collection) %>%

@@ -1,8 +1,10 @@
 ---
-title: "# rubias --- a package for bias correction in hierarchical GSI"
+title: "# rubias --- a package for tidy genetic stock identification (GSI)"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 bibliography: rubias_bib.bibtex
 output: 
+  html_notebook:
+    toc: true
   github_document:
     toc: true
 ---
@@ -135,7 +137,7 @@ mixing proportions.
 These data frames look like this:
 
 ```{r}
-mix_est
+lapply(mix_est, head)
 ```
 
 
@@ -222,6 +224,9 @@ bootstrap correction, and the proprtion of Central Valley Spring Run has been in
 
 ## Self-assigning fish from the reference
 
+```{r}
+sa_chinook <- self_assign(reference = chinook, gen_start_col = 5)
+```
 
 ## Simulated mixtures using a leave-one-out type of approach
 
@@ -240,15 +245,21 @@ number of fish from each collection in the reference.
 Both of the functions take two required arguments: 1) a data frame of reference genetic data, and 2) the 
 number of the column in which the genetic data start.
 
-Here we use the `alewife` data to simulate 50 mixture samples of size 200 fish 
+Here we use the `chinook` data to simulate 50 mixture samples of size 200 fish 
 using the default values (Dirichlet parameters of 1.5 for each reporting unit, and
 Dirichlet parameters of 1.5 for each collection within a reporting unit...)
-```{r}
-ale_sims <- assess_reference_loo(reference = alewife, 
-                     gen_start_col = 17, 
-                     reps = 100, 
+```{r, message=FALSE}
+chin_sims <- assess_reference_loo(reference = chinook, 
+                     gen_start_col = 5, 
+                     reps = 50, 
                      mixsize = 200)
 ```
+
+Here is what the output looks like:
+```{r}
+chin_sims
+```
+
 
 ## Specifying mixture proportions in `assess_reference_loo()`
 
@@ -290,11 +301,11 @@ round(top6$repprop * 350)
 and then put them in a `cnts` column.  
 
 However, in this case, we want to simulate mixtures that look similar to the one we 
-estimated, but have some variation.  For that we will want supply Dirichlet random variable
+estimated, but have some variation.  For that we will want to supply Dirichlet random variable
 parmaters in a column named `dirichlet`.  If we make the values proportional to the mixing proportions,
 then, on average that is what they will be.  If the values are large, then there will be little 
 variation between simulated mixtures.  And if the the values are small there will be lots of variation.  
-We'll scale them so that they sum to 10---that should give some variation, but not too much.  Accordingly
+We'll scale them so that they sum to 10---that should give some variation, but not too much.  Accordingly the
 tibble that we pass in as the `alpha_repunit` parameter, which describes the variation in reporting unit
 proportions we would like to simulate would look like this:
 ```{r}
@@ -306,8 +317,69 @@ arep <- top6 %>%
 arep
 ```
 
+Let's do some simulations with those repunit parameters.  By default, if we don't
+specify anything extra for the _collections_, they get dirichlet parameters of 1.5.
+```{r, message=FALSE}
+chin_sims_repu_top6 <- assess_reference_loo(reference = chinook, 
+                     gen_start_col = 5, 
+                     reps = 50, 
+                     mixsize = 200,
+                     alpha_repunit = arep)
+```
+
+Now, we can summarise it by reporting unit and then plot it for the values we are 
+interested in:
+```{r}
+# now, call those repunits that we did not specify in arep "OTHER"
+# and then sum up over reporting units
+tmp <- chin_sims_repu_top6 %>%
+  mutate(repunit = ifelse(repunit %in% arep$repunit, repunit, "OTHER")) %>%
+  group_by(iter, repunit) %>%
+  summarise(true_repprop = sum(true_pi), 
+            reprop_posterior_mean = sum(post_mean_pi),
+            repu_n = sum(n)) %>%
+  mutate(repu_n_prop = repu_n / sum(repu_n))
+  
+```
+
+```{r}
+# then plot them
+ggplot(tmp, aes(x = true_repprop, y = reprop_posterior_mean, colour = repunit)) +
+  geom_point() +
+  geom_abline(intercept = 0, slope = 1) +
+  facet_wrap(~ repunit)
+```
+
+Or plot comparing to their n value.
+
+```{r}
+ggplot(tmp, aes(x = repu_n_prop, y = reprop_posterior_mean, colour = repunit)) +
+  geom_point() +
+  geom_abline(intercept = 0, slope = 1) +
+  facet_wrap(~ repunit)
+```
+
+So, it seems to me that the bootstrap correction procedure might be 
+buggy when the order of the collections is not what one expects.  There
+is not way it should be so radically corrected by the bootstrap.  It seems
+to me that is caused by the same issue I say earlier...
+
+### "sub-specifying" collection proportions or dirichlet parameters
 
 
+And let's see how things work if you want some control over the collection proportions
+in the simulations, too:
+```{r}
+# here for an example, just take the top 20 collections with highest estimated proportions
+top20coll_ppn <- mix_est$mixing_proportions %>% 
+  filter(mixture_collection == "rec1") %>% 
+  arrange(desc(pi)) %>% 
+  slice(1:20) %>%
+  select(-mixture_collection, -repunit) %>%
+  rename(ppn = pi)
+
+top20coll_ppn
+```
 
 
 

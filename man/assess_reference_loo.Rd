@@ -2,7 +2,7 @@
 % Please edit documentation in R/assess_reference_loo.R
 \name{assess_reference_loo}
 \alias{assess_reference_loo}
-\title{Simulate mixtures and estimate reporting group and collection proportion estimation.}
+\title{Simulate mixtures and estimate reporting group and collection proportions.}
 \usage{
 assess_reference_loo(reference, gen_start_col, reps = 50, mixsize = 100,
   seed = 5, alpha_repunit = 1.5, alpha_collection = 1.5)
@@ -19,7 +19,11 @@ columns, as well as a "sample_type" column that has some "reference" entries.}
 
 \item{seed}{a random seed for simulations}
 
-\item{alpha_repunit}{The dirichlet parameter for simulating the proportions of reporting units. Default = 1.5}
+\item{alpha_repunit}{If a vector, this is the dirichlet parameter for simulating
+the proportions of reporting units. Gets recycled to the number of reporting units. Default is 1.5.
+Otherwise, this could be a two-column data frame.  The first column must be named "repunit" and the
+second one must be one of "dirichlet", "ppn", or "cnt", according to whether you wish to
+specify dirichlet parameters, or proportions, or exact counts, respectively, for each population.}
 
 \item{alpha_collection}{The dirichlet parameter for simulating proportions of collections within reporting units. Default = 1.5}
 }
