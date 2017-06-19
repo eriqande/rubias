@@ -97,3 +97,26 @@ NULL
 #' @name sim_spec_examples
 NULL
 
+
+#' perfect-assignment genetic data for chinook.
+#'
+#' This is just like the \code{\link{chinook}} data, but only has 7 loci and all loci are
+#' fixed in fortuitous patterns so that every single collection is easily resolved.  This is
+#' primarily useful for testing purposes.
+#' @source Made it up!
+#' @docType data
+#' @name perfect_chinook
+NULL
+
+
+#' perfect-assignment mixture genetic data for chinook.
+#'
+#' This is similar to the \code{\link{chinook_mix}} data, but only has 7 loci and all loci are
+#' fixed in fortuitous patterns so that every single collection is easily resolved.  This is
+#' primarily useful for testing purposes.  The name of the individual has its collection
+#' inside the colons.
+#' @source Made it up!
+#' @docType data
+#' @name perfect_chinook_mix
+NULL
+
