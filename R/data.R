@@ -85,5 +85,15 @@ NULL
 #' @source Southwest Fisheries Science Center, Santa Cruz, CA
 #' @docType data
 #' @name chinook_all
-#' NULL
+NULL
+
+
+#' List of example ways of specifying repunit and collection quantities in simulations
+#'
+#' This is just a list of tibbles that can be passed to the alpha_repunit or the
+#' alpha_collection parameters in, for example, \code{\link{assess_reference_loo}}.
+#' @source  Made it up!
+#' @docType data
+#' @name sim_spec_examples
+NULL
 
