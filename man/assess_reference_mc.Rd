@@ -2,7 +2,7 @@
 % Please edit documentation in R/assess_reference_mc.R
 \name{assess_reference_mc}
 \alias{assess_reference_mc}
-\title{Simulate mixtures and estimate reporting group and collection proportion estimation.}
+\title{Partition a reference dataset and estimate reporting group and collection proportions}
 \usage{
 assess_reference_mc(reference, gen_start_col, reps = 50, mixsize = 100,
   seed = 5, alpha_repunit = 1.5, alpha_collection = 1.5,
@@ -23,18 +23,32 @@ columns, as well as a "sample_type" column that has some "reference" entries.}
 \item{alpha_repunit}{The dirichlet parameter for simulating the proportions of reporting units. Default = 1.5}
 
 \item{alpha_collection}{The dirichlet parameter for simulating proportions of collections within reporting units. Default = 1.5}
+
+\item{min_remaining}{the minimum number of individuals which should be conserved in
+each reference collection during sampling without replacement to form the simulated mixture}
 }
 \description{
-From a reference dataset, this creates a genotype-logL matrix based on
-simulation-by-individual with randomly drawn population proportions,
+From a reference dataset, this draws (without replacement) a simulated mixture
+dataset with randomly drawn population proportions,
 then uses this in two different estimates of population mixture proportions:
-maximum likelihood via EM-algorithm and posterior mean from
-MCMC.
+maximum likelihood via EM-algorithm and posterior mean from MCMC.
 }
 \details{
-This is hard-wired at the moment to do something like Hasselman et al.
+This is method is referred to as "Monte Carlo cross-validation". In addition to the
+constraint that mixture sampling without replacement cannot deplete the number of individuals
+in each collection below \code{min_remaining}, a similar constraint is placed upon
+the number of individuals left in reporting units, determined as \code{min_remaining} *
+(# collections in reporting unit).
+
+For mixture proportion generation, the rho values are first drawn using a stick-breaking
+model of the Dirichlet distribution, but with proportions capped by \code{min_remaining}.
+Stick-breaking is then used to subdivide each reporting unit into collections. Note that
+this implies that the data are only truly Dirichlet distributed when no rejections based
+on \code{min_remaining} occur; this is a reasonable certainty with sufficient sample
+sizes in each collection
 }
 \examples{
 ale_dev <- assess_reference_mc(alewife, 17)
 
 }
+

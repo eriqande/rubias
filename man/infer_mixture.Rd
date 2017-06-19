@@ -56,3 +56,4 @@ mcmc <- infer_mixture(reference = chinook,
                       method = "MCMC")
 
 }
+

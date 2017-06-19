@@ -37,3 +37,4 @@ test_em <- gsi_em_1(SL, rep(1/params$C, params$C), max_iterations = 10^6, tolera
 
 }
 \keyword{internal}
+

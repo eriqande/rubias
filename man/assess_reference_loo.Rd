@@ -2,7 +2,7 @@
 % Please edit documentation in R/assess_reference_loo.R
 \name{assess_reference_loo}
 \alias{assess_reference_loo}
-\title{Simulate mixtures and estimate reporting group and collection proportion estimation.}
+\title{Simulate mixtures and estimate reporting group and collection proportions.}
 \usage{
 assess_reference_loo(reference, gen_start_col, reps = 50, mixsize = 100,
   seed = 5, alpha_repunit = 1.5, alpha_collection = 1.5)
@@ -37,3 +37,4 @@ This is hard-wired at the moment to do something like Hasselman et al.
 ale_dev <- assess_reference_loo(alewife, 17)
 
 }
+

@@ -58,3 +58,4 @@ ale_bias <- bias_comparison(alewife, 17)
 
 }
 \keyword{internal}
+

@@ -47,3 +47,4 @@ mcmc <- gsi_mcmc_1(SL, lambda, lambda, 10000, 2500, 50, 50)
 
 }
 \keyword{internal}
+
