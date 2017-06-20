@@ -20,3 +20,4 @@ Southwest Fisheries Science Center, Santa Cruz, CA
 This has data from 91 SNP markers (a subset of the 95 markers in the \code{\link{chinook}} baseline
 data set).
 }
+

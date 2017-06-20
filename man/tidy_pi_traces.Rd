@@ -26,3 +26,4 @@ This makes a tidy data frame of stuff, and also changes things back to
 factors, if the levels are provided.
 }
 \keyword{internal}
+

@@ -33,3 +33,4 @@ ale_alle_list <- allelic_list(ale_cs, ale_ac)$int
 
 }
 \keyword{internal}
+

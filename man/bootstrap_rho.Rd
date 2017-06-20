@@ -38,3 +38,4 @@ containing both reference and mixture data. Returns a new rho corrected by
 parametric bootstrapping
 }
 \keyword{internal}
+
