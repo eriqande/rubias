@@ -1,0 +1,202 @@
+---
+title: "A Chinook-Like Data Set for Perfect Assignment"
+output:
+  html_notebook:
+    toc: yes
+  pdf_document:
+    toc: yes
+---
+
+
+```{r setup, include=FALSE}
+# set the working directory always to the project directory (one level up)
+knitr::opts_knit$set(root.dir = normalizePath(rprojroot::find_rstudio_root_file())) 
+```
+
+libraries:
+```{r load-libs}
+library(tidyverse)
+library(stringr)
+library(rubias)
+```
+
+
+# Introduction and Making the Data set
+
+In order to track down possible bugs and collection-ordering issues, I am going to
+make a data set that is just like the `chinook` data set, but in which assignment to
+different collections will be essentially perfect, by dint of each population being fixed
+for a certain genetic signature.
+
+We don't want to have a whole lot of loci, so we will use as few as we can: 
+$\lceil\log_2(C)\rceil$, of them, where $C$ is the number of collections.  Basically we
+will turn the index of each collection into a bitstring that tells us which loci are 
+fixed for the alternate vs the reference allele (just 1 and 2, say), and then we will 
+write that out to a file and read it back in.  Like so:
+
+## A function to turn an integer into bits
+We only want to keep the
+first `d` bits...
+```{r}
+#' turn i into a string of d bits
+int_to_bit_vec  <- function(i, d = 7) {
+  as.character(intToBits(i))[1:d] %>%
+    str_sub(., 2, 2) %>%
+    as.integer()
+}
+```
+
+Now, we will build on that to get something that turns a vector of 
+indexes to a vector of strings of diploid genotypes.
+```{r}
+perf_genos <- function(v) {
+  lapply(v, function(x) {
+    paste( rep(int_to_bit_vec(x) + 1, each = 2), collapse = "\t")
+  }) %>% 
+    unlist
+}
+```
+## Making genos for everyone
+
+```{r}
+binary_chinook <- chinook %>%
+  mutate(coll_idx = as.integer(factor(collection, levels = unique(collection)))) %>%
+  mutate(genostr = perf_genos(coll_idx)) %>%
+  select(-coll_idx) %>%
+  select(sample_type, repunit, collection, indiv, genostr)
+```
+
+Then we write this out to a file briefly and read it back in
+```{r}
+names(binary_chinook)[5] <- paste("loc", rep(1:7, each = 2), sep = "_", collapse = "\t")
+tt <- tempfile()
+write.table(binary_chinook, file = tt, quote = FALSE, sep = "\t", row.names = FALSE, col.names = TRUE)
+```
+
+Then read that back in
+```{r}
+pc <- read_tsv(tt)
+```
+That (`pc`) is what we have saved as `perfect_chinook` in the package.  
+
+
+# Now, make a mixture in the proportions that we see in chinook_mix
+
+I am going to make something that looks like `chinook_mix` by merely 
+sampling individuals out of the reference and renaming them.
+
+Here are the numbers that we want:
+```{r}
+desired_nums <- tibble(
+  repunit = c("CentralValleyfa","CentralValleyfa","CentralValleysp","CentralValleyfa","KlamathR","RogueR","CentralValleyfa","CaliforniaCoast","CaliforniaCoast","NCaliforniaSOregonCoast","RogueR","KlamathR","UColumbiaRsufa","SnakeRfa","MidOregonCoast"),
+  collection = c("Battle_Cr","Mokelumne_R_fa","Deer_Cr_sp","Feather_H_sp","Klamath_IGH_fa","Applegate_Cr","Sacramento_R_lf","Eel_R","Russian_R","Smith_R","Cole_Rivers_H","Trinity_H_sp","Hanford_Reach","Lyons_Ferry_H","Umpqua_sp"),
+  num = c(321, 122, 84, 62, 46, 40, 20, 15, 9, 7, 6, 5, 3, 2, 2)
+)
+```
+
+And here we make a template for putting all those in there:
+```{r}
+reppy <- 
+  tibble(repunit = rep(desired_nums$repunit, desired_nums$num),
+         collection = rep(desired_nums$collection, desired_nums$num)
+         )
+```
+And now we just need to do some funky replicating to get all these 
+genotypes
+```{r}
+pc_mix <- perfect_chinook %>% 
+  group_by(repunit, collection) %>% 
+  slice(1) %>% # this gets one individual from each collection
+  left_join(reppy, .) %>%
+  group_by(collection) %>%
+  mutate(indiv = sprintf("fake_mix_%03d:%s", 1:n(), indiv)) %>%
+  ungroup() %>% 
+  mutate(sample_type = "mixture") %>%
+  mutate(collection = "fake_perfect_mixture") %>%
+  mutate(repunit = NA_character_) %>%
+  select(sample_type, repunit, collection, indiv, everything())
+```
+Now, actually we want to make two mixture collections of this
+```{r}
+pc_mix2 <- bind_rows(pc_mix,
+          pc_mix %>% mutate(collection = "fake_perfect_mixture_2", indiv = paste0(indiv, "-A")))
+```
+
+And this is what we have saved as `perfect_chinook_mix`.  
+
+
+## Check infer_mixture()
+
+Let's see how this is working.  And let's throw in a curve-ball by permuting the
+rows of each data set around so that we don't have blocks of individuals from the same
+reporting units and collections.
+```{r}
+set.seed(5)
+pc_perm <- perfect_chinook[sample(1:nrow(perfect_chinook)), ]
+pcm_perm <- perfect_chinook_mix[sample(1:nrow(perfect_chinook_mix)), ]
+IM <- infer_mixture(pc_perm, pcm_perm, 5, method = "MCMC")
+```
+
+Now, compare this to what we know to be correct.
+```{r}
+true_nums <- perfect_chinook_mix %>%
+  mutate(true_pop = str_replace_all(indiv, "fake_mix_", "") %>% str_replace_all("[0-9:]", "") ) %>%
+  count(collection, true_pop) %>%
+  rename(mixture_collection = collection, collection = true_pop) %>%
+  arrange(mixture_collection, desc(n)) %>%
+  mutate(collection = str_replace(collection, "-A$", "")) %>%
+  left_join(., perfect_chinook %>% count(repunit, collection) %>% select(-n)) %>%
+  select(mixture_collection, collection, repunit, n) %>%
+  rename(true_num = n)
+  
+
+true_nums
+```
+
+First, just compare the collection proportions
+```{r}
+left_join(true_nums, IM$mixing_proportions) %>%
+  group_by(mixture_collection) %>%
+  mutate(true_pi = true_num / sum(true_num))
+```
+
+Yep, that is correct.
+
+Now, let's check the indiv_posteriors.
+```{r}
+IM$indiv_posteriors %>%
+  group_by(mixture_collection, indiv) %>%
+  top_n(n = 1, wt = PofZ) %>%
+  ungroup() %>%
+  mutate(true_pop = str_replace_all(indiv, "fake_mix_", "") %>% str_replace_all("[0-9:]", "") ) %>%
+  mutate(true_pop = str_replace(true_pop, "-A$", "")) %>%
+  mutate(correct = true_pop == collection) %>%
+  summarise(mean(correct))
+```
+Yep.  That check out.
+
+
+## Check infer_mixture with the PB option
+
+I was getting some funky results from this previously.  Let's see how it is working now.
+First, let's not throw any permuted-rows curveballs...
+```{r}
+IM_pb <- infer_mixture(perfect_chinook, perfect_chinook_mix, 5, method = "PB")
+```
+
+At the end of that we can compare the regular mixing proportion estimates (which we know to
+be correct) to the bootstrap-corrected ones.
+
+```{r}
+IM_pb$mixing_proportions %>%
+  group_by(mixture_collection, repunit) %>%
+  summarise(repunit_ppn = sum(pi)) %>%
+  arrange(mixture_collection, desc(repunit_ppn)) %>%
+  left_join(IM_pb$bootstrapped_proportions)
+```
+
+OK, that is clearly broken.  It appears that the problem is that the indexing of collections is not
+correct in when the repunit proportions are being computed.  I think it is fine when all the collections
+are grouped together within reporting units in the reference file, but we cannot assume that.  In the chinook
+data the Feather_H_sp is actually in the Fall Run repunit and that seems to throw everything off.
+

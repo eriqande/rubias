@@ -1,0 +1,675 @@
+---
+title: "Testing the `simulate_random_samples()` function"
+output: 
+  html_notebook:
+    toc: true
+---
+
+
+```{r setup, include=FALSE}
+# set the working directory always to the project directory (one level up)
+knitr::opts_knit$set(root.dir = normalizePath(rprojroot::find_rstudio_root_file())) 
+```
+
+libraries:
+```{r load-libs}
+library(tidyverse)
+library(rubias)
+library(stringr)
+```
+
+My goal here is to test the many different scenarios by which the composition of simulated
+samples can be specified for doing simulations with rubias.
+
+I just overhauled the `simulate_random_samples()` function and I want to both document its
+use and test it.  
+
+Most users will never call it directly, but I will here to make sure that things are working
+correctly.
+
+
+# Preliminaries
+
+We will do this with the `chinook` data set.  Here is what the repunits and collections look like
+in that data set
+```{r}
+repc <- chinook %>%
+  group_by(repunit, collection) %>%
+  tally() %>%
+  select(-n)
+
+repc
+```
+
+We will use that to left_join results on later.  
+
+In order to call `simulated_random_samples()` we need to get some variables, that we get
+this way:
+```{r}
+p <- tcf2param_list(chinook, 5, summ = F)
+```
+
+
+## A function to extract simulated values
+
+Given a list of multiple outputs of simulate_random_samples() (obtained by lapplying
+multiple reps for example), this function collects the output into three tidy data frames.
+```{r}
+tidy_srs <- function(L, repc) {
+  # get the rho values
+  rho <- lapply(L, function(x) {
+    enframe(x$rho, name = "repunit", value = "rho")
+    }) %>% 
+    bind_rows(.id = "rep") %>%
+    mutate(rep = as.integer(rep))
+  
+  # and then get the omega and n's
+  omegan <- lapply(L, function(x) {
+    ns <- as.data.frame(table(names(x$sim_coll))) %>% 
+      rename(collection = Var1, n = Freq) %>%
+      mutate(collection = as.character(collection)) %>%
+      as_tibble()
+    
+    enframe(x$omega, name = "collection", value = "omega") %>%
+      left_join(., ns, by = "collection")
+    }) %>% 
+    bind_rows(.id = "rep") %>%
+    mutate(rep = as.integer(rep)) %>%
+    mutate(n = ifelse(is.na(n), 0, n)) %>%
+    left_join(repc, ., by = "collection")
+  
+  list(rho = rho, omegan = omegan)
+}
+
+### Here is a function for summarizing those and returning those summarized values in a list
+# along with the originals.
+summ_it <- function(S) {
+  rho_summ <- S$rho %>%
+    group_by(repunit) %>%
+    summarise(rho_mean = mean(rho),
+              rho_var = var(rho),
+              rho_min = min(rho),
+              rho_max = max(rho))
+  
+  omegan_summ <- S$omegan %>%
+    group_by(repunit, collection) %>%
+    summarise(omega_mean = mean(omega),
+              n_mean = mean(n),
+              omega_var = var(omega),
+              n_var = var(n),
+              omega_min = min(omega),
+              omega_max = max(omega),
+              n_min = min(n),
+              n_max = max(n)) %>%
+    group_by(repunit) %>%
+    mutate(summed_rho = sum(omega_mean),
+           npops = n())
+  
+  S$rho_summ <- rho_summ
+  S$omegan_summ <- omegan_summ
+  
+  S
+}
+```
+
+In order to put things in a good order on plots we make this:
+```{r}
+repcF <- repc %>%
+  mutate(repu_coll = paste(repunit, collection, sep = "--")) %>%
+  select(repu_coll, everything())
+
+repcF$repu_coll <- factor(repcF$repu_coll, levels = unique(repcF$repu_coll))
+```
+
+# repunit single
+
+First gonna just test the repunit "single" value setting.
+
+## collection single
+
+This is the simplest, default case.  Let's get all the output:
+```{r}
+res <- lapply(1:1000, function(x) {
+  simulate_random_samples(RU_starts = p$RU_starts, RU_vec = p$RU_vec, size = 100)
+  }) %>%
+  tidy_srs(., repc) %>%
+  summ_it()
+```
+Then look at it:
+
+### rho values
+```{r}
+ggplot(res$rho_summ, aes(x = repunit, y = rho_mean)) +
+  geom_point() +
+  geom_segment(aes(y = rho_min, yend = rho_max, xend = repunit)) +
+  coord_flip()
+```
+
+
+
+### omega values
+
+```{r}
+ggplot(res$omegan_summ, aes(x = collection, y = omega_mean, colour = as.factor(npops))) +
+  geom_point() +
+  geom_segment(aes(y = omega_min, yend = omega_max, xend = collection)) +
+  coord_flip()
+```
+
+Finally look at the number of simulated individuals:
+```{r}
+res$omegan_summ %>% 
+  group_by(repunit) %>% 
+  summarise(repu_n = sum(n_mean))
+```
+That checks out summing over reporting units.
+
+And how about the number of collection, scaled by the number of collections in the repunit?
+```{r}
+res$omegan_summ %>%
+  mutate(scaled_n = n_mean * npops) %>%
+  select(repunit, collection, scaled_n, everything())
+```
+
+I had introduced a bug, but have fixed it now.  It seems to me that the omega vector that 
+Ben carried around in `simulate_random_samples()` must have been ordered differently than the
+natural `levels(collections)` order.  When I ran the above code (with a little `[1,]` thrown in for
+the `rho` values, with the older version of the code that Ben wrote, the # of fish from each collection
+is correct, but the omegas are wrong, suggesting that they are not ordered they way I thought they were.
+
+When I sample the sim_colls I now do so from a a vector that
+is ordered by the levels of the collections and it seems to work.
+
+
+
+## collection sub_dirichlet
+
+For this rather contrived case, the reporting unit proportions are drawn from a Dirichlet(1.5), but 
+then I can specify different proportions within rep_units of the collections, following a dirichlet
+distribution.  For this test, everyone will get the default 1.5 except for a few collections in
+the CV fall and CV spring and California Coast.  Namely, in my examples, I have:
+```{r}
+sim_spec_examples$coll_sub_dirichlet
+```
+
+Let's give this thing a whirl.  Just like before:
+
+
+```{r}
+csd <- lapply(1:1000, function(x) {
+  simulate_random_samples(RU_starts = p$RU_starts, RU_vec = p$RU_vec, size = 100,
+                          alpha_collection = sim_spec_examples$coll_sub_dirichlet)}) %>% 
+  tidy_srs(., repc) %>%
+  summ_it()
+```
+
+### rho values
+
+```{r}
+ggplot(csd$rho_summ, aes(x = repunit, y = rho_mean)) +
+  geom_point() +
+  geom_segment(aes(y = rho_min, yend = rho_max, xend = repunit)) +
+  coord_flip()
+```
+
+Those look correct!
+
+### omega values
+  Now, how about the omegas?
+```{r, fig.height = 5}
+ggplot(left_join(repcF, csd$omegan_summ), aes(x = repu_coll, y = omega_mean, colour = as.factor(npops))) +
+  geom_point() +
+  geom_segment(aes(y = omega_min, yend = omega_max, xend = repu_coll)) +
+  coord_flip()
+```
+
+OK, that checks out.  Now check sim_colls
+```{r}
+csd$omegan_summ %>%
+  left_join(repcF, .) %>%
+  select(repu_coll, omega_mean, n_mean)
+```
+
+That check outs.  Good!
+
+## collection sub_ppn
+
+We are going to do something similar, but we will specify weights for the collections, and in 
+this case, the default is practically 0.  So, for reporting units in which we specify at least one
+collection with a weight, they will get pretty much all of it.
+```{r}
+sim_spec_examples$coll_sub_ppn
+```
+
+```{r}
+csp <- lapply(1:1000, function(x) {
+  simulate_random_samples(RU_starts = p$RU_starts, RU_vec = p$RU_vec, size = 100,
+                          alpha_collection = sim_spec_examples$coll_sub_ppn)}) %>% 
+  tidy_srs(., repc) %>%
+  summ_it()
+```
+
+### rho values
+
+```{r}
+ggplot(csp$rho_summ, aes(x = repunit, y = rho_mean)) +
+  geom_point() +
+  geom_segment(aes(y = rho_min, yend = rho_max, xend = repunit)) +
+  coord_flip()
+```
+
+Those look correct!
+
+### omega values
+  Now, how about the omegas?
+```{r, fig.height = 5}
+ggplot(left_join(repcF, csp$omegan_summ), aes(x = repu_coll, y = omega_mean, colour = as.factor(npops))) +
+  geom_point() +
+  geom_segment(aes(y = omega_min, yend = omega_max, xend = repu_coll)) +
+  coord_flip()
+```
+
+
+OK, that checks out.  Now check sim_colls
+```{r}
+csp$omegan_summ %>%
+  left_join(repcF, .) %>%
+  select(repu_coll, omega_mean, n_mean)
+```
+
+Yep. That checks out.
+
+
+
+## Collection Dirichlet
+
+This is best done whilst not setting anything for alpha_repunit (else you get lots of warnings).
+We are going to make a contrived example here in which each reporting unit gets a certain weight, and that
+gets split between the collections in it according to their position in the reporting unit. This
+is how I did it, and it is now part of the package.
+```{r eval = FALSE}
+set.seed(555)
+ppn <- repc %>%
+  group_by(repunit) %>%
+  mutate(repwt = rep(runif(1, min = 1, max = 100), n())) %>%
+  mutate(ppn = repwt / 1:n()) %>%
+  ungroup() %>%
+  select(collection, ppn)
+
+sim_spec_examples$coll_ppn <- ppn
+
+
+sim_spec_examples$coll_dirichlet <- ppn %>%
+  rename(dirichlet = ppn)
+  
+```
+
+Here is what the input looks like:
+```{r}
+sim_spec_examples$coll_dirichlet
+```
+So, let's run it:
+
+```{r}
+cdir <- lapply(1:1000, function(x) {
+  simulate_random_samples(RU_starts = p$RU_starts, RU_vec = p$RU_vec, size = 100,
+                          alpha_collection = sim_spec_examples$coll_dirichlet)}) %>% 
+  tidy_srs(., repc) %>%
+  summ_it()
+```
+
+Then join it to what we asked for:
+```{r}
+tmp <- sim_spec_examples$coll_dirichlet %>%
+  mutate(n_exp = 100 * dirichlet / sum(dirichlet),
+         omega_exp = dirichlet / sum(dirichlet))
+comp_cdir <- left_join(tmp, cdir$omegan_summ)
+comp_cdir
+```
+
+Booyah!  That looks just right:
+```{r}
+ggplot(comp_cdir, aes(x = n_exp, y = n_mean)) + 
+  geom_point() +
+  geom_point(aes(x = omega_exp * 100, y = omega_mean * 100), colour = "red")
+```
+
+
+## Collection Ppn
+
+We are going to do the same, but have them interpreted as collection proportions, rather
+than dirichlet parameters:
+```{r}
+sim_spec_examples$coll_ppn
+```
+
+And here it goes:
+```{r}
+cppn <- lapply(1:1000, function(x) {
+  simulate_random_samples(RU_starts = p$RU_starts, RU_vec = p$RU_vec, size = 100,
+                          alpha_collection = sim_spec_examples$coll_ppn)}) %>% 
+  tidy_srs(., repc) %>%
+  summ_it()
+```
+
+```{r}
+tmp <- sim_spec_examples$coll_ppn %>%
+  mutate(n_exp = 100 * ppn / sum(ppn),
+         omega_exp = ppn / sum(ppn))
+comp_cppn <- left_join(tmp, cppn$omegan_summ)
+comp_cppn
+```
+Yep.  That is all good. Note that the variance of omega is 0 there.
+
+## Collection cnt
+
+Now, let's see if we can simulate a lot of samples with exactly the same number
+of individuals each time.
+```{r}
+ccnt <- lapply(1:1000, function(x) {
+  simulate_random_samples(RU_starts = p$RU_starts, RU_vec = p$RU_vec, size = 100,
+                          alpha_collection = sim_spec_examples$coll_cnt)}) %>% 
+  tidy_srs(., repc) %>%
+  summ_it()
+```
+OK, we get that warning.  That is cool.  In the future I think I could
+throttle that warning and just say that `size` is ignored in the docs.
+
+```{r}
+tmp <- sim_spec_examples$coll_cnt %>%
+  mutate(omega_exp = cnt / sum(cnt))
+comp_ccnt <- left_join(tmp, ccnt$omegan_summ)
+comp_ccnt
+```
+
+Yep, that all checks out.
+
+# repunit dirichlet
+
+So, we need to test this with the three different "sub_collection"s.
+
+First we make up a set of Dirichlet parameters for the different repunits
+```{r, eval = FALSE}
+set.seed(555)
+sim_spec_examples$repunit_dirichlet <- tibble(
+  repunit = unique(repc$repunit)) %>% 
+  mutate(dirichlet = runif(n(), min = -15, max = 15)) %>%
+  filter(dirichlet > 0)
+```
+## collection single
+
+First we test the situation where collection is just give the default dirichlet parameter:
+```{r}
+rdir <- lapply(1:1000, function(x) {
+  simulate_random_samples(RU_starts = p$RU_starts, RU_vec = p$RU_vec, size = 100,
+                          alpha_repunit = sim_spec_examples$repunit_dirichlet)}) %>% 
+  tidy_srs(., repc) %>%
+  summ_it()
+```
+Then we compare that to what we expected
+```{r}
+sim_spec_examples$repunit_dirichlet %>%
+  mutate(rho_exp = dirichlet / sum(dirichlet)) %>%
+  left_join(rdir$rho_summ, .)
+
+```
+
+And at the collection level:
+```{r}
+sim_spec_examples$repunit_dirichlet %>%
+  mutate(rho_exp = dirichlet / sum(dirichlet)) %>%
+  left_join(rdir$omegan_summ, .)
+  
+```
+
+That all looks good.
+
+## collection sub-dirichlet
+
+```{r}
+rdir_csd <- lapply(1:1000, function(x) {
+  simulate_random_samples(RU_starts = p$RU_starts, RU_vec = p$RU_vec, size = 100,
+                          alpha_repunit = sim_spec_examples$repunit_dirichlet,
+                          alpha_collection = sim_spec_examples$coll_sub_dirichlet)}) %>% 
+  tidy_srs(., repc) %>%
+  summ_it()
+```
+
+Let's compute the expected proportions:
+```{r}
+sim_spec_examples$repunit_dirichlet %>%
+  ungroup() %>%
+  mutate(dirch_ppn = dirichlet / sum(dirichlet)) %>%
+  left_join(repc, .) %>%
+  left_join(., sim_spec_examples$coll_sub_dirichlet) %>%
+  mutate(sub_dirichlet = ifelse(is.na(sub_dirichlet), 1.5, sub_dirichlet),
+         dirichlet = ifelse(is.na(dirichlet), 1.5, dirichlet)) %>%
+  group_by(repunit) %>%
+  mutate(exp_omega = dirch_ppn * sub_dirichlet / sum(sub_dirichlet))  %>%
+  left_join(., rdir_csd$omegan_summ)
+```
+That looks like it all checks out.
+
+## collection sub_ppn
+
+```{r}
+rdir_csp <- lapply(1:1000, function(x) {
+  simulate_random_samples(RU_starts = p$RU_starts, RU_vec = p$RU_vec, size = 100,
+                          alpha_repunit = sim_spec_examples$repunit_dirichlet,
+                          alpha_collection = sim_spec_examples$coll_sub_ppn)}) %>% 
+  tidy_srs(., repc) %>%
+  summ_it()
+```
+
+Let's compute the expected proportions:
+```{r}
+sim_spec_examples$repunit_dirichlet %>%
+  ungroup() %>%
+  mutate(dirch_ppn = dirichlet / sum(dirichlet)) %>%
+  left_join(repc, .) %>%
+  left_join(., sim_spec_examples$coll_sub_ppn) %>%
+  mutate(sub_ppn = ifelse(is.na(sub_ppn), 0.0000001, sub_ppn),
+         dirichlet = ifelse(is.na(dirichlet), 1.5, dirichlet)) %>%
+  group_by(repunit) %>%
+  mutate(exp_omega = dirch_ppn * sub_ppn / sum(sub_ppn))  %>%
+  left_join(., rdir_csp$omegan_summ)
+```
+That looks like it checks out.
+
+# repunit ppn
+
+## collection single
+
+First we test the situation where collection is just give the default dirichlet parameter:
+```{r}
+rppn_csing <- lapply(1:1000, function(x) {
+  simulate_random_samples(RU_starts = p$RU_starts, RU_vec = p$RU_vec, size = 100,
+                          alpha_repunit = sim_spec_examples$repunit_ppn)}) %>% 
+  tidy_srs(., repc) %>%
+  summ_it()
+```
+Then we compare that to what we expected
+```{r}
+sim_spec_examples$repunit_ppn %>%
+  mutate(rho_exp = ppn / sum(ppn)) %>%
+  left_join(rppn_csing$rho_summ, .)
+
+```
+
+And at the collection level:
+```{r}
+sim_spec_examples$repunit_ppn %>%
+  mutate(rho_exp = ppn / sum(ppn)) %>%
+  left_join(rppn_csing$omegan_summ, .)
+  
+```
+
+
+## Collection sub_dirichlet
+
+```{r}
+rppn_csd <- lapply(1:1000, function(x) {
+  simulate_random_samples(RU_starts = p$RU_starts, RU_vec = p$RU_vec, size = 100,
+                          alpha_repunit = sim_spec_examples$repunit_ppn,
+                          alpha_collection = sim_spec_examples$coll_sub_dirichlet)}) %>% 
+  tidy_srs(., repc) %>%
+  summ_it()
+```
+
+Let's compute the expected proportions:
+```{r}
+sim_spec_examples$repunit_ppn %>%
+  ungroup() %>%
+  mutate(scaled_ppn = ppn / sum(ppn)) %>%
+  left_join(repc, .) %>%
+  left_join(., sim_spec_examples$coll_sub_dirichlet) %>%
+  mutate(sub_dirichlet = ifelse(is.na(sub_dirichlet), 1.5, sub_dirichlet),
+         ppn = ifelse(is.na(ppn), 0, ppn)) %>%
+  group_by(repunit) %>%
+  mutate(exp_omega = scaled_ppn * sub_dirichlet / sum(sub_dirichlet))  %>%
+  left_join(., rppn_csd$omegan_summ)
+```
+Looks like that works.
+
+
+
+## Collection sub_ppn
+
+```{r}
+rppn_csp <- lapply(1:1000, function(x) {
+  simulate_random_samples(RU_starts = p$RU_starts, RU_vec = p$RU_vec, size = 100,
+                          alpha_repunit = sim_spec_examples$repunit_ppn,
+                          alpha_collection = sim_spec_examples$coll_sub_ppn)}) %>% 
+  tidy_srs(., repc) %>%
+  summ_it()
+```
+
+Let's compute the expected proportions:
+```{r}
+sim_spec_examples$repunit_ppn %>%
+  ungroup() %>%
+  mutate(scaled_ppn = ppn / sum(ppn)) %>%
+  left_join(repc, .) %>%
+  left_join(., sim_spec_examples$coll_sub_ppn) %>%
+  mutate(sub_ppn = ifelse(is.na(sub_ppn), 0.0000001, sub_ppn),
+         ppn = ifelse(is.na(ppn), 0, ppn)) %>%
+  group_by(repunit) %>%
+  mutate(exp_omega = scaled_ppn * sub_ppn / sum(sub_ppn))  %>%
+  left_join(., rppn_csp$omegan_summ)
+```
+Yep, those are right on.  And there is no variance in the omega's just like we expect.
+
+
+# finally, repunit counts
+
+All that remains is to do explicit counts in the repunits.
+
+## collection single
+
+First we test the situation where collection is just give the default dirichlet parameter:
+```{r}
+rcnt_csing <- lapply(1:1000, function(x) {
+  simulate_random_samples(RU_starts = p$RU_starts, RU_vec = p$RU_vec, size = 100,
+                          alpha_repunit = sim_spec_examples$repunit_cnt)}) %>% 
+  tidy_srs(., repc) %>%
+  summ_it()
+```
+Then we compare that to what we expected
+```{r}
+sim_spec_examples$repunit_cnt %>%
+  mutate(rho_exp = cnt / sum(cnt)) %>%
+  left_join(rppn_csing$rho_summ, .)
+
+```
+ Looks right.  
+ 
+ 
+And at the collection level:
+```{r}
+sim_spec_examples$repunit_cnt %>%
+  mutate(rho_exp = cnt / sum(cnt)) %>%
+  left_join(rcnt_csing$omegan_summ, .)
+  
+```
+
+That looks right.
+
+## Collection sub_dirichlet
+
+```{r}
+rcnt_csd <- lapply(1:1000, function(x) {
+  simulate_random_samples(RU_starts = p$RU_starts, RU_vec = p$RU_vec, size = 100,
+                          alpha_repunit = sim_spec_examples$repunit_cnt,
+                          alpha_collection = sim_spec_examples$coll_sub_dirichlet)}) %>% 
+  tidy_srs(., repc) %>%
+  summ_it()
+```
+
+Let's compute the expected proportions:
+```{r}
+sim_spec_examples$repunit_cnt %>%
+  ungroup() %>%
+  mutate(scaled_ppn = cnt / sum(cnt)) %>%
+  left_join(repc, .) %>%
+  left_join(., sim_spec_examples$coll_sub_dirichlet) %>%
+  mutate(sub_dirichlet = ifelse(is.na(sub_dirichlet), 1.5, sub_dirichlet),
+         cnt = ifelse(is.na(cnt), 0, cnt)) %>%
+  group_by(repunit) %>%
+  mutate(exp_omega = scaled_ppn * sub_dirichlet / sum(sub_dirichlet))  %>%
+  left_join(., rppn_csd$omegan_summ)
+```
+Close, but not totally right on.  But I don't think I will worry too much about it.
+
+```{r}
+rcnt_csd$omegan_summ %>%
+  group_by(repunit) %>%
+  summarise(summed_n = sum(n_mean)) %>%
+  left_join(., sim_spec_examples$repunit_cnt)
+```
+That part looks great.
+
+## Collection sub_ppn
+
+```{r}
+rcnt_csp <- lapply(1:1000, function(x) {
+  simulate_random_samples(RU_starts = p$RU_starts, RU_vec = p$RU_vec, size = 100,
+                          alpha_repunit = sim_spec_examples$repunit_cnt,
+                          alpha_collection = sim_spec_examples$coll_sub_ppn)}) %>% 
+  tidy_srs(., repc) %>%
+  summ_it()
+```
+
+Let's compute the expected proportions:
+```{r}
+sim_spec_examples$repunit_cnt %>%
+  ungroup() %>%
+  mutate(scaled_ppn = cnt / sum(cnt)) %>%
+  left_join(repc, .) %>%
+  left_join(., sim_spec_examples$coll_sub_ppn) %>%
+  mutate(sub_ppn = ifelse(is.na(sub_ppn), 0.0000001, sub_ppn),
+         cnt = ifelse(is.na(cnt), 0, cnt)) %>%
+  group_by(repunit) %>%
+  mutate(exp_omega = scaled_ppn * sub_ppn / sum(sub_ppn))  %>%
+  left_join(., rcnt_csp$omegan_summ) %>%
+  ungroup() %>%
+  mutate(n_mean_ppn = n_mean / sum(n_mean))
+```
+
+
+Good.
+
+# Finally, check for errors
+
+For a collection that is not in the data set:
+```{r}
+simulate_random_samples(RU_starts = p$RU_starts, RU_vec = p$RU_vec, size = 100,
+                          alpha_repunit = sim_spec_examples$repunit_cnt,
+                          alpha_collection = sim_spec_examples$unknown_collection_error)
+```
+
+Or a repunit that is not in the data set:
+```{r}
+simulate_random_samples(RU_starts = p$RU_starts, RU_vec = p$RU_vec, size = 100,
+                          alpha_repunit = sim_spec_examples$unknown_repunit_error,
+                          alpha_collection = sim_spec_examples$coll_sub_ppn)
+```
