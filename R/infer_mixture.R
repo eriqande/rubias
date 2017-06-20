@@ -122,9 +122,17 @@ infer_mixture <- function(reference,
       dplyr::select(-n) %>%
       dplyr::ungroup()
 
-    COLLS_AND_REPS_TIBBLE_CHAR <- colls_by_RU %>%
-      dplyr::mutate(repunit = as.character(repunit),
-                    collection = as.character(collection))
+    # here we want to get a tibble of the collection names in the order in which
+    # they occur in the reference once it is squashed down.  This is the levels of reference$collection
+    # at this point.  And then we have to add the reporting units back on there.
+    COLLS_AND_REPS_TIBBLE_CHAR <- tibble::tibble(collection = levels(reference$collection)) %>%
+      dplyr::left_join(colls_by_RU %>% dplyr::mutate(repunit = as.character(repunit), collection = as.character(collection) ), by = "collection") %>%
+      dplyr::select(repunit, collection)
+
+
+    # COLLS_AND_REPS_TIBBLE_CHAR <- colls_by_RU %>%
+    #   dplyr::mutate(repunit = as.character(repunit),
+    #                 collection = as.character(collection))
 
 
     PC <- rep(0, length(unique(colls_by_RU$repunit)))
