@@ -87,8 +87,8 @@ ref_and_mix_pipeline <- function(reference, mixture, gen_start_col, method = "MC
     PC[colls_by_RU$repunit[i]] <- PC[colls_by_RU$repunit[i]] + 1
   }
   RU_starts <- c(0, cumsum(PC))
-  RU_vec <- as.integer(factor(colls_by_RU$collection,
-                              levels = unique(colls_by_RU$collection)))
+  RU_vec <- as.integer(colls_by_RU$collection)
+  names(RU_vec) <- as.character(colls_by_RU$collection)
   params <- list_diploid_params(ac, mix_I, coll, coll_N, RU_vec, RU_starts)
 
 

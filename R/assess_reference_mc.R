@@ -151,8 +151,8 @@ assess_reference_mc <- function(reference, gen_start_col, reps = 50, mixsize = 1
       PC[colls_by_RU$repunit[i]] <- PC[colls_by_RU$repunit[i]] + 1
     }
     RU_starts <- c(0, cumsum(PC))
-    RU_vec <- as.integer(factor(colls_by_RU$collection,
-                                levels = unique(colls_by_RU$collection)))
+    RU_vec <- as.integer(colls_by_RU$collection)
+    names(RU_vec) <- as.character(colls_by_RU$collection)
 
     mix_I <- allelic_list(clean$clean_short, ac, samp_type = "mixture")$int
     coll <- rep(0,length(mix_I[[1]]$a))  # populations of each individual in mix_I; not applicable for mixture samples

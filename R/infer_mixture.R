@@ -141,6 +141,7 @@ infer_mixture <- function(reference,
     }
     RU_starts <- c(0, cumsum(PC))
     RU_vec <- as.integer(colls_by_RU$collection)
+    names(RU_vec) <- as.character(colls_by_RU$collection)
 
   }) # close time 1 block
   message("   time: ", sprintf("%.2f", time1["elapsed"]), " seconds")
