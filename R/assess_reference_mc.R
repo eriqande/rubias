@@ -5,18 +5,25 @@
 #' then uses this in two different estimates of population mixture proportions:
 #' maximum likelihood via EM-algorithm and posterior mean from MCMC.
 #'
-#' This is method is referred to as "Monte Carlo cross-validation". In addition to the
-#' constraint that mixture sampling without replacement cannot deplete the number of individuals
-#' in each collection below \code{min_remaining}, a similar constraint is placed upon
-#' the number of individuals left in reporting units, determined as \code{min_remaining} *
-#' (# collections in reporting unit).
+#' This method is referred to as "Monte Carlo cross-validation".
+#' The input parameters for \code{assess_reference_mc} are more restrictive than those of
+#' \code{assess_reference_loo}. Rather than allowing a \emph{data.frame} to specify Dirichlet
+#' parameters, proportions, or counts for specific reporting units and collections,
+#' \code{assess_reference_mc} only allows vector input (default = 1.5) for \code{alpha_repunit}
+#' and \code{alpha_collection}. These inputs specify the uniform Dirichlet parameters for
+#' all reporting units and collections, respectively.
 #'
 #' For mixture proportion generation, the rho values are first drawn using a stick-breaking
 #' model of the Dirichlet distribution, but with proportions capped by \code{min_remaining}.
-#' Stick-breaking is then used to subdivide each reporting unit into collections. Note that
-#' this implies that the data are only truly Dirichlet distributed when no rejections based
-#' on \code{min_remaining} occur; this is a reasonable certainty with sufficient sample
-#' sizes in each collection
+#' Stick-breaking is then used to subdivide each reporting unit into collections. In
+#' addition to the constraint that mixture sampling without replacement cannot deplete
+#' the number of individuals in each collection below \code{min_remaining}, a similar
+#' constraint is placed upon the number of individuals left in reporting units,
+#' determined as \code{min_remaining} * (# collections in reporting unit).
+#'
+#' Note that this implies that the data are only truly Dirichlet distributed when no
+#' rejections based on \code{min_remaining} occur. This is a reasonable certainty with
+#' sufficient reference collection sizes relative to the desired mixture size.
 #'
 #' @param reference a two-column format genetic dataset, with "repunit", "collection", and "indiv"
 #' columns, as well as a "sample_type" column that has some "reference" entries.
@@ -24,9 +31,12 @@
 #' @param reps  number of reps to do
 #' @param mixsize the number of individuals in each simulated mixture.
 #' @param seed a random seed for simulations
+#' @param alpha_repunit The dirichlet parameter for simulating the proportions of
+#' reporting units. Default = 1.5
+#' @param alpha_collection The dirichlet parameter for simulating proportions of collections
+#' within reporting units. Default = 1.5
 #' @param min_remaining the minimum number of individuals which should be conserved in
 #' each reference collection during sampling without replacement to form the simulated mixture
-#' @inheritParams simulate_random_samples
 #' @examples
 #' ale_dev <- assess_reference_mc(alewife, 17)
 #'

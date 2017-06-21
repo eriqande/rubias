@@ -1,0 +1,76 @@
+---
+title: "Testing assess_reference_mc"
+author: "benmo"
+date: "June 20, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+libraries:
+```{r load-libs}
+library(tidyverse)
+library(stringr)
+library(rubias)
+```
+
+## Introduction
+
+This document will build on the `perfect_chinook` data set to test the tolerance
+of `assess_reference_mc` for datasets other than `alewife`. Namely, we are
+interested in whether the function works properly when reporting units and collections
+are not present within continuous blocks of rows in the dataset.
+
+So, we begin by trying a simple `assess_reference_mc` on the `perfect_chinook` dataset.
+
+```{r}
+set.seed(15)
+out_unperm <- assess_reference_mc(perfect_chinook, 5)
+```
+
+First rows look good, but we graph to see how it holds across the range of possible rhos.
+
+```{r}
+rhos_unperm <- out_unperm %>%
+  group_by(iter,repunit) %>%
+  summarise(true_rho = sum(omega), rho_est = sum(post_mean))
+
+rg <- ggplot2::ggplot(rhos_unperm, ggplot2::aes(x = true_rho, y = rho_est, colour = repunit)) +
+      ggplot2::geom_point() +
+      ggplot2::facet_wrap(~repunit) +
+      ggplot2::geom_abline(intercept = 0, slope = 1)
+print(rg)
+```
+
+Printing `rg` from the console shows that everything is looking good.
+
+We then permute the order of individuals in `perfect_chinook`, as before:
+
+```{r}
+set.seed(5)
+pc_perm <- perfect_chinook[sample(1:nrow(perfect_chinook)), ]
+out_perm <- assess_reference_mc(pc_perm, 5)
+```
+
+First set looks good. Let's summarise rho and graph.
+
+```{r}
+rhos_perm <- out_perm %>%
+  group_by(iter,repunit) %>%
+  summarise(true_rho = sum(omega), rho_est = sum(post_mean))
+
+rgp <- ggplot2::ggplot(rhos_perm, ggplot2::aes(x = true_rho, y = rho_est, colour = repunit)) +
+      ggplot2::geom_point() +
+      ggplot2::facet_wrap(~repunit) +
+      ggplot2::geom_abline(intercept = 0, slope = 1)
+print(rgp)
+```
+
+It looks just as good as the other. Therefore, it seems clear that `assess_reference_mc`
+handles the reporting unit & collection sorting appropriately.
+
+The Central Valley Fall estimate is noticeably biased downwards at small rho values. 
+This doesn't line up with prior cases of RU bias; it's below the $N_{c}/P$ value of $8/69$,
+so if anything one would expect it to be biased upwards. 
