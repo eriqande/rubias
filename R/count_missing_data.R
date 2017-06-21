@@ -8,6 +8,7 @@
 #' @param gen_start_col the column in which the genetic data starts
 #' @return returns a data frame with indiv (as characters), n_non_miss_loci, n_miss_loci (as numeric)
 #' @keywords internal
+#' @export
 count_missing_data <- function(D, gen_start_col) {
 
   DM <- as.matrix(D[, gen_start_col:ncol(D)])

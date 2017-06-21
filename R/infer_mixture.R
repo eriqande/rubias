@@ -140,8 +140,7 @@ infer_mixture <- function(reference,
       PC[colls_by_RU$repunit[i]] <- PC[colls_by_RU$repunit[i]] + 1
     }
     RU_starts <- c(0, cumsum(PC))
-    RU_vec <- as.integer(factor(colls_by_RU$collection,
-                                levels = unique(colls_by_RU$collection)))
+    RU_vec <- as.integer(colls_by_RU$collection)
 
   }) # close time 1 block
   message("   time: ", sprintf("%.2f", time1["elapsed"]), " seconds")

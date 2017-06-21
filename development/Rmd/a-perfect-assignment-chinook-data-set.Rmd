@@ -195,8 +195,18 @@ IM_pb$mixing_proportions %>%
   left_join(IM_pb$bootstrapped_proportions)
 ```
 
-OK, that is clearly broken.  It appears that the problem is that the indexing of collections is not
-correct in when the repunit proportions are being computed.  I think it is fine when all the collections
-are grouped together within reporting units in the reference file, but we cannot assume that.  In the chinook
-data the Feather_H_sp is actually in the Fall Run repunit and that seems to throw everything off.
+That is more or less ok now.  The problem of collection/RU indexing was fixed by finding
+a bug in the creation of RU_vec.  Now let's try it with permutation.
 
+```{r}
+IM_pb <- infer_mixture(pc_perm, pcm_perm, 5, method = "PB")
+
+IM_pb$mixing_proportions %>%
+  group_by(mixture_collection, repunit) %>%
+  summarise(repunit_ppn = sum(pi)) %>%
+  arrange(mixture_collection, desc(repunit_ppn)) %>%
+  left_join(IM_pb$bootstrapped_proportions)
+```
+
+All clear. The fix required changing `RU_vec`, but only in the `infer_mixture` function. I'll go back through and check if the same problem exists in any other functions 
+depending on `params`.
