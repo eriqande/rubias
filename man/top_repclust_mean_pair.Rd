@@ -13,4 +13,3 @@ top_repclust_mean_pair(pp)
 find the pair that includes the highest incorrect normalized scaled likelihood
 }
 \keyword{internal}
-

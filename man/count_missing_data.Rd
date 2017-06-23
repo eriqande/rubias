@@ -19,4 +19,3 @@ Takes a rubias genetic data frame that must have column "indiv".  Currently
 hard-wired for diploids.
 }
 \keyword{internal}
-

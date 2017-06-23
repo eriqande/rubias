@@ -59,4 +59,3 @@ for the removal of any existing bias.
 ale_bias <- assess_pb_bias_correction(alewife, 17)
 
 }
-

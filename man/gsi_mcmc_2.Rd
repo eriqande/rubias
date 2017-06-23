@@ -80,4 +80,3 @@ test_bh_mcmc <- gsi_mcmc_2(SL, lambda_rho, lambda_omega, lambda_rho, lambda_omeg
 
 }
 \keyword{internal}
-

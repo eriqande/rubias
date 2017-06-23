@@ -41,4 +41,3 @@ This is hard-wired at the moment to do something like Hasselman et al.
 ale_dev <- assess_reference_loo(alewife, 17)
 
 }
-
