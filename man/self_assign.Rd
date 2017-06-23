@@ -8,9 +8,9 @@ self_assign(reference, gen_start_col)
 }
 \arguments{
 \item{reference}{a two-column format genetic dataset, with "repunit", "collection", and "indiv"
-columns, as well as a "sample_type" column that has some "reference" entries.}
+columns, as well as a "sample_type" column that has some "reference" entries}
 
-\item{gen_start_col}{the first column of genetic data in reference}
+\item{gen_start_col}{the first column of genetic data in \code{reference}}
 }
 \value{
 a tibble ...

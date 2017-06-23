@@ -9,13 +9,13 @@ assess_reference_loo(reference, gen_start_col, reps = 50, mixsize = 100,
 }
 \arguments{
 \item{reference}{a two-column format genetic dataset, with "repunit", "collection", and "indiv"
-columns, as well as a "sample_type" column that has some "reference" entries.}
+columns, as well as a "sample_type" column that has some "reference" entries}
 
-\item{gen_start_col}{the first column of genetic data in reference}
+\item{gen_start_col}{the first column of genetic data in \code{reference}}
 
-\item{reps}{number of reps to do}
+\item{reps}{number of reps of mixture simulation and MCMC to do}
 
-\item{mixsize}{the number of individuals in each simulated mixture.}
+\item{mixsize}{the number of individuals in each simulated mixture}
 
 \item{seed}{a random seed for simulations}
 
@@ -35,7 +35,7 @@ maximum likelihood via EM-algorithm and posterior mean from
 MCMC.
 }
 \details{
-This is hard-wired at the moment to do something like Hasselman et al.
+This is hard-wired at the moment to do something like Hasselman et al. (2015)
 }
 \examples{
 ale_dev <- assess_reference_loo(alewife, 17)
