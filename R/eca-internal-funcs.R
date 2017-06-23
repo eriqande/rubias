@@ -11,19 +11,19 @@
 check_refmix <- function(D, gen_start_col, type = "reference") {
 
   # first check to make sure that the repunit, collection, and indiv columns are present
-  if(!("repunit") %in% names(D)) stop("Missing column \"repunit\" in", type)
-  if(!("collection") %in% names(D)) stop("Missing column \"collection\" in", type)
-  if(!("indiv") %in% names(D)) stop("Missing column \"indiv\" in", type)
+  if (!("repunit") %in% names(D)) stop("Missing column \"repunit\" in", type)
+  if (!("collection") %in% names(D)) stop("Missing column \"collection\" in", type)
+  if (!("indiv") %in% names(D)) stop("Missing column \"indiv\" in", type)
 
   # now check to see if any of those are not character vectors
-  if(!is.character(D$repunit)) stop("Column \"repunit\" must be a character vector.  It is not in ", type, " data frame")
-  if(!is.character(D$collection)) stop("Column \"collection\" must be a character vector.  It is not in ", type, " data frame")
-  if(!is.character(D$indiv)) stop("Column \"indiv\" must be a character vector.  It is not in ", type, " data frame")
+  if (!is.character(D$repunit)) stop("Column \"repunit\" must be a character vector.  It is not in ", type, " data frame")
+  if (!is.character(D$collection)) stop("Column \"collection\" must be a character vector.  It is not in ", type, " data frame")
+  if (!is.character(D$indiv)) stop("Column \"indiv\" must be a character vector.  It is not in ", type, " data frame")
 
   # now, check to make sure that all the locus columns are character or integer:
   tmp <- D[, -(1:(gen_start_col - 1))]
   char_or_int <- sapply(tmp, is.character) | sapply(tmp, is.integer)
-  if(any(!char_or_int)) {
+  if (any(!char_or_int)) {
     stop("All locus columns must be of characters or integers.  These in ", type, " are not: ",
          paste(names(char_or_int[!char_or_int]), collapse = ", "))
   }
@@ -39,23 +39,14 @@ check_refmix <- function(D, gen_start_col, type = "reference") {
 #' @param p the name of the parameter whose values you want to extract (like "pi")
 #' @param pname the name that you want the parameter to be called in the output
 #' @param car_tib  a tibble with repunit and collection in the order they appear in the output
-#' @param coll_levs a vector of levels for the collection (or NULL if none)
-#' @param repu_levs a vector of levels for the repunit (or NULL if none)
 #' @keywords internal
-tidy_mcmc_coll_rep_stuff <- function(field, p, pname, car_tib, coll_levs = NULL, repu_levs = NULL) {
+tidy_mcmc_coll_rep_stuff <- function(field, p, pname, car_tib) {
   ret <- tibble::tibble(collection = car_tib$collection, value = field[[p]]) %>%
     dplyr::left_join(car_tib, ., by = "collection")
 
   # change the name
   names(ret)[names(ret) == "value"] <- pname
 
-  if (!is.null(coll_levs)) {
-    ret$collection = factor(ret$collection, levels = coll_levs)
-  }
-  if (!is.null(repu_levs)) {
-    ret$repunit = factor(ret$repunit, levels = repu_levs)
-
-  }
   ret
 }
 
@@ -72,10 +63,8 @@ tidy_mcmc_coll_rep_stuff <- function(field, p, pname, car_tib, coll_levs = NULL,
 #' @param pname the name that you want the parameter to be called in the output
 #' @param car_tib  a tibble with repunit and collection in the order they appear in the output
 #' @param mix_indiv_tib  a tibble with the individuals in the order they appear in the output
-#' @param coll_levs a vector of levels for the collection (or NULL if none)
-#' @param repu_levs a vector of levels for the repunit (or NULL if none)
 #' @keywords internal
-tidy_mcmc_pofz <- function(input, pname, car_tib, mix_indiv_tib, coll_levs = NULL, repu_levs = NULL) {
+tidy_mcmc_pofz <- function(input, pname, car_tib, mix_indiv_tib) {
   pofz_mat <- t(input)
   colnames(pofz_mat) <- car_tib$collection
 
@@ -93,14 +82,7 @@ tidy_mcmc_pofz <- function(input, pname, car_tib, mix_indiv_tib, coll_levs = NUL
 
   names(ret)[names(ret) == "pofz"] <- pname
 
-  # deal with the factor levels if present
-  if (!is.null(coll_levs)) {
-    ret$collection = factor(ret$collection, levels = coll_levs)
-  }
-  if (!is.null(repu_levs)) {
-    ret$repunit = factor(ret$repunit, levels = repu_levs)
 
-  }
   ret
 }
 
@@ -113,11 +95,9 @@ tidy_mcmc_pofz <- function(input, pname, car_tib, mix_indiv_tib, coll_levs = NUL
 #' @param pname the name that you want the parameter to be called in the output
 #' @param car_tib  a tibble with repunit and collection in the order they appear in the output
 #' @param mix_indiv_tib  a tibble with the individuals in the order they appear in the output
-#' @param coll_levs a vector of levels for the collection (or NULL if none)
-#' @param repu_levs a vector of levels for the repunit (or NULL if none)
 #' @param interval the thinning interval that was used
 #' @keywords internal
-tidy_pi_traces <- function(input, pname, car_tib, coll_levs, repu_levs, interval) {
+tidy_pi_traces <- function(input, pname, car_tib, interval) {
   ret <- lapply(input, function(x) tibble::tibble(collection = car_tib$collection,
                                             pi = x)) %>%
     dplyr::bind_rows(.id = "sweep") %>%
@@ -127,12 +107,6 @@ tidy_pi_traces <- function(input, pname, car_tib, coll_levs, repu_levs, interval
 
   names(ret)[names(ret) == "pi"] <- pname
 
-  if (!is.null(coll_levs)) {
-    ret$collection = factor(ret$collection, levels = coll_levs)
-  }
-  if (!is.null(repu_levs)) {
-    ret$repunit = factor(ret$repunit, levels = repu_levs)
-  }
   ret
 }
 

@@ -4,8 +4,7 @@
 \alias{tidy_mcmc_coll_rep_stuff}
 \title{A helper function to tidy up the output from the gsi_mcmc functions}
 \usage{
-tidy_mcmc_coll_rep_stuff(field, p, pname, car_tib, coll_levs = NULL,
-  repu_levs = NULL)
+tidy_mcmc_coll_rep_stuff(field, p, pname, car_tib)
 }
 \arguments{
 \item{field}{The output to tidy (i.e.. out$mean)}
@@ -15,10 +14,6 @@ tidy_mcmc_coll_rep_stuff(field, p, pname, car_tib, coll_levs = NULL,
 \item{pname}{the name that you want the parameter to be called in the output}
 
 \item{car_tib}{a tibble with repunit and collection in the order they appear in the output}
-
-\item{coll_levs}{a vector of levels for the collection (or NULL if none)}
-
-\item{repu_levs}{a vector of levels for the repunit (or NULL if none)}
 }
 \description{
 This makes a tidy data frame of stuff, and also changes things back to

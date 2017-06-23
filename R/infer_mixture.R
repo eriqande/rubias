@@ -244,25 +244,19 @@ infer_mixture <- function(reference,
       pi_tidy <- tidy_mcmc_coll_rep_stuff(field = out$mean,
                                           p = "pi",
                                           pname = "pi",
-                                          car_tib = COLLS_AND_REPS_TIBBLE_CHAR,
-                                          coll_levs = NULL,
-                                          repu_levs = NULL)
+                                          car_tib = COLLS_AND_REPS_TIBBLE_CHAR)
 
 
       # then get a tidy PofZ
       pofz_tidy <- tidy_mcmc_pofz(input = out$mean$PofZ,
                                   pname = "PofZ",
                                   car_tib = COLLS_AND_REPS_TIBBLE_CHAR,
-                                  mix_indiv_tib = MIXTURE_INDIV_TIBBLE,
-                                  coll_levs = NULL,
-                                  repu_levs = NULL)
+                                  mix_indiv_tib = MIXTURE_INDIV_TIBBLE)
 
       # and a tidy trace of the Pi vectors
       traces_tidy <- tidy_pi_traces(input = out$trace$pi,
                                     pname = "pi",
                                     car_tib = COLLS_AND_REPS_TIBBLE_CHAR,
-                                    coll_levs = NULL,
-                                    repu_levs = NULL,
                                     interval = sample_int_Pi)
 
       ## and if it was PB, we have further tidying to do to add the bootstrap_rhos ##

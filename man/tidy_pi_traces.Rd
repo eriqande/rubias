@@ -4,7 +4,7 @@
 \alias{tidy_pi_traces}
 \title{a helper function to tidy up the pi-traces that come out of the mcmc functions}
 \usage{
-tidy_pi_traces(input, pname, car_tib, coll_levs, repu_levs, interval)
+tidy_pi_traces(input, pname, car_tib, interval)
 }
 \arguments{
 \item{input}{The output to tidy (i.e.. out$trace$pi)}
@@ -12,10 +12,6 @@ tidy_pi_traces(input, pname, car_tib, coll_levs, repu_levs, interval)
 \item{pname}{the name that you want the parameter to be called in the output}
 
 \item{car_tib}{a tibble with repunit and collection in the order they appear in the output}
-
-\item{coll_levs}{a vector of levels for the collection (or NULL if none)}
-
-\item{repu_levs}{a vector of levels for the repunit (or NULL if none)}
 
 \item{interval}{the thinning interval that was used}
 
