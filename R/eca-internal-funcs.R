@@ -28,6 +28,16 @@ check_refmix <- function(D, gen_start_col, type = "reference") {
          paste(names(char_or_int[!char_or_int]), collapse = ", "))
   }
 
+  # check also to make sure that indiv IDs are unique
+  dupies <- D %>%
+    dplyr::count(indiv) %>%
+    filter(n > 1)
+  if (nrow(dupies) > 0) {
+    err_string <- paste(sprintf("%s (%d)", dupies$indiv, dupies$n), collapse = ", ")
+    stop("The following indiv IDs are repeated.  Number of times in parentheses: ", err_string)
+  }
+
+
 }
 
 
