@@ -181,6 +181,14 @@ infer_mixture <- function(reference,
     })
     message("   time: ", sprintf("%.2f", time2["elapsed"]), " seconds")
 
+    # We are going to want to attach the raw likelihoods to the output for each fish
+    # in the mixture.  (For computing z-scores, etc.).  So, we will make a tibble here
+    # that has all of that, so we can join it back on there. logls is a matrix so we
+    # just attach the indiv and collection on it and turn it all into a tibble
+    logl_tibble <- tibble::tibble(collection = base::rep(COLLS_AND_REPS_TIBBLE_CHAR$collection, ncol(logl)),
+                                  indiv = base::rep(MIXTURE_INDIV_TIBBLE$indiv, each = nrow(logl)),
+                                  log_likelihood = base::as.vector(logl))
+
 
     ## regardless of whether the method is PB or MCMC, you are going to run the MCMC once, at least ##
     message("  performing ", burn_in, " burn-in and ", reps, " more sweeps of method \"MCMC\"", appendLF = FALSE)
@@ -251,7 +259,8 @@ infer_mixture <- function(reference,
       pofz_tidy <- tidy_mcmc_pofz(input = out$mean$PofZ,
                                   pname = "PofZ",
                                   car_tib = COLLS_AND_REPS_TIBBLE_CHAR,
-                                  mix_indiv_tib = MIXTURE_INDIV_TIBBLE)
+                                  mix_indiv_tib = MIXTURE_INDIV_TIBBLE) %>%
+        dplyr::left_join(logl_tibble, by = c("collection", "indiv"))
 
       # and a tidy trace of the Pi vectors
       traces_tidy <- tidy_pi_traces(input = out$trace$pi,
