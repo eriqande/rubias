@@ -7,13 +7,13 @@
 #' maximum likelihood via EM-algorithm and posterior mean from
 #' MCMC.
 #'
-#' This is hard-wired at the moment to do something like Hasselman et al.
+#' This is hard-wired at the moment to do something like Hasselman et al. (2015)
 #'
 #' @param reference a two-column format genetic dataset, with "repunit", "collection", and "indiv"
-#' columns, as well as a "sample_type" column that has some "reference" entries.
-#' @param gen_start_col the first column of genetic data in reference
-#' @param reps  number of reps to do
-#' @param mixsize the number of individuals in each simulated mixture.
+#' columns, as well as a "sample_type" column that has some "reference" entries
+#' @param gen_start_col the first column of genetic data in \code{reference}
+#' @param reps  number of reps of mixture simulation and MCMC to do
+#' @param mixsize the number of individuals in each simulated mixture
 #' @param seed a random seed for simulations
 #' @inheritParams simulate_random_samples
 #' @examples
