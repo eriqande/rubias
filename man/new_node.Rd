@@ -17,4 +17,3 @@ new_node(rmp, nodes, idx)
 given the top reclust mean pair, make a new node out of them
 }
 \keyword{internal}
-

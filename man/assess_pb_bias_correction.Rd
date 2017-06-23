@@ -19,9 +19,9 @@ same locus should be adjacent}
 
 \item{seed}{the random seed for simulations}
 
-\item{nreps}{The number of reps to do.}
+\item{nreps}{The number of repetitions of MCMC and parametric bootstrapping to perform}
 
-\item{mixsize}{The size of each simulated mixture sample.}
+\item{mixsize}{The size of each simulated mixture sample to be withdrawn from the reference}
 }
 \value{
 \code{bias_comparison} returns a list; the first element is
@@ -37,16 +37,12 @@ weight to deviations at smaller values. \code{mean_bias} is simply the average r
 unlike \code{mse}, this demonstrates the direction of the bias.
 }
 \description{
-This is a rewrite of bias_comparison().  Eric didn't want the plotting to
-be wrapped up in a function, and wanted to return a more informative data
-frame.
-}
-\details{
 Takes a reference two-column genetic dataset, pulls a series of random
 "mixture" datasets with varying reporting unit proportions from this reference,
 and compares the results of GSI through standard MCMC
 vs. parametric-bootstrap MCMC bias correction
-
+}
+\details{
 The amount of bias in reporting unit proportion calculations increases with the
 rate of missassignment between reporting units (decreases with genetic differentiation),
 and increases as the number of collections within reporting units becomes more uneven.
@@ -59,4 +55,3 @@ for the removal of any existing bias.
 ale_bias <- assess_pb_bias_correction(alewife, 17)
 
 }
-

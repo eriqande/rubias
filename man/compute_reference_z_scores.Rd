@@ -17,4 +17,3 @@ For each collection, we compute the mean and sd of the log-likelihoods
 of assigning correctly to the collection.  We then compute the Z-values
 for each individual.
 }
-

@@ -26,4 +26,3 @@ after we converted from TaqMan to SNPtype assays (being forced to toss some loci
 and tossed out a bunch of lousy historical
 samples from Trinity River.
 }
-

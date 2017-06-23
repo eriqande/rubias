@@ -18,4 +18,3 @@ Got it off GitHub, but must be at Dryad now too...
 \description{
 gotta say more about it
 }
-

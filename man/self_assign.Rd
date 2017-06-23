@@ -21,4 +21,3 @@ Returns a tidy data frame
 \examples{
 ale_sa <- self_assign(alewife, 17)
 }
-
