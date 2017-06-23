@@ -52,6 +52,7 @@ assess_pb_bias_correction <- function(reference, gen_start_col, seed = 5, nreps 
 
   reference$collection <- factor(reference$collection, levels = unique(reference$collection))
   reference$repunit <- factor(reference$repunit, levels = unique(reference$repunit))
+
   #get a dataframe which connects each collection to its reporting unit
   repidxs <- reference %>%
     dplyr::mutate(coll_int = as.integer(factor(reference$collection, levels = unique(reference$collection)))) %>%
@@ -77,9 +78,16 @@ assess_pb_bias_correction <- function(reference, gen_start_col, seed = 5, nreps 
     #split the dataset into "reference" and "mixture", with mixture having the above rho
     drawn <- mixture_draw(reference, rhos = rho, N = mixsize, min_remaining = .0005)
 
+    # get the true n out of that.  There is some rigramorale here to make sure that we have
+    # explicit 0's in there (that is what the left_join is all about, since tally doesn't return
+    # explicit 0's for missing factor levels).
     drawn_repidxs <- drawn$mixture %>%
       dplyr::group_by(repunit) %>%
-      dplyr::tally()
+      dplyr::tally() %>%
+      dplyr::mutate(repunit = as.character(repunit)) %>%
+      dplyr::left_join(tibble::tibble(repunit = levels(drawn$mixture$repunit)), ., by = "repunit") %>%
+      dplyr::mutate(n = ifelse(is.na(n), 0, n))
+
     true_n <- drawn_repidxs$n
 
     # get estimates of rho from standard mcmc
@@ -89,6 +97,7 @@ assess_pb_bias_correction <- function(reference, gen_start_col, seed = 5, nreps 
     }) %>% unlist()
 
     message("    Done with direct estimates. Starting bootstrap-corrected estimate...", "   ", Sys.time())
+
     # finally, get a bootstrap-corrected rho estimate
     delin <- rbind(drawn$reference, drawn$mixture)
     rho_pb <- bootstrap_rho(rho_mcmc, pi_mcmc, delin, gen_start_col)
@@ -96,7 +105,7 @@ assess_pb_bias_correction <- function(reference, gen_start_col, seed = 5, nreps 
 
     out <- list("true_rho" = rho, "true_n" = true_n, "rho_mcmc" = rho_mcmc, "rho_pb" = rho_pb)
 
-
+    out
   })
 
   #format data, calculate summary statistics, and generate plots
@@ -107,7 +116,7 @@ assess_pb_bias_correction <- function(reference, gen_start_col, seed = 5, nreps 
   ret <- rho50x %>%
     dplyr::mutate(repunit = rep(unique(reference$repunit), nreps)) %>%
     dplyr::mutate(iter = as.integer(iter)) %>%
-    select(iter, repunit, dplyr::everything())
+    dplyr::select(iter, repunit, dplyr::everything())
 
   return(ret)
 
