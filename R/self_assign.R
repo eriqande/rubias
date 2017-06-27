@@ -2,17 +2,27 @@
 #'
 #' Returns a tidy data frame
 #' @inheritParams assess_reference_loo
+#' @param preCompiledParams Users should never use this option.  It is here only so that
+#' this function can be called on a precompiled set of parameters with infer_mixture.  Don't
+#' use this, unless you are one of the package developers...
 #' @return a tibble ...
 #' @export
 #' @examples
 #' ale_sa <- self_assign(alewife, 17)
-self_assign <- function(reference, gen_start_col) {
+self_assign <- function(reference, gen_start_col, preCompiledParams = NULL) {
 
-  # make sure the reference file is OK
-  check_refmix(reference, gen_start_col, "reference")
+  # if not supplying it with preCompiledParams, check reference and get the params
+  if (is.null(preCompiledParams)) {
+    # make sure the reference file is OK
+    check_refmix(reference, gen_start_col, "reference")
 
-  # get the necessary parameters from the reference data
-  params <- tcf2param_list(reference, gen_start_col, summ = T)
+    # get the necessary parameters from the reference data
+    params <- tcf2param_list(reference, gen_start_col, summ = T)
+  } else {
+    # otherwise, assume the reference was checked elsewhere (i.e. in infer_mixture())
+    # and just set params to preCompiledParams
+    params <- preCompiledParams
+  }
 
   # get the log-likelihoods
   logl <- t(geno_logL(par_list = params))
@@ -63,9 +73,12 @@ self_assign <- function(reference, gen_start_col) {
     dplyr::left_join(., repu_assoc, by = "inferred_collection") %>%
     dplyr::select(indiv:inferred_collection, inferred_repunit, log_likelihood, ssq_logl) %>%
     dplyr::group_by(indiv) %>%
-    dplyr::mutate(scaled_likelihood = exp(log_likelihood) / sum(exp(log_likelihood))) %>%
+    dplyr::mutate(normo_logl = log_likelihood - mean(log_likelihood)) %>%  # This is done to prevent underflow
+    dplyr::mutate(scaled_likelihood = exp(normo_logl) / sum(exp(normo_logl))) %>%
     dplyr::ungroup() %>%
+    dplyr::select(-normo_logl) %>%
     dplyr::left_join(., count_missing_data(reference, gen_start_col), by = "indiv")
+
 
 
 }

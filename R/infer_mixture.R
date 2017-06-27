@@ -51,6 +51,11 @@ infer_mixture <- function(reference,
   check_refmix(reference, gen_start_col, "reference")
   check_refmix(mixture, gen_start_col, "mixture")
 
+
+  # save an untouched version of reference and gen_start_col (to be used for self-assignment)
+  orig_reference <- reference
+  orig_gen_start_col <- gen_start_col
+
   # once we are sure that repunit and collection are characters, turn them to factors
   reference$repunit <- factor(reference$repunit, levels = unique(reference$repunit))
   reference$collection <- factor(reference$collection, levels = unique(reference$collection))
@@ -86,7 +91,7 @@ infer_mixture <- function(reference,
 
   # get the number of missing and non-missing loci for the mixture fish and hold it
   # till the end, when we join it on there
-  mix_num_loci <- count_missing_data(mixture, gen_start_col)
+  mix_num_loci <- count_missing_data(mixture, orig_gen_start_col)
 
 
   ## cleaning and summarizing data ##
@@ -143,8 +148,32 @@ infer_mixture <- function(reference,
     RU_vec <- as.integer(colls_by_RU$collection)
     names(RU_vec) <- as.character(colls_by_RU$collection)
 
+    # Finally, we want to prepare the alleles carried by the reference samples
+    # so that we can compute the z-score statistics from them.
+    ref_I <- allelic_list(cs = clean$clean_short, ac = ac, samp_type = "reference")$int
+
+    # and get a vector of the collections those reference individuals are from
+    ref_PO <- clean$clean_short %>%
+      dplyr::filter(sample_type == "reference") %>%
+      .$collection %>%
+      as.integer()
+
+    # and then make a params structure for doing the self-assignment to get the z-scores
+    sa_params <- list_diploid_params(ac, ref_I, ref_PO, coll_N, RU_vec, RU_starts)
+
   }) # close time 1 block
   message("   time: ", sprintf("%.2f", time1["elapsed"]), " seconds")
+
+
+
+  # Now we have to do the self-assignment so that we have some raw material for computing
+  # the z-scores of each individual.
+  message("Performing reference self-assignment for computing mixture z-scores", appendLF = FALSE)
+  time_sa <- system.time({
+    sa_results <- self_assign(orig_reference, orig_gen_start_col, preCompiledParams = sa_params)
+    z_score_params <- compute_reference_z_scores(sa_results, returnCollectionSummary = TRUE)
+  })
+  message("   time: ", sprintf("%.2f", time_sa["elapsed"]), " seconds")
 
   # now, we are going to break the mixture samples up into a list of data frames, each
   # named by the collection of the mixture sample, and then we are going to spew all of
@@ -288,15 +317,22 @@ infer_mixture <- function(reference,
 
 
   # phew.  At the end of that, we are going to bind_rows so everything is tidy, and we
-  # add missing data numbers to the indiv_posteriors, too.
+  # add missing data numbers to the indiv_posteriors, too.  And we compute the z-score
+  # for each individual too...
   ret <- list(
     mixing_proportions = lapply(big_output_list, function(x) x$mixing_proportions) %>%
       dplyr::bind_rows(.id = "mixture_collection"),
+
     indiv_posteriors = lapply(big_output_list, function(x) x$indiv_posteriors) %>%
       dplyr::bind_rows(.id = "mixture_collection") %>%
-      left_join(., mix_num_loci, by = "indiv"),
+      dplyr::left_join(., mix_num_loci, by = "indiv") %>%
+      dplyr::left_join(., z_score_params, by = "collection") %>%
+      dplyr::mutate(z_score = (log_likelihood - (n_non_miss_loci * L_bar)) / sqrt(n_non_miss_loci * var1)) %>%
+      dplyr::select(-L_bar, -var1),
+
     mix_prop_traces = lapply(big_output_list, function(x) x$mix_prop_traces) %>%
       dplyr::bind_rows(.id = "mixture_collection"),
+
     bootstrapped_proportions = lapply(big_output_list, function(x) x$bootstrapped_proportions) %>%
       dplyr::bind_rows(.id = "mixture_collection")
   )

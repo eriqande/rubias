@@ -4,13 +4,17 @@
 \alias{self_assign}
 \title{Do leave-one-out self-assignment of individuals in a reference baseline}
 \usage{
-self_assign(reference, gen_start_col)
+self_assign(reference, gen_start_col, preCompiledParams = NULL)
 }
 \arguments{
 \item{reference}{a two-column format genetic dataset, with "repunit", "collection", and "indiv"
 columns, as well as a "sample_type" column that has some "reference" entries}
 
 \item{gen_start_col}{the first column of genetic data in \code{reference}}
+
+\item{preCompiledParams}{Users should never use this option.  It is here only so that
+this function can be called on a precompiled set of parameters with infer_mixture.  Don't
+use this, unless you are one of the package developers...}
 }
 \value{
 a tibble ...

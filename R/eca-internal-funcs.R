@@ -31,7 +31,7 @@ check_refmix <- function(D, gen_start_col, type = "reference") {
   # check also to make sure that indiv IDs are unique
   dupies <- D %>%
     dplyr::count(indiv) %>%
-    filter(n > 1)
+    dplyr::filter(n > 1)
   if (nrow(dupies) > 0) {
     err_string <- paste(sprintf("%s (%d)", dupies$indiv, dupies$n), collapse = ", ")
     stop("The following indiv IDs are repeated.  Number of times in parentheses: ", err_string)
@@ -50,6 +50,7 @@ check_refmix <- function(D, gen_start_col, type = "reference") {
 #' @param pname the name that you want the parameter to be called in the output
 #' @param car_tib  a tibble with repunit and collection in the order they appear in the output
 #' @keywords internal
+#' @export
 tidy_mcmc_coll_rep_stuff <- function(field, p, pname, car_tib) {
   ret <- tibble::tibble(collection = car_tib$collection, value = field[[p]]) %>%
     dplyr::left_join(car_tib, ., by = "collection")
@@ -74,6 +75,7 @@ tidy_mcmc_coll_rep_stuff <- function(field, p, pname, car_tib) {
 #' @param car_tib  a tibble with repunit and collection in the order they appear in the output
 #' @param mix_indiv_tib  a tibble with the individuals in the order they appear in the output
 #' @keywords internal
+#' @export
 tidy_mcmc_pofz <- function(input, pname, car_tib, mix_indiv_tib) {
   pofz_mat <- t(input)
   colnames(pofz_mat) <- car_tib$collection
@@ -107,6 +109,7 @@ tidy_mcmc_pofz <- function(input, pname, car_tib, mix_indiv_tib) {
 #' @param mix_indiv_tib  a tibble with the individuals in the order they appear in the output
 #' @param interval the thinning interval that was used
 #' @keywords internal
+#' @export
 tidy_pi_traces <- function(input, pname, car_tib, interval) {
   ret <- lapply(input, function(x) tibble::tibble(collection = car_tib$collection,
                                             pi = x)) %>%

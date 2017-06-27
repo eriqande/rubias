@@ -4,10 +4,13 @@
 \alias{compute_reference_z_scores}
 \title{compute empirical Z-scores for reference population individuals}
 \usage{
-compute_reference_z_scores(SA)
+compute_reference_z_scores(SA, returnCollectionSummary = FALSE)
 }
 \arguments{
 \item{SA}{The tibble that is output by \code{\link{self_assign}}.}
+
+\item{returnCollectionSummary}{if this is TRUE then this just returns the variance and the L_bar
+for each collection so that it can be used to compute z-scores for mixture fish}
 }
 \value{
 A tibble with a few more columns
