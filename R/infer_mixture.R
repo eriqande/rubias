@@ -206,7 +206,13 @@ infer_mixture <- function(reference,
     message("  calculating log-likelihoods of the mixture individuals.", appendLF = FALSE)
     time2 <- system.time({
       logl <- geno_logL(params)
-      SL <- apply(exp(logl), 2, function(x) x/sum(x))
+
+      # we have to be a little careful about making the scaled likelihoods, because we can
+      # run into some underflow issues.
+      logl_col_means <- colMeans(logl)
+      logl_swept <- sweep(logl, 2, logl_col_means)
+
+      SL <- apply(exp(logl_swept), 2, function(x) x/sum(x))
     })
     message("   time: ", sprintf("%.2f", time2["elapsed"]), " seconds")
 

@@ -87,7 +87,12 @@ assess_reference_loo <- function(reference, gen_start_col, reps = 50, mixsize = 
 
     # sampling SLs from the reference dataset at the individual level (like Hasselman et al. 2015)
     logL <- gprob_sim_ind(params, coll_vec)  # simulate the log-likelihood matrix of all the simmed indivs
-    SL <-  apply(exp(logL), 2, function(y) y/sum(y))   # turn that into scaled likelihoods
+    # we have to be a little careful about making the scaled likelihoods, because we can
+    # run into some underflow issues.
+    logl_col_means <- colMeans(logL)
+    logl_swept <- sweep(logL, 2, logl_col_means)
+
+    SL <-  apply(exp(logl_swept), 2, function(y) y/sum(y))   # turn that into scaled likelihoods
 
 
     # get the posterior mean estimates by MCMC
