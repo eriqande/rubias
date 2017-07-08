@@ -12,7 +12,8 @@ count_missing_data(D, gen_start_col)
 \item{gen_start_col}{the column in which the genetic data starts}
 }
 \value{
-returns a data frame with indiv (as characters), n_non_miss_loci, n_miss_loci (as numeric)
+returns a data frame with indiv (as characters), n_non_miss_loci, n_miss_loci (as numeric) and missing_loci
+(as a list-column of named integer vectors)
 }
 \description{
 Takes a rubias genetic data frame that must have column "indiv".  Currently
