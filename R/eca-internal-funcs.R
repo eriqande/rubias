@@ -111,9 +111,13 @@ tidy_mcmc_pofz <- function(input, pname, car_tib, mix_indiv_tib) {
 #' @keywords internal
 #' @export
 tidy_pi_traces <- function(input, pname, car_tib, interval) {
-  ret <- lapply(input, function(x) tibble::tibble(collection = car_tib$collection,
-                                            pi = x)) %>%
-    dplyr::bind_rows(.id = "sweep") %>%
+
+
+  ret <- tibble::tibble(
+    sweep = rep(0:(length(input) - 1), each = length(input[[1]])),
+    collection = rep(car_tib$collection, length(input)),
+    pi = unlist(input)
+  ) %>%
     dplyr::mutate(sweep = as.integer(sweep) * as.integer(interval)) %>%
     dplyr::left_join(., car_tib, by = "collection") %>%
     dplyr::select(sweep, repunit, collection, pi)
