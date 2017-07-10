@@ -46,3 +46,13 @@ if(a1 < 0 || a2 < 0) {result = 1.0;} else {                                     
 }                                                                                                                   \
 }                                                              \
 
+
+
+// This is a little macro used while summing means and vars over loci for the z-score calculations.
+// If the locus is missing, it returns 0.0. Otherwise it returns a 1.0
+#define ZERO_IF_LOCUS_MISSING(i, l, c, result) {                                                      \
+int a1 = I[I_dx(l, i, 0, 2, N)] - 1;                                                                  \
+int a2 = I[I_dx(l, i, 1, 2, N)] - 1;                                                                  \
+if(a1 < 0 || a2 < 0) {result = 0.0;} else {result = 1.0;}}                                            \
+
+

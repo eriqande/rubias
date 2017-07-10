@@ -34,27 +34,35 @@ self_assign <- function(reference, gen_start_col, preCompiledParams = NULL) {
   colnames(logl) <- names(sort(params$RU_vec))
   colnames(logl_ssq) <- names(sort(params$RU_vec))
 
-  # then make a tibble of the logls and put the meta data (indiv, collection, repuunit) from
-  # "reference" back on the results, and the gather the log-likelihoods into two columns
-  # named "inferred_collection" and "log_likelihood"
+  # for locus-specific logls calculation, get the locus-specific means and vars for each collection
+  locus_means_and_vars <- per_locus_means_and_vars(params)
+  # then compute exptected means and vars for each individual on the basis of patterns of missing data
+  mv_sums <- rcpp_indiv_specific_logl_means_and_vars(params, locus_means_and_vars)
+
+
+  # then get a tibble with indiv, inferred_collection, log_likelihood, and the expected mean and var
+  logl_tibble <- tibble::tibble(
+    indiv = rep(params$indiv_names, each = params$C),
+    inferred_collection = rep(params$collection_names, params$N),
+    log_likelihood = as.vector(t(logl)),
+    expected_mean = as.vector(mv_sums$mean),
+    expected_var = as.vector(mv_sums$var)
+  )
+
+
+  # then make a tibble of the meta data (indiv, collection, repuunit) from
+  # "reference" back on the results, join on the logls and expected means and variances of the logls,
+  # sort by logl with indivs in input order, and then compute the z_score
   result <- reference %>%
     dplyr::select(indiv, collection, repunit) %>%
-    dplyr::bind_cols(., tibble::as_tibble(logl)) %>%
-    tidyr::gather(data = ., key = "inferred_collection", value = "log_likelihood", -indiv, -collection, -repunit) %>%
+    dplyr::left_join(logl_tibble, by = "indiv") %>%
     dplyr::mutate(indiv = factor(indiv, levels = unique(indiv))) %>% # this lets us keep indivs in input order
     dplyr::arrange(indiv, desc(log_likelihood)) %>%
-    dplyr::mutate(indiv = as.character(indiv))  # when done, coerce indiv back to character
+    dplyr::mutate(indiv = as.character(indiv))  %>% # when done, coerce indiv back to character
+    dplyr::mutate(z_score = (log_likelihood - expected_mean) / sqrt(expected_var)) %>%  # compute z_score
+    dplyr::select(-expected_mean, -expected_var)  # remove the columns used for the z_score calculation
 
-  # we need to do something similar with the sums-of-squares of the logls, then
-  # we will left_join it
-  ssq_tibble <- reference %>%
-    dplyr::select(indiv, collection, repunit) %>%
-    dplyr::bind_cols(., tibble::as_tibble(logl_ssq)) %>%
-    tidyr::gather(data = ., key = "inferred_collection", value = "ssq_logl", -indiv, -collection, -repunit)
 
-  # here we join that on
-  result <- dplyr::left_join(result, ssq_tibble,
-                      by = c("indiv", "collection", "repunit", "inferred_collection"))
 
   # and finally, we use a join to put a column on there for "inferred_repunit".
   # this ugly thing just gets a tibble that associates repunits with collections
@@ -69,17 +77,17 @@ self_assign <- function(reference, gen_start_col, preCompiledParams = NULL) {
   # orders the columns in a good way, and finally adds a column of
   # scaled likelihoods for each individual, then ungroups and left_joins
   # to the number of loci.
-  result %>%
+  ret <- result %>%
     dplyr::left_join(., repu_assoc, by = "inferred_collection") %>%
-    dplyr::select(indiv:inferred_collection, inferred_repunit, log_likelihood, ssq_logl) %>%
     dplyr::group_by(indiv) %>%
     dplyr::mutate(normo_logl = log_likelihood - mean(log_likelihood)) %>%  # This is done to prevent underflow
     dplyr::mutate(scaled_likelihood = exp(normo_logl) / sum(exp(normo_logl))) %>%
     dplyr::ungroup() %>%
     dplyr::select(-normo_logl) %>%
-    dplyr::left_join(., count_missing_data(reference, gen_start_col), by = "indiv")
+    dplyr::left_join(., count_missing_data(reference, gen_start_col), by = "indiv") %>%
+    dplyr::select(indiv:inferred_collection, inferred_repunit, scaled_likelihood, dplyr::everything())
 
 
-
+  ret
 }
 

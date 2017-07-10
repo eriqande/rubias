@@ -74,6 +74,29 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// rcpp_indiv_specific_logl_means_and_vars
+List rcpp_indiv_specific_logl_means_and_vars(List par_list, List MV);
+RcppExport SEXP rubias_rcpp_indiv_specific_logl_means_and_vars(SEXP par_listSEXP, SEXP MVSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< List >::type par_list(par_listSEXP);
+    Rcpp::traits::input_parameter< List >::type MV(MVSEXP);
+    rcpp_result_gen = Rcpp::wrap(rcpp_indiv_specific_logl_means_and_vars(par_list, MV));
+    return rcpp_result_gen;
+END_RCPP
+}
+// rcpp_per_locus_logls
+NumericMatrix rcpp_per_locus_logls(List par_list);
+RcppExport SEXP rubias_rcpp_per_locus_logls(SEXP par_listSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< List >::type par_list(par_listSEXP);
+    rcpp_result_gen = Rcpp::wrap(rcpp_per_locus_logls(par_list));
+    return rcpp_result_gen;
+END_RCPP
+}
 // samp_from_mat
 IntegerVector samp_from_mat(NumericMatrix M);
 RcppExport SEXP rubias_samp_from_mat(SEXP MSEXP) {
@@ -184,6 +207,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"rubias_gsi_mcmc_bh", (DL_FUNC) &rubias_gsi_mcmc_bh, 13},
     {"rubias_geno_logL", (DL_FUNC) &rubias_geno_logL, 1},
     {"rubias_geno_logL_ssq", (DL_FUNC) &rubias_geno_logL_ssq, 1},
+    {"rubias_rcpp_indiv_specific_logl_means_and_vars", (DL_FUNC) &rubias_rcpp_indiv_specific_logl_means_and_vars, 2},
+    {"rubias_rcpp_per_locus_logls", (DL_FUNC) &rubias_rcpp_per_locus_logls, 1},
     {"rubias_samp_from_mat", (DL_FUNC) &rubias_samp_from_mat, 1},
     {"rubias_gprob_sim_gc", (DL_FUNC) &rubias_gprob_sim_gc, 2},
     {"rubias_gprob_sim_ind", (DL_FUNC) &rubias_gprob_sim_ind, 2},

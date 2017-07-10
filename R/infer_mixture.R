@@ -166,14 +166,19 @@ infer_mixture <- function(reference,
 
 
 
-  # Now we have to do the self-assignment so that we have some raw material for computing
+  # Now we have to get the locus-specific means and variances for computing
   # the z-scores of each individual.
-  message("Performing reference self-assignment for computing mixture z-scores", appendLF = FALSE)
+  message("Computing reference locus specific means and variances for computing mixture z-scores", appendLF = FALSE)
   time_sa <- system.time({
-    sa_results <- self_assign(orig_reference, orig_gen_start_col, preCompiledParams = sa_params)
-    z_score_params <- compute_reference_z_scores(sa_results, returnCollectionSummary = TRUE)
+    # ultimately, we should be able to toss the above stuff, as it has been superseded by the
+    # locus-specific approach, but we will keep it around for comparison, for now...
+    locus_means_and_vars <- per_locus_means_and_vars(sa_params)
+
   })
   message("   time: ", sprintf("%.2f", time_sa["elapsed"]), " seconds")
+
+
+
 
   # now, we are going to break the mixture samples up into a list of data frames, each
   # named by the collection of the mixture sample, and then we are going to spew all of
@@ -208,21 +213,32 @@ infer_mixture <- function(reference,
       logl <- geno_logL(params)
 
       # we have to be a little careful about making the scaled likelihoods, because we can
-      # run into some underflow issues.
+      # run into some underflow issues.  Here we deal with that by sweeping the mean logl out of each column
       logl_col_means <- colMeans(logl)
       logl_swept <- sweep(logl, 2, logl_col_means)
 
       SL <- apply(exp(logl_swept), 2, function(x) x/sum(x))
+
+      # here we sum up the means and variances of the genotype likelihoods in each collection
+      # for the loci that are non-missing in each individual, and return a C x N matrix for the meansum
+      # and a C x N matrix for the varsum, in a list
+      mv_sums <- rcpp_indiv_specific_logl_means_and_vars(params, locus_means_and_vars)
+
+      # We are going to want to attach the raw likelihoods to the output for each fish
+      # in the mixture.  (For computing z-scores, etc.).  So, we will make a tibble here
+      # that has all of that, so we can join it back on there. logls is a matrix so we
+      # just attach the indiv and collection on it and turn it all into a tibble
+      logl_tibble <- tibble::tibble(indiv = base::rep(MIXTURE_INDIV_TIBBLE$indiv, each = nrow(logl)),
+                                    collection = base::rep(COLLS_AND_REPS_TIBBLE_CHAR$collection, ncol(logl)),
+                                    log_likelihood = base::as.vector(logl),
+                                    expected_mean = base::as.vector(mv_sums$mean),
+                                    expected_var = base::as.vector(mv_sums$var))
+
+
+
     })
     message("   time: ", sprintf("%.2f", time2["elapsed"]), " seconds")
 
-    # We are going to want to attach the raw likelihoods to the output for each fish
-    # in the mixture.  (For computing z-scores, etc.).  So, we will make a tibble here
-    # that has all of that, so we can join it back on there. logls is a matrix so we
-    # just attach the indiv and collection on it and turn it all into a tibble
-    logl_tibble <- tibble::tibble(collection = base::rep(COLLS_AND_REPS_TIBBLE_CHAR$collection, ncol(logl)),
-                                  indiv = base::rep(MIXTURE_INDIV_TIBBLE$indiv, each = nrow(logl)),
-                                  log_likelihood = base::as.vector(logl))
 
 
     ## regardless of whether the method is PB or MCMC, you are going to run the MCMC once, at least ##
@@ -331,10 +347,9 @@ infer_mixture <- function(reference,
 
     indiv_posteriors = lapply(big_output_list, function(x) x$indiv_posteriors) %>%
       dplyr::bind_rows(.id = "mixture_collection") %>%
-      dplyr::left_join(., mix_num_loci, by = "indiv") %>%
-      dplyr::left_join(., z_score_params, by = "collection") %>%
-      dplyr::mutate(z_score = (log_likelihood - (n_non_miss_loci * L_bar)) / sqrt(n_non_miss_loci * var1)) %>%
-      dplyr::select(-L_bar, -var1),
+      dplyr::mutate(z_score = (log_likelihood - expected_mean) / sqrt(expected_var)) %>%
+      dplyr::select(-expected_mean, -expected_var) %>%
+      dplyr::left_join(., mix_num_loci, by = "indiv"),
 
     mix_prop_traces = lapply(big_output_list, function(x) x$mix_prop_traces) %>%
       dplyr::bind_rows(.id = "mixture_collection"),

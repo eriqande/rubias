@@ -175,6 +175,51 @@ geno_logL_ssq <- function(par_list) {
     .Call('rubias_geno_logL_ssq', PACKAGE = 'rubias', par_list)
 }
 
+#' From the pattern of missing data at each individual, compute the expected mean and variance of the logl
+#'
+#' This takes a param_list so that it has access to individual genotypes (and hence can cycle through them
+#' and know which are missing and which are not.)  It also takes a matrix of per-locus logl means
+#' and variances like what is computed by \code{\link{per_locus_means_and_vars}}.
+#'
+#' This function doesn't do any checking to assure that the par_list and the per-locus logl means
+#' matrix are made for one another.  (i.e. use the same collections in the same order.)
+#'
+#' @keywords internal
+#'
+#' @param par_list genetic data converted to the param_list format by \code{tcf2param_list}
+#' @param MV a list of two matrices, one of means and the other of variances, which are C x L
+#' matrices.  This is basically the list that is returned by \code{\link{per_locus_means_and_vars}}.
+#'
+#' @return a matrix with C rows and I columns. Each row
+#' represents a collection, and each column an individual.
+#'
+#' @export
+rcpp_indiv_specific_logl_means_and_vars <- function(par_list, MV) {
+    .Call('rubias_rcpp_indiv_specific_logl_means_and_vars', PACKAGE = 'rubias', par_list, MV)
+}
+
+#' Return a matrix of locus-specific self-assignment logls
+#'
+#' Takes a list of key parameters from a genetic dataset, and calculates
+#' the log-likelihood of each individual's single-locus genotype, given the allele counts
+#' in the individual's collection.
+#'
+#' This uses Leave-One-Out cross-validation is used to avoid bias in log-likelihood for an
+#' individual's known collection of origin
+#'
+#' @keywords internal
+#'
+#' @param par_list genetic data converted to the param_list format by \code{tcf2param_list}
+#'
+#' @return \code{rcpp_per_locus_logls} returns a matrix with I rows and L columns. Each row
+#' represents an individual, and each column a locus. Note that missing data at a locus
+#' returns a zero.  That should be changed to NA later.
+#'
+#' @export
+rcpp_per_locus_logls <- function(par_list) {
+    .Call('rubias_rcpp_per_locus_logls', PACKAGE = 'rubias', par_list)
+}
+
 #' Sample 1 observation from cell probabilities that are columns of a matrix
 #'
 #' Takes a matrix in which columns sum to one. For each column, performs a

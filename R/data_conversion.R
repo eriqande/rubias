@@ -437,6 +437,15 @@ tcf2param_list <- function(D, gen_start_col, samp_type = "both", summ = T){
   percent.missing <- sum(params$I == 0)/length(params$I) * 100
   RU_list <- unique(cleaned$clean_short$repunit)
 
+  # here, the names of the indivs, collections, and repunits in the order in which they
+  # appear as integers in this data structure.  We should have done this on day one, but
+  # we didn't which is why there are so many mysterious ways that have been used to get the
+  # names of the collections or repunits.  At some point, we will have to go through
+  # and standardize all those different name accesses. But not now...
+  params$indiv_names <- D$indiv
+  params$collection_names <- levels(D$collection)
+  params$repunit_names <- levels(D$repunit)
+
   if(summ == T){
     cat(paste('Summary Statistics:',
               paste(params$N, 'Individuals in Sample'),
