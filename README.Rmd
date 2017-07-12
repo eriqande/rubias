@@ -5,8 +5,10 @@ bibliography: rubias_bib.bibtex
 output: 
   html_notebook:
     toc: true
+    toc_float: true
   github_document:
     toc: true
+    toc_float: true
 ---
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
@@ -23,7 +25,7 @@ library(tidyverse)
 
 
 
-This is an R package for perorming genetic stock identification (GSI) and
+This is an R package for performing genetic stock identification (GSI) and
 associated tasks.  Additionally, it includes a method
 designed to diagnose and correct a bias recently 
 documented in genetic stock identification. The bias occurs when mixture 
@@ -190,35 +192,45 @@ ggplot(trace_subset, aes(x = repprop, colour = repunit)) +
   geom_density()
 ```
 
+## Assessing whether individuals are not from any of the reference populations
 
-## Bootstrap-Corrected Reporting Unit Proportions
+Sometimes totally unexpected things happen.  One situation we say in the California Chinook
+fishery was samples coming to us that were actually coho salmon.  Before we included coho salmon
+in the reference sample, these coho always assigned quite
+strongly to Alaska populations of Chinook, even though they don't really look like Chinook at all.
 
-These are obtained using `method = "PB"` in `infer_mixture()`.  When invoked, this will return the 
-regular MCMC results as before, but also will population the `bootstrapped_proportions` field
-of the output.  Doing so takes a little bit longer, computationally, because there is a good deal 
-of simulation involved:
-```{r infer_mixture_pb, cache=TRUE}
-mix_est_pb <- infer_mixture(reference = chinook, 
-                         mixture = chinook_mix, 
-                         gen_start_col = 5,
-                         method = "PB")
+In this case, it is useful to look at the raw log-likelihood values computed for the 
+individual, rather than the scaled posterior probabilities.  Because aberrantly low values
+of the genotype log-likelihood can indicate that there is something wrong.  However, the raw likelihood
+that you get will depend on the number of missing loci, etc.  `rubias` deals with this
+by computing a _z-score_ for each fish.  The Z-score is the Z statistic obtained
+from the fish's log-likelihood (by subtracting from it the expected log-likelihood and
+dividing by the expected standard deviation).  `rubias`'s implementation of the z-score
+accounts for the pattern of missing data, but it does this without all the simulation that
+[`gsi_sim`])(https://github.com/eriqande/gsi_sim) does.  This makes it much, much, faster.
+
+Here, we will look at the z-score computed for each fish to the population with the highest
+posterior.  (It is worth noting that you would **never** want to use the z-score to assign
+fish to different populations---it is only there to decide whether it looks like it reasonably
+could have come from the population that it was assigned to.)
+```{r}
+# get the maximum-a-posteriori population for each individual
+map_rows <- mix_est$indiv_posteriors %>%
+  group_by(indiv) %>%
+  top_n(1, PofZ) %>%
+  ungroup()
+
+# then plot them and compare them to bunch of simulated normal rvs
+normo <- tibble(z_score = rnorm(1e05))
+ggplot(map_rows, aes(x = z_score)) +
+  geom_density(colour = "blue") +
+  geom_density(data = normo, colour = "black")
 ```
 
-And now we can compare the estimates, showing here the 10 most prevalent
-repunits, in the `rec1` fishery:
-```{r, cache=TRUE}
-mix_est_pb$mixing_proportions %>%
-  group_by(mixture_collection, repunit) %>%
-  summarise(repprop = sum(pi)) %>%
-  left_join(mix_est_pb$bootstrapped_proportions) %>%
-  ungroup() %>%
-  filter(mixture_collection == "rec1") %>%
-  arrange(desc(repprop)) %>%
-  slice(1:10)
-```
+The normal density is in black and our observed z_score is in blue.  They fit reasonably
+well, but it is not perfect.  But the z_score statistic is still a useful check when 
+individuals are wildly aberrant.
 
-So, we see that the proportion of Central Valley Fall Run has been reduced in the 
-bootstrap correction, and the proprtion of Central Valley Spring Run has been increased.
 
 # Assessment of Genetic References
 
@@ -227,6 +239,21 @@ bootstrap correction, and the proprtion of Central Valley Spring Run has been in
 ```{r}
 sa_chinook <- self_assign(reference = chinook, gen_start_col = 5)
 ```
+
+Now, you can look at the self assignment results:
+```{r}
+head(sa_chinook, n = 100)
+```
+
+These can be summarized by repunit as was done above:
+```{r}
+sa_to_repu <- sa_chinook %>%
+  group_by(indiv, collection, repunit, inferred_repunit) %>%
+  summarise(repu_scaled_like = sum(scaled_likelihood))
+
+head(sa_to_repu, n = 200)
+```
+
 
 ## Simulated mixtures using a leave-one-out type of approach
 
@@ -350,7 +377,8 @@ ggplot(tmp, aes(x = true_repprop, y = reprop_posterior_mean, colour = repunit)) 
   facet_wrap(~ repunit)
 ```
 
-Or plot comparing to their n value.
+Or plot comparing to their "n" value, which is the actual number of fish from each 
+reporting unit in the sample.
 
 ```{r}
 ggplot(tmp, aes(x = repu_n_prop, y = reprop_posterior_mean, colour = repunit)) +
@@ -359,10 +387,7 @@ ggplot(tmp, aes(x = repu_n_prop, y = reprop_posterior_mean, colour = repunit)) +
   facet_wrap(~ repunit)
 ```
 
-So, it seems to me that the bootstrap correction procedure might be 
-buggy when the order of the collections is not what one expects.  There
-is not way it should be so radically corrected by the bootstrap.  It seems
-to me that is caused by the same issue I say earlier...
+
 
 ### "sub-specifying" collection proportions or dirichlet parameters
 
@@ -381,6 +406,39 @@ top20coll_ppn <- mix_est$mixing_proportions %>%
 top20coll_ppn
 ```
 
+NEEDS FURTHER EXPLANATION.
+
+
+
+# Bootstrap-Corrected Reporting Unit Proportions
+
+These are obtained using `method = "PB"` in `infer_mixture()`.  When invoked, this will return the 
+regular MCMC results as before, but also will population the `bootstrapped_proportions` field
+of the output.  Doing so takes a little bit longer, computationally, because there is a good deal 
+of simulation involved:
+```{r infer_mixture_pb, cache=TRUE, eval=FALSE}
+mix_est_pb <- infer_mixture(reference = chinook, 
+                         mixture = chinook_mix, 
+                         gen_start_col = 5,
+                         method = "PB")
+```
+
+And now we can compare the estimates, showing here the 10 most prevalent
+repunits, in the `rec1` fishery:
+```{r, cache=TRUE, eval=FALSE}
+mix_est_pb$mixing_proportions %>%
+  group_by(mixture_collection, repunit) %>%
+  summarise(repprop = sum(pi)) %>%
+  left_join(mix_est_pb$bootstrapped_proportions) %>%
+  ungroup() %>%
+  filter(mixture_collection == "rec1") %>%
+  arrange(desc(repprop)) %>%
+  slice(1:10)
+```
+
+This is a result that we expect: no appreciable difference, because the reporting units
+are already very well resolved, so we don't expect that the parametric bootstrap procedure
+would find any benefit in correcting them.  
 
 
 

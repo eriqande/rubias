@@ -15,13 +15,14 @@
 #' @param reps  number of reps of mixture simulation and MCMC to do
 #' @param mixsize the number of individuals in each simulated mixture
 #' @param seed a random seed for simulations
+#' @param printSummary if TRUE a summary of the reference samples will be printed to stdout.
 #' @inheritParams simulate_random_samples
 #' @examples
 #' ale_dev <- assess_reference_loo(alewife, 17)
 #'
 #' @export
 assess_reference_loo <- function(reference, gen_start_col, reps = 50, mixsize = 100, seed = 5,
-                                 alpha_repunit = 1.5, alpha_collection = 1.5) {
+                                 alpha_repunit = 1.5, alpha_collection = 1.5, printSummary = FALSE) {
 
   # check that reference is formatted OK
   check_refmix(reference, gen_start_col, "reference")
@@ -32,7 +33,7 @@ assess_reference_loo <- function(reference, gen_start_col, reps = 50, mixsize = 
 
 
   # get the necessary parameters from the reference data
-  params <- tcf2param_list(reference, gen_start_col, summ = T)
+  params <- tcf2param_list(reference, gen_start_col, summ = printSummary)
 
   # get a data frame that has the repunits and collections
   reps_and_colls <- reference %>%

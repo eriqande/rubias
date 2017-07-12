@@ -5,7 +5,8 @@
 \title{Simulate mixtures and estimate reporting group and collection proportions.}
 \usage{
 assess_reference_loo(reference, gen_start_col, reps = 50, mixsize = 100,
-  seed = 5, alpha_repunit = 1.5, alpha_collection = 1.5)
+  seed = 5, alpha_repunit = 1.5, alpha_collection = 1.5,
+  printSummary = FALSE)
 }
 \arguments{
 \item{reference}{a two-column format genetic dataset, with "repunit", "collection", and "indiv"
@@ -26,6 +27,8 @@ second one must be one of "dirichlet", "ppn", or "cnt", according to whether you
 specify dirichlet parameters, or proportions, or exact counts, respectively, for each population.}
 
 \item{alpha_collection}{The dirichlet parameter for simulating proportions of collections within reporting units. Default = 1.5}
+
+\item{printSummary}{if TRUE a summary of the reference samples will be printed to stdout.}
 }
 \description{
 From a reference dataset, this creates a genotype-logL matrix based on

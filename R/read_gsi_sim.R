@@ -34,7 +34,7 @@ read_gsi_sim <- function(path, sample_type, repunits = NULL) {
       dplyr::mutate(sample_type = "reference") %>%
       dplyr::select(sample_type, dplyr::everything())
   } else if (sample_type == "mixture") {
-    repu_df <- tibble::tibble(repunit = NA, collection = unique(gsi_df$collection))
+    repu_df <- tibble::tibble(repunit = NA_character_, collection = unique(gsi_df$collection))
     repu2 <- repu_df %>%
       dplyr::mutate(sample_type = "mixture") %>%
       dplyr::select(sample_type, dplyr::everything())
