@@ -3,10 +3,9 @@ title: "# rubias --- a package for tidy genetic stock identification (GSI)"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 bibliography: rubias_bib.bibtex
 output: 
-  html_notebook:
-    toc: true
-    toc_float: true
   github_document:
+    toc: true
+  html_notebook:
     toc: true
     toc_float: true
 ---
