@@ -6,7 +6,7 @@
 \usage{
 assess_reference_loo(reference, gen_start_col, reps = 50, mixsize = 100,
   seed = 5, alpha_repunit = 1.5, alpha_collection = 1.5,
-  printSummary = FALSE)
+  resampling_unit = "individual", printSummary = FALSE)
 }
 \arguments{
 \item{reference}{a two-column format genetic dataset, with "repunit", "collection", and "indiv"
@@ -28,6 +28,10 @@ specify dirichlet parameters, or proportions, or exact counts, respectively, for
 
 \item{alpha_collection}{The dirichlet parameter for simulating proportions of collections within reporting units. Default = 1.5}
 
+\item{resampling_unit}{what unit should be resampled.  Currently the choices are "individuals" (the default)
+and "gene_copies".  Using "individuals" preserves missing data patterns available in the reference data set.
+We also have "gene_copies_with_missing" capability, but it is not yet linked into this function.}
+
 \item{printSummary}{if TRUE a summary of the reference samples will be printed to stdout.}
 }
 \description{
@@ -39,6 +43,10 @@ MCMC.
 }
 \details{
 This is hard-wired at the moment to do something like Hasselman et al. (2015)
+
+We still need to implement storage of individual-specific results for the simulated individuals.
+This we can do pretty easily, but wanted to get the proportions done and out there first.  Send eric some
+email if you really need individual specific output and he will prioritize it.
 }
 \examples{
 ale_dev <- assess_reference_loo(alewife, 17)

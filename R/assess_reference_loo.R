@@ -16,13 +16,21 @@
 #' @param mixsize the number of individuals in each simulated mixture
 #' @param seed a random seed for simulations
 #' @param printSummary if TRUE a summary of the reference samples will be printed to stdout.
+#' @param resampling_unit what unit should be resampled.  Currently the choices are "individuals" (the default)
+#' and "gene_copies".  Using "individuals" preserves missing data patterns available in the reference data set.
+#' We also have "gene_copies_with_missing" capability, but it is not yet linked into this function.
 #' @inheritParams simulate_random_samples
+#' @details We still need to implement storage of individual-specific results for the simulated individuals.
+#' This we can do pretty easily, but wanted to get the proportions done and out there first.  Send eric some
+#' email if you really need individual specific output and he will prioritize it.
 #' @examples
 #' ale_dev <- assess_reference_loo(alewife, 17)
 #'
 #' @export
 assess_reference_loo <- function(reference, gen_start_col, reps = 50, mixsize = 100, seed = 5,
-                                 alpha_repunit = 1.5, alpha_collection = 1.5, printSummary = FALSE) {
+                                 alpha_repunit = 1.5, alpha_collection = 1.5, resampling_unit = "individual", printSummary = FALSE) {
+
+  if (!(resampling_unit %in% c("gene_copies", "individual"))) stop("Choice ", resampling_unit, " unknown for resampling unit.")
 
   # check that reference is formatted OK
   check_refmix(reference, gen_start_col, "reference")
@@ -86,8 +94,14 @@ assess_reference_loo <- function(reference, gen_start_col, reps = 50, mixsize = 
 
     coll_vec <- sim_colls[[x]]$sim_coll
 
-    # sampling SLs from the reference dataset at the individual level (like Hasselman et al. 2015)
-    logL <- gprob_sim_ind(params, coll_vec)  # simulate the log-likelihood matrix of all the simmed indivs
+    # sampling SLs from the reference dataset
+    if (resampling_unit == "individual") {
+      logL <- gprob_sim_ind(params, coll_vec)  # simulate the log-likelihood matrix of all the simmed indivs
+    }
+    if (resampling_unit == "gene_copies") {
+      logL <- gprob_sim_gc(params, coll_vec)
+    }
+
     # we have to be a little careful about making the scaled likelihoods, because we can
     # run into some underflow issues.
     logl_col_means <- colMeans(logL)
