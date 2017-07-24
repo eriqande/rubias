@@ -24,9 +24,14 @@ columns, as well as a "sample_type" column that has some "reference" entries}
 the proportions of reporting units. Gets recycled to the number of reporting units. Default is 1.5.
 Otherwise, this could be a two-column data frame.  The first column must be named "repunit" and the
 second one must be one of "dirichlet", "ppn", or "cnt", according to whether you wish to
-specify dirichlet parameters, or proportions, or exact counts, respectively, for each population.}
+specify dirichlet parameters, or proportions, or exact counts, respectively, for each population.
+If you want to make multiple simulations, pass in a list of data frames or of individual dirichlet parameters.}
 
-\item{alpha_collection}{The dirichlet parameter for simulating proportions of collections within reporting units. Default = 1.5}
+\item{alpha_collection}{The dirichlet parameter for simulating proportions of collections within reporting units. Default = 1.5.
+If this is a data frame then the first column must be "collection" and the second must be one of
+"dirichlet", "ppn", "cnt", "sub_dirichlet", "sub_ppn".  If you want to provide multiple different
+scenarios.  You can pass them in as a list.  If alpha_repunit or alpha_collection is a list with length
+greater than 1, the shorter will be recycled.}
 
 \item{resampling_unit}{what unit should be resampled.  Currently the choices are "individuals" (the default)
 and "gene_copies".  Using "individuals" preserves missing data patterns available in the reference data set.
@@ -42,8 +47,6 @@ maximum likelihood via EM-algorithm and posterior mean from
 MCMC.
 }
 \details{
-This is hard-wired at the moment to do something like Hasselman et al. (2015)
-
 We still need to implement storage of individual-specific results for the simulated individuals.
 This we can do pretty easily, but wanted to get the proportions done and out there first.  Send eric some
 email if you really need individual specific output and he will prioritize it.

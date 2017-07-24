@@ -98,7 +98,7 @@ column names, in the same order and of the same type.
 
 Here are the meta data columns and the first two loci for eight individuals in the `chinook` reference data set that comes with the 
 package:
-```{r}
+```{r head-chinook}
 library(rubias)
 head(chinook[, 1:8])
 ```
@@ -106,7 +106,7 @@ head(chinook[, 1:8])
 ## An example mixture data file
 
 Here is the same for the mixture data frame that goes along with that reference data set:
-```{r}
+```{r head-chinook-mix}
 head(chinook_mix[, 1:8])
 ```
 
@@ -118,7 +118,7 @@ This is done with the `infer_mixture` function.  In the example data
 `rec2`, and `rec3` as denoted in the collection column. Each of those collections is 
 treated as a separate sample, getting its own mixing proportion estimate.  This is how
 it is run with the default options:
-```{r infer_mixture1, cache=TRUE}
+```{r infer_mixture1}
 mix_est <- infer_mixture(reference = chinook, 
                          mixture = chinook_mix, 
                          gen_start_col = 5)
@@ -137,7 +137,7 @@ mixing proportions.
 
 These data frames look like this:
 
-```{r}
+```{r look-at-mix-est}
 lapply(mix_est, head)
 ```
 
@@ -145,7 +145,7 @@ lapply(mix_est, head)
 ## Aggregating collections into reporting units
 
 This is a simple operation in the [tidyverse](http://tidyverse.org/):
-```{r}
+```{r aggregating}
 # for mixing proportions
 rep_mix_ests <- mix_est$mixing_proportions %>%
   group_by(mixture_collection, repunit) %>%
@@ -166,7 +166,7 @@ can be used to obtain an estimate of the posterior density of the mixing proport
 
 Here we plot kernel density estimates for the 6 most abundant repunits from the
 `rec1` fishery:
-```{r}
+```{r plot-6}
 # find the top 6 most abundant:
 top6 <- rep_mix_ests %>%
   filter(mixture_collection == "rec1") %>% 
@@ -212,7 +212,7 @@ Here, we will look at the z-score computed for each fish to the population with 
 posterior.  (It is worth noting that you would **never** want to use the z-score to assign
 fish to different populations---it is only there to decide whether it looks like it reasonably
 could have come from the population that it was assigned to.)
-```{r}
+```{r plot-zs}
 # get the maximum-a-posteriori population for each individual
 map_rows <- mix_est$indiv_posteriors %>%
   group_by(indiv) %>%
@@ -235,17 +235,17 @@ individuals are wildly aberrant.
 
 ## Self-assigning fish from the reference
 
-```{r}
+```{r self-ass}
 sa_chinook <- self_assign(reference = chinook, gen_start_col = 5)
 ```
 
 Now, you can look at the self assignment results:
-```{r}
+```{r self-ass-results}
 head(sa_chinook, n = 100)
 ```
 
 These can be summarized by repunit as was done above:
-```{r}
+```{r summ2repu}
 sa_to_repu <- sa_chinook %>%
   group_by(indiv, collection, repunit, inferred_repunit) %>%
   summarise(repu_scaled_like = sum(scaled_likelihood))
@@ -274,7 +274,7 @@ number of the column in which the genetic data start.
 Here we use the `chinook` data to simulate 50 mixture samples of size 200 fish 
 using the default values (Dirichlet parameters of 1.5 for each reporting unit, and
 Dirichlet parameters of 1.5 for each collection within a reporting unit...)
-```{r, message=FALSE}
+```{r chin-sims, message=FALSE}
 chin_sims <- assess_reference_loo(reference = chinook, 
                      gen_start_col = 5, 
                      reps = 50, 
@@ -282,7 +282,7 @@ chin_sims <- assess_reference_loo(reference = chinook,
 ```
 
 Here is what the output looks like:
-```{r}
+```{r show-chin-sims}
 chin_sims
 ```
 
@@ -314,14 +314,14 @@ These `ppn` values will be normalized to sum to one if they do not.  As such, th
 
 Let's say that we want to simulate data that roughly have proportions like what we saw in the
 Chinook `rec1` fishery.  We have those estimates in the variable `top6`:
-```{r}
+```{r top6list}
 top6
 ```
 
 We could, if we put those `repprop` values into a `ppn` column, simulate mixtures with 
 exactly those proportions.  Or if we wanted to simulate exact numbers of fish in a sample
 of `r sum(round(top6$repprop * 350))` fish, we could get those values like this:
-```{r}
+```{r roundem}
 round(top6$repprop * 350)
 ```
 and then put them in a `cnts` column.  
@@ -334,7 +334,7 @@ variation between simulated mixtures.  And if the the values are small there wil
 We'll scale them so that they sum to 10---that should give some variation, but not too much.  Accordingly the
 tibble that we pass in as the `alpha_repunit` parameter, which describes the variation in reporting unit
 proportions we would like to simulate would look like this:
-```{r}
+```{r make-arep}
 arep <- top6 %>%
   ungroup() %>%
   mutate(dirichlet = 10 * repprop) %>%
@@ -345,7 +345,7 @@ arep
 
 Let's do some simulations with those repunit parameters.  By default, if we don't
 specify anything extra for the _collections_, they get dirichlet parameters of 1.5.
-```{r, message=FALSE}
+```{r chin-sim-top6, message=FALSE}
 chin_sims_repu_top6 <- assess_reference_loo(reference = chinook, 
                      gen_start_col = 5, 
                      reps = 50, 
@@ -355,7 +355,7 @@ chin_sims_repu_top6 <- assess_reference_loo(reference = chinook,
 
 Now, we can summarise it by reporting unit and then plot it for the values we are 
 interested in:
-```{r}
+```{r summ-top6}
 # now, call those repunits that we did not specify in arep "OTHER"
 # and then sum up over reporting units
 tmp <- chin_sims_repu_top6 %>%
@@ -368,7 +368,7 @@ tmp <- chin_sims_repu_top6 %>%
   
 ```
 
-```{r}
+```{r plot-top6}
 # then plot them
 ggplot(tmp, aes(x = true_repprop, y = reprop_posterior_mean, colour = repunit)) +
   geom_point() +
@@ -379,7 +379,7 @@ ggplot(tmp, aes(x = true_repprop, y = reprop_posterior_mean, colour = repunit)) 
 Or plot comparing to their "n" value, which is the actual number of fish from each 
 reporting unit in the sample.
 
-```{r}
+```{r plot-top6-n}
 ggplot(tmp, aes(x = repu_n_prop, y = reprop_posterior_mean, colour = repunit)) +
   geom_point() +
   geom_abline(intercept = 0, slope = 1) +
@@ -393,7 +393,7 @@ ggplot(tmp, aes(x = repu_n_prop, y = reprop_posterior_mean, colour = repunit)) +
 
 And let's see how things work if you want some control over the collection proportions
 in the simulations, too:
-```{r}
+```{r sub-spec}
 # here for an example, just take the top 20 collections with highest estimated proportions
 top20coll_ppn <- mix_est$mixing_proportions %>% 
   filter(mixture_collection == "rec1") %>% 
@@ -409,13 +409,75 @@ NEEDS FURTHER EXPLANATION.
 
 
 
-# Bootstrap-Corrected Reporting Unit Proportions
+### "100% Simulations"
+
+In the fisheries world, "100% simulations" have been a staple. In these simulations,
+mixtures are simulated in which 100% of the individuals are from one collection (or
+reporting unit, I suppose).  Eric has never been a big fan of these since they don't
+necessarily tell you how you might do inferring actual mixtures that you might encounter.
+Nonetheless, since they have been such a mainstay in the field, it is worthwile showing
+how to do 100% simulations using `rubias`.  Furthermore, when people asked for this feature
+(thanks Brendan!) it made it clear that Eric had to provide a way to simulate multiple 
+different scenarios without re-processing the reference data set each time.  So this is what
+I came up with: the way we do it is to pass a _list_ of 
+scenarios to the `alpha_repunit` or `alpha_collection` option in `assess_reference_loo()`.
+These can be named lists, if desired.  So, for example, let's do 100% simulations for each
+of the repunits in `arep`:
+```{r}
+arep$repunit
+```
+We will let the collections within them just be drawn from a dirichlet distribution
+with parameter 10 (so, pretty close to equal proportions).
+
+So, to do this, we make a list of data frames with the proportions.  We'll give it some names
+too:
+```{r six-hundy1}
+six_hundy_scenarios <- lapply(arep$repunit, function(x) tibble(repunit = x, ppn = 1.0))
+names(six_hundy_scenarios) <- paste("All", arep$repunit, sep = "-")
+```
+Then, we use it, producing only 5 replicates for each scenario:
+```{r six-hundy2}
+repu_hundy_results <- assess_reference_loo(reference = chinook, 
+                     gen_start_col = 5, 
+                     reps = 5, 
+                     mixsize = 50,
+                     alpha_repunit = six_hundy_scenarios,
+                     alpha_collection = 10)
+repu_hundy_results
+```
+
+### Do it again with 100% collections
+
+Just to make sure that it is clear how to do this with collections (rather than reporting units)
+as well, lets do 100% simulations for a handful of the collections.  Let's just randomly take
+5 of them, and do 6 reps for each:
+```{r hundy-colls1}
+set.seed(10)
+hundy_colls <- sample(unique(chinook$collection), 5)
+hundy_colls
+```
+So, now make a list of those with 100% specifications in the tibbles:
+```{r hundy-colls2}
+hundy_coll_list <- lapply(hundy_colls, function(x) tibble(collection = x, ppn = 1.0)) %>%
+  setNames(paste("100%", hundy_colls, sep = "_"))
+```
+Then, do it:
+```{r hundy-colls-do, message=FALSE}
+hundy_coll_results <- assess_reference_loo(reference = chinook, 
+                     gen_start_col = 5, 
+                     reps = 6, 
+                     mixsize = 50,
+                     alpha_collection = hundy_coll_list)
+hundy_coll_results
+```
+
+## Bootstrap-Corrected Reporting Unit Proportions
 
 These are obtained using `method = "PB"` in `infer_mixture()`.  When invoked, this will return the 
 regular MCMC results as before, but also will population the `bootstrapped_proportions` field
 of the output.  Doing so takes a little bit longer, computationally, because there is a good deal 
 of simulation involved:
-```{r infer_mixture_pb, cache=TRUE, eval=FALSE}
+```{r infer_mixture_pb, eval=FALSE}
 mix_est_pb <- infer_mixture(reference = chinook, 
                          mixture = chinook_mix, 
                          gen_start_col = 5,
@@ -424,7 +486,7 @@ mix_est_pb <- infer_mixture(reference = chinook,
 
 And now we can compare the estimates, showing here the 10 most prevalent
 repunits, in the `rec1` fishery:
-```{r, cache=TRUE, eval=FALSE}
+```{r, eval=FALSE}
 mix_est_pb$mixing_proportions %>%
   group_by(mixture_collection, repunit) %>%
   summarise(repprop = sum(pi)) %>%
