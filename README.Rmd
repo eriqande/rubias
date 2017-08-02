@@ -228,7 +228,12 @@ ggplot(map_rows, aes(x = z_score)) +
 
 The normal density is in black and our observed z_score is in blue.  They fit reasonably
 well, but it is not perfect.  But the z_score statistic is still a useful check when 
-individuals are wildly aberrant.
+individuals are wildly aberrant.  
+
+The z-score is intended to be a quick way to identify aberrant individuals.  If you see a 
+z-score in your mixture sample that is considerably less than ones you saw in the reference,
+then you might infer that the individual doesn't actually fit any of the 
+populations in the reference well.
 
 
 # Assessment of Genetic References
@@ -386,7 +391,30 @@ ggplot(tmp, aes(x = repu_n_prop, y = reprop_posterior_mean, colour = repunit)) +
   facet_wrap(~ repunit)
 ```
 
+### Retrieving the individual simulated fish posteriors
 
+Quite often you might be curious about how much you can expect to be able to trust
+the posterior for individual fish from a mixture like this.  You can retrieve all
+the posteriors computed for the fish simulated in `assess_reference_loo()` using the
+`return_indiv_posteriors` option.  When you do this, the function returns a list
+with components `mixture_proportions` (which looks like the tibble we got back from
+it in the previous section) and `individual_posteriors`, which has all the posteriors for
+the simulated individuals.  
+```{r chin-sim-top6-indiv, message=FALSE}
+chin_sims_with_indivs <- assess_reference_loo(reference = chinook, 
+                     gen_start_col = 5, 
+                     reps = 50, 
+                     mixsize = 200,
+                     alpha_repunit = arep,
+                     return_indiv_posteriors = TRUE)
+```
+Now that we have done that, we can see what the distribution of posteriors
+to different reporting units is for fish from different populations.
+```{r}
+chin_sims_with_indivs$individual_posteriors %>%
+  group_by(iter, indiv, sim_coll, repunit) %>%
+  summarise(PofZ = sum(PofZ))
+```
 
 ### "sub-specifying" collection proportions or dirichlet parameters
 
