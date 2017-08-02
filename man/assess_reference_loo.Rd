@@ -6,7 +6,8 @@
 \usage{
 assess_reference_loo(reference, gen_start_col, reps = 50, mixsize = 100,
   seed = 5, alpha_repunit = 1.5, alpha_collection = 1.5,
-  resampling_unit = "individual", printSummary = FALSE)
+  resampling_unit = "individual", printSummary = FALSE,
+  return_indiv_posteriors = FALSE)
 }
 \arguments{
 \item{reference}{a two-column format genetic dataset, with "repunit", "collection", and "indiv"
@@ -38,6 +39,11 @@ and "gene_copies".  Using "individuals" preserves missing data patterns availabl
 We also have "gene_copies_with_missing" capability, but it is not yet linked into this function.}
 
 \item{printSummary}{if TRUE a summary of the reference samples will be printed to stdout.}
+
+\item{return_indiv_posteriors}{if TRUE, output is a list of 2. The first entry, \code{mixing_proportions},
+contains the true (simulated) and estimated mixture proportions for each scenario, iteration, and collection.
+The second, \code{indiv_posteriors}, contains the posterior probability of assignment to each collection
+for each scenario, iteration, and individual. If FALSE, output is a single data frame, \code{mixing_proportions}}
 }
 \description{
 From a reference dataset, this creates a genotype-logL matrix based on

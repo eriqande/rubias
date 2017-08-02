@@ -15,6 +15,10 @@
 #' @param mixsize the number of individuals in each simulated mixture
 #' @param seed a random seed for simulations
 #' @param printSummary if TRUE a summary of the reference samples will be printed to stdout.
+#' @param return_indiv_posteriors if TRUE, output is a list of 2. The first entry, \code{mixing_proportions},
+#' contains the true (simulated) and estimated mixture proportions for each scenario, iteration, and collection.
+#' The second, \code{indiv_posteriors}, contains the posterior probability of assignment to each collection
+#' for each scenario, iteration, and individual. If FALSE, output is a single data frame, \code{mixing_proportions}
 #' @param resampling_unit what unit should be resampled.  Currently the choices are "individuals" (the default)
 #' and "gene_copies".  Using "individuals" preserves missing data patterns available in the reference data set.
 #' We also have "gene_copies_with_missing" capability, but it is not yet linked into this function.
@@ -38,7 +42,7 @@
 #' @export
 assess_reference_loo <- function(reference, gen_start_col, reps = 50, mixsize = 100, seed = 5,
                                  alpha_repunit = 1.5, alpha_collection = 1.5, resampling_unit = "individual",
-                                 printSummary = FALSE) {
+                                 printSummary = FALSE, return_indiv_posteriors = FALSE) {
 
   if (!(resampling_unit %in% c("gene_copies", "individual"))) stop("Choice ", resampling_unit, " unknown for resampling unit.")
 
@@ -76,7 +80,7 @@ assess_reference_loo <- function(reference, gen_start_col, reps = 50, mixsize = 
   }
 
   # at this juncture we now have lists of scenarios: alpha_coll_list and alpha_repu_list
-  # which we will cycle over after recyling them to the longest lenght
+  # which we will cycle over after recycling them to the longest length
 
 
   # We set up names on the lists, if absent so we know which was which.
@@ -140,11 +144,8 @@ assess_reference_loo <- function(reference, gen_start_col, reps = 50, mixsize = 
       dplyr::summarise(n = n()) %>%
       dplyr::ungroup()
 
-
-
-
     #### cycle over the reps data sets and get proportion estimates from each ####
-    estimates <- lapply(1:reps, function(x) {
+    estimates_raw <- lapply(1:reps, function(x) {
 
       message("Doing LOO simulations rep ", x, " of ", reps)
 
@@ -181,38 +182,114 @@ assess_reference_loo <- function(reference, gen_start_col, reps = 50, mixsize = 
       em_out <- gsi_em_1(SL, Pi_init = rep(1 / params$C, params$C), max_iterations = 10^6,
                          tolerance = 10^-7, return_progression = FALSE)
 
-      # put those in a data_frame
-      dplyr::data_frame(collection = levels(reference$collection),
-                        post_mean = pi_out$mean$pi,
-                        mle = em_out$pi
-      )
-    }) %>%
-      dplyr::bind_rows(.id = "iter") %>%
-      dplyr::mutate(iter = as.integer(iter))
+      if(return_indiv_posteriors == TRUE) {
+        # put mixing proportions in a data_frame
+        mix_prop <- dplyr::data_frame(collection = levels(reference$collection),
+                                      post_mean = pi_out$mean$pi,
+                                      mle = em_out$pi)
+        # put PofZ in a dataframe with collection names
+        pofZ_out <- data.frame(collection = factor(levels(reference$collection),
+                                                   levels = levels(reference$collection)),
+                               pofZ = pi_out$mean$PofZ)
+        names(pofZ_out) <- c("collection", 1:mixsize)
+        ind_post <- tidyr::gather(pofZ_out, "indiv", "PofZ", -collection) %>%
+          dplyr::mutate(sim_coll = rep(names(sim_colls[[x]]$sim_coll), each = params$C)) %>%
+          dplyr::select(indiv, sim_coll, dplyr::everything()) %>%
+          tibble::as.tibble()
 
+        #return a list of the two
+        list("mixing_proportions" = mix_prop, "individual_posteriors" = ind_post)
 
+      } else {
+        # put only mixing proportions in a data_frame, and return
+        dplyr::data_frame(collection = levels(reference$collection),
+                                      post_mean = pi_out$mean$pi,
+                                      mle = em_out$pi)
+        }
+    })
 
-    #### Now, join the estimates to the truth, re-factor everything so it is in the same order, and return ####
-    ret <- dplyr::left_join(true_omega_df, true_sim_nums, by = c("iter", "collection")) %>%
-      dplyr::left_join(., estimates, by = c("iter", "collection")) %>%
-      dplyr::mutate(n = ifelse(is.na(n), 0, n),
-                    collection = factor(collection, levels = levels(reps_and_colls$collection))) %>%
-      dplyr::left_join(., reps_and_colls, by = "collection") %>%
-      dplyr::select(iter, repunit, dplyr::everything())
+    #### Two formatting schemes for output, based on whether or not individual PofZs are desired ####
+    if(return_indiv_posteriors == TRUE){
 
-    # coerce repunit and collection back to character
-    # and return that data frame after renaming the variables to their final form
-    output_list[[scenario]] <- ret %>%
-      dplyr::mutate(collection = as.character(collection),
-                    repunit = as.character(repunit)) %>%
-      dplyr::rename(true_pi = omega,
-                    post_mean_pi = post_mean,
-                    mle_pi = mle) %>%
-      dplyr::mutate(repunit_scenario = repu_scenario,
-                    collection_scenario = coll_scenario)
+      # Bind the mixing proportion estimates into one dataframe
+      estimates <- lapply(estimates_raw, function(x) x$mixing_proportions)   %>%
+        dplyr::bind_rows(.id = "iter") %>%
+        dplyr::mutate(iter = as.integer(iter))
+
+      #### Now, join the estimates to the truth, re-factor everything so it is in the same order, and return ####
+      mixing_proportions <- dplyr::left_join(true_omega_df, true_sim_nums, by = c("iter", "collection")) %>%
+        dplyr::left_join(., estimates, by = c("iter", "collection")) %>%
+        dplyr::mutate(n = ifelse(is.na(n), 0, n),
+                      collection = factor(collection, levels = levels(reps_and_colls$collection))) %>%
+        dplyr::left_join(., reps_and_colls, by = "collection") %>%
+        dplyr::select(iter, repunit, dplyr::everything()) %>%
+        dplyr::mutate(collection = as.character(collection),
+                      repunit = as.character(repunit)) %>%
+        dplyr::rename(true_pi = omega,
+                      post_mean_pi = post_mean,
+                      mle_pi = mle) %>%
+        dplyr::mutate(repunit_scenario = repu_scenario,
+                      collection_scenario = coll_scenario)
+
+      # Separate processing for PofZs: binding lists, adding repunits,
+      # and converting true collection (sim_coll) and tested collection (collection) to character
+      individual_posteriors <- lapply(estimates_raw, function(x) x$individual_posteriors)   %>%
+        dplyr::bind_rows(.id = "iter") %>%
+        dplyr::mutate(iter = as.integer(iter)) %>%
+        dplyr::left_join(., reps_and_colls, by = "collection") %>%
+        dplyr::select(iter, indiv, dplyr::everything()) %>%
+        dplyr::mutate(collection = as.character(collection),
+                      sim_coll = as.character(sim_coll)) %>%
+        dplyr::mutate(repunit_scenario = repu_scenario,
+                      collection_scenario = coll_scenario)
+
+      # output the processed dataframes as a list of two
+      output_list[[scenario]] <- list(mixing_proportions = mixing_proportions,
+                                      individual_posteriors = individual_posteriors)
+
+    } else{
+      # Bind the mixing proportion estimates into one dataframe
+      estimates <- estimates_raw %>%
+        dplyr::bind_rows(.id = "iter") %>%
+        dplyr::mutate(iter = as.integer(iter))
+
+      #### Now, join the estimates to the truth, re-factor everything so it is in the same order, and return ####
+      ret <- dplyr::left_join(true_omega_df, true_sim_nums, by = c("iter", "collection")) %>%
+        dplyr::left_join(., estimates, by = c("iter", "collection")) %>%
+        dplyr::mutate(n = ifelse(is.na(n), 0, n),
+                      collection = factor(collection, levels = levels(reps_and_colls$collection))) %>%
+        dplyr::left_join(., reps_and_colls, by = "collection") %>%
+        dplyr::select(iter, repunit, dplyr::everything())
+
+      # coerce repunit and collection back to character
+      # and return that data frame after renaming the variables to their final form
+      output_list[[scenario]] <- ret %>%
+        dplyr::mutate(collection = as.character(collection),
+                      repunit = as.character(repunit)) %>%
+        dplyr::rename(true_pi = omega,
+                      post_mean_pi = post_mean,
+                      mle_pi = mle) %>%
+        dplyr::mutate(repunit_scenario = repu_scenario,
+                      collection_scenario = coll_scenario)
+    }
+
   }
 
   # in the end we bind those all together and put the scenario columns up front
-  dplyr::bind_rows(output_list) %>%
-    dplyr::select(repunit_scenario, collection_scenario, dplyr::everything())
+
+  if(return_indiv_posteriors == TRUE){
+    ret <- list()
+    ret$mixing_proportions <- lapply(output_list, function(x) x$mixing_proportions)   %>%
+      dplyr::bind_rows() %>%
+      dplyr::select(repunit_scenario, collection_scenario, dplyr::everything())
+    ret$individual_posteriors <- lapply(output_list, function(x) x$individual_posteriors)   %>%
+      dplyr::bind_rows() %>%
+      dplyr::select(repunit_scenario, collection_scenario, dplyr::everything())
+
+    ret
+
+  } else {
+    dplyr::bind_rows(output_list) %>%
+      dplyr::select(repunit_scenario, collection_scenario, dplyr::everything())
+  }
 }
