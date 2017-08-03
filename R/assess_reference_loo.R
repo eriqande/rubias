@@ -198,12 +198,14 @@ assess_reference_loo <- function(reference, gen_start_col, reps = 50, mixsize = 
                                pofZ = pi_out$mean$PofZ)
         names(pofZ_out) <- c("collection", 1:mixsize)
         ind_post <- tidyr::gather(pofZ_out, "indiv", "PofZ", -collection) %>%
-          dplyr::mutate(sim_coll = rep(names(sim_colls[[x]]$sim_coll), each = params$C)) %>%
-          dplyr::select(indiv, sim_coll, dplyr::everything()) %>%
+          dplyr::mutate(simulated_collection = rep(names(sim_colls[[x]]$sim_coll), each = params$C),
+                        indiv = as.integer(indiv)) %>%
+          dplyr::mutate(collection = as.character(collection)) %>%
+          dplyr::select(indiv, simulated_collection, dplyr::everything()) %>%
           tibble::as.tibble()
 
         #return a list of the two
-        list("mixing_proportions" = mix_prop, "individual_posteriors" = ind_post)
+        list("mixing_proportions" = mix_prop, "indiv_posteriors" = ind_post)
 
       } else {
         # put only mixing proportions in a data_frame, and return
@@ -236,21 +238,27 @@ assess_reference_loo <- function(reference, gen_start_col, reps = 50, mixsize = 
         dplyr::mutate(repunit_scenario = repu_scenario,
                       collection_scenario = coll_scenario)
 
+      reps_and_colls$collection <- as.character(reps_and_colls$collection)
       # Separate processing for PofZs: binding lists, adding repunits,
-      # and converting true collection (sim_coll) and tested collection (collection) to character
-      individual_posteriors <- lapply(estimates_raw, function(x) x$individual_posteriors)   %>%
+      # and converting true collection (simulated_collection) and tested collection (collection) to character
+      indiv_posteriors <- lapply(estimates_raw, function(x) x$indiv_posteriors)   %>%
         dplyr::bind_rows(.id = "iter") %>%
         dplyr::mutate(iter = as.integer(iter)) %>%
+        dplyr::left_join(., reps_and_colls, by = c("simulated_collection" = "collection")) %>%
+        dplyr::mutate(simulated_repunit = as.character(repunit)) %>%
+        dplyr::select(-repunit) %>%
         dplyr::left_join(., reps_and_colls, by = "collection") %>%
-        dplyr::select(iter, indiv, dplyr::everything()) %>%
+        dplyr::select(iter, indiv, simulated_repunit, simulated_collection,
+                      repunit, dplyr::everything()) %>%
         dplyr::mutate(collection = as.character(collection),
-                      sim_coll = as.character(sim_coll)) %>%
+                      simulated_collection = as.character(simulated_collection),
+                      repunit = as.character(repunit)) %>%
         dplyr::mutate(repunit_scenario = repu_scenario,
                       collection_scenario = coll_scenario)
 
       # output the processed dataframes as a list of two
       output_list[[scenario]] <- list(mixing_proportions = mixing_proportions,
-                                      individual_posteriors = individual_posteriors)
+                                      indiv_posteriors = indiv_posteriors)
 
     } else{
       # Bind the mixing proportion estimates into one dataframe
@@ -287,7 +295,7 @@ assess_reference_loo <- function(reference, gen_start_col, reps = 50, mixsize = 
     ret$mixing_proportions <- lapply(output_list, function(x) x$mixing_proportions)   %>%
       dplyr::bind_rows() %>%
       dplyr::select(repunit_scenario, collection_scenario, dplyr::everything())
-    ret$individual_posteriors <- lapply(output_list, function(x) x$individual_posteriors)   %>%
+    ret$indiv_posteriors <- lapply(output_list, function(x) x$indiv_posteriors)   %>%
       dplyr::bind_rows() %>%
       dplyr::select(repunit_scenario, collection_scenario, dplyr::everything())
 
