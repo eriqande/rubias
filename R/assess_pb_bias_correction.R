@@ -25,10 +25,14 @@
 #' @param gen_start_col the first column containing genetic data in \code{reference}.
 #' All columns should be genetic format following this column, and gene copies from the
 #' same locus should be adjacent
+#'
 #' @param seed the random seed for simulations
 #' @param nreps The number of reps to do.
 #' @param mixsize The size of each simulated mixture sample.
-#'
+#' @param alle_freq_prior a one-element named list specifying the prior to be used when
+#' generating Dirichlet parameters for genotype likelihood calculations. Valid methods include
+#' \code{"const"}, \code{"scaled_const"}, and \code{"empirical"}. See
+#' \code{?list_diploid_params} for method details.
 #' @return \code{bias_comparison} returns a list; the first element is
 #' a list of the relevant rho values generated on each iteration of the random "mixture"
 #' creation. This includes the true rho value, the standard result \code{rho_mcmc},
@@ -45,7 +49,9 @@
 #' ale_bias <- assess_pb_bias_correction(alewife, 17)
 #'
 #' @export
-assess_pb_bias_correction <- function(reference, gen_start_col, seed = 5, nreps = 50, mixsize = 100) {
+assess_pb_bias_correction <- function(reference, gen_start_col, seed = 5,
+                                      nreps = 50, mixsize = 100,
+                                      alle_freq_prior = list("const_scaled" = 1)) {
 
   # check that reference is formatted appropriately
   check_refmix(reference, gen_start_col, "reference")
@@ -68,7 +74,7 @@ assess_pb_bias_correction <- function(reference, gen_start_col, seed = 5, nreps 
   # switching any NAs in repunit and collection to prevent errors
   if (any(is.na(reference$repunit))) stop("repunit values may not be NAs" )
   if (any(is.na(reference$collection))) stop("collection values may not be NAs")
-  ref_params <- tcf2param_list(reference, gen_start_col, summ = F)
+  ref_params <- tcf2param_list(reference, gen_start_col, summ = F, alle_freq_prior = alle_freq_prior)
   set.seed(seed)
 
   #fifty iterations of a system for comparing reporting unit proportion methods

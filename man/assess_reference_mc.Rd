@@ -6,7 +6,7 @@
 \usage{
 assess_reference_mc(reference, gen_start_col, reps = 50, mixsize = 100,
   seed = 5, alpha_repunit = 1.5, alpha_collection = 1.5,
-  min_remaining = 5)
+  min_remaining = 5, alle_freq_prior = list(const_scaled = 1))
 }
 \arguments{
 \item{reference}{a two-column format genetic dataset, with "repunit", "collection", and "indiv"
@@ -28,6 +28,11 @@ within reporting units. Default = 1.5}
 
 \item{min_remaining}{the minimum number of individuals which should be conserved in
 each reference collection during sampling without replacement to form the simulated mixture}
+
+\item{alle_freq_prior}{a one-element named list specifying the prior to be used when
+generating Dirichlet parameters for genotype likelihood calculations. Valid methods include
+\code{"const"}, \code{"scaled_const"}, and \code{"empirical"}. See \code{?list_diploid_params}
+for method details.}
 }
 \description{
 From a reference dataset, this draws (without replacement) a simulated mixture

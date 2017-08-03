@@ -4,7 +4,8 @@
 \alias{list_diploid_params}
 \title{Collect essential data values before mixture proportion estimation}
 \usage{
-list_diploid_params(AC_list, I_list, PO, coll_N, RU_vec, RU_starts)
+list_diploid_params(AC_list, I_list, PO, coll_N, RU_vec, RU_starts,
+  alle_freq_prior = list(const_scaled = 1))
 }
 \arguments{
 \item{AC_list}{a list of allele count matrices; output from \code{a_freq_list}}
@@ -21,6 +22,15 @@ in order of appearance in the dataset}
 
 \item{RU_starts}{a vector of indices, designating the first collection for each
 reporting unit in RU_vec}
+
+\item{alle_freq_prior}{a one-element named list specifying the prior to be used when
+generating Dirichlet parameters for genotype likelihood calculations. The name of the
+list item determines the type of prior used, with options \code{"const"}, \code{"scaled_const"},
+and \code{"empirical"}. If \code{"const"}, the listed number will be taken as a constant
+added to the count for each allele, locus, and collection.
+If \code{"scaled_const"}, the listed number will be divided by the number of alleles at a locus,
+then added to the allele counts. If \code{"empirical"}, the listed number will be multiplied
+by the relative frequency of each allele across all populations, then added to the allele counts.}
 }
 \value{
 \code{list_diploid_params} returns a list of the information necessary
@@ -45,7 +55,7 @@ Genotypes represented in \code{I_list} are converted into a single long vector,
 ordered by locus, individual, and gene copy, with \code{NA} values represented as 0s.
 Similarly, \code{AC_list} is unlisted to \code{AC}, ordered by locus, collection,
 and allele. \code{DP} is a list of Dirichlet priors for likelihood calculations, created
-by adding the inverse of the number of alleles at a locus to each allele.
+by adding the values calculated from \code{alle_freq_prior} to each allele
 \code{sum_AC} and \code{sum_DP} are the summed allele values for each locus
 of their parent vectors, ordered by locus and collection.
 }

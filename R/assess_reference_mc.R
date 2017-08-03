@@ -37,12 +37,17 @@
 #' within reporting units. Default = 1.5
 #' @param min_remaining the minimum number of individuals which should be conserved in
 #' each reference collection during sampling without replacement to form the simulated mixture
+#' @param alle_freq_prior a one-element named list specifying the prior to be used when
+#' generating Dirichlet parameters for genotype likelihood calculations. Valid methods include
+#' \code{"const"}, \code{"scaled_const"}, and \code{"empirical"}. See \code{?list_diploid_params}
+#' for method details.
 #' @examples
 #' ale_dev <- assess_reference_mc(alewife, 17)
 #'
 #' @export
 assess_reference_mc <- function(reference, gen_start_col, reps = 50, mixsize = 100, seed = 5,
-                                alpha_repunit = 1.5, alpha_collection = 1.5, min_remaining = 5) {
+                                alpha_repunit = 1.5, alpha_collection = 1.5, min_remaining = 5,
+                                alle_freq_prior = list("const_scaled" = 1)) {
 
   # check that reference is formatted appropriately
   check_refmix(reference, gen_start_col, "reference")
@@ -50,7 +55,7 @@ assess_reference_mc <- function(reference, gen_start_col, reps = 50, mixsize = 1
   reference$repunit <- factor(reference$repunit, levels = unique(reference$repunit))
   reference$collection <- factor(reference$collection, levels = unique(reference$collection))
 
-  params <- tcf2param_list(reference, gen_start_col, summ = F)
+  params <- tcf2param_list(reference, gen_start_col, summ = F, alle_freq_prior = alle_freq_prior)
 
   # get a data frame that has the repunits and collections
   reps_and_colls <- reference %>%
@@ -157,7 +162,7 @@ assess_reference_mc <- function(reference, gen_start_col, reps = 50, mixsize = 1
     mix_I <- allelic_list(clean$clean_short, ac, samp_type = "mixture")$int
     coll <- rep(0,length(mix_I[[1]]$a))  # populations of each individual in mix_I; not applicable for mixture samples
 
-    mc_params <- list_diploid_params(ac, mix_I, coll, coll_N, RU_vec, RU_starts)
+    mc_params <- list_diploid_params(ac, mix_I, coll, coll_N, RU_vec, RU_starts, alle_freq_prior = alle_freq_prior)
 
     logl <- geno_logL(mc_params)
     SL <- apply(exp(logl), 2, function(x) x/sum(x))

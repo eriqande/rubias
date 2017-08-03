@@ -5,7 +5,7 @@
 \title{Test the effects of the parametric bootstrap bias correction on a reference dataset through cross-validation}
 \usage{
 assess_pb_bias_correction(reference, gen_start_col, seed = 5, nreps = 50,
-  mixsize = 100)
+  mixsize = 100, alle_freq_prior = list(const_scaled = 1))
 }
 \arguments{
 \item{reference}{a two-column format genetic dataset, with a "repunit" column
@@ -22,6 +22,11 @@ same locus should be adjacent}
 \item{nreps}{The number of reps to do.}
 
 \item{mixsize}{The size of each simulated mixture sample.}
+
+\item{alle_freq_prior}{a one-element named list specifying the prior to be used when
+generating Dirichlet parameters for genotype likelihood calculations. Valid methods include
+\code{"const"}, \code{"scaled_const"}, and \code{"empirical"}. See
+\code{?list_diploid_params} for method details.}
 }
 \value{
 \code{bias_comparison} returns a list; the first element is

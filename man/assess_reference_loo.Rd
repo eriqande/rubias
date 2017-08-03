@@ -6,8 +6,8 @@
 \usage{
 assess_reference_loo(reference, gen_start_col, reps = 50, mixsize = 100,
   seed = 5, alpha_repunit = 1.5, alpha_collection = 1.5,
-  resampling_unit = "individual", printSummary = FALSE,
-  return_indiv_posteriors = FALSE)
+  resampling_unit = "individual", alle_freq_prior = list(const_scaled = 1),
+  printSummary = FALSE, return_indiv_posteriors = FALSE)
 }
 \arguments{
 \item{reference}{a two-column format genetic dataset, with "repunit", "collection", and "indiv"
@@ -37,6 +37,11 @@ greater than 1, the shorter will be recycled.}
 \item{resampling_unit}{what unit should be resampled.  Currently the choices are "individuals" (the default)
 and "gene_copies".  Using "individuals" preserves missing data patterns available in the reference data set.
 We also have "gene_copies_with_missing" capability, but it is not yet linked into this function.}
+
+\item{alle_freq_prior}{a one-element named list specifying the prior to be used when
+generating Dirichlet parameters for genotype likelihood calculations. Valid methods include
+\code{"const"}, \code{"scaled_const"}, and \code{"empirical"}. See \code{?list_diploid_params}
+for method details.}
 
 \item{printSummary}{if TRUE a summary of the reference samples will be printed to stdout.}
 

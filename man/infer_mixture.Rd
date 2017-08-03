@@ -5,7 +5,8 @@
 \title{Estimate mixing proportions and origin probabilities from one or several mixtures}
 \usage{
 infer_mixture(reference, mixture, gen_start_col, method = "MCMC",
-  reps = 2000, burn_in = 100, pb_iter = 100, sample_int_Pi = 1)
+  alle_freq_prior = list(const_scaled = 1), reps = 2000, burn_in = 100,
+  pb_iter = 100, sample_int_Pi = 1)
 }
 \arguments{
 \item{reference}{a dataframe of two-column genetic format data, proceeded by "repunit", "collection",
@@ -18,6 +19,11 @@ Does not need "sample_type" column, and will be overwritten if provided}
 \item{gen_start_col}{the first column of genetic data in both data frames}
 
 \item{method}{a choice between "MCMC", "PB" methods for estimating mixture proportions}
+
+\item{alle_freq_prior}{a one-element named list specifying the prior to be used when
+generating Dirichlet parameters for genotype likelihood calculations. Valid methods include
+\code{"const"}, \code{"scaled_const"}, and \code{"empirical"}. See \code{?list_diploid_params}
+for method details.}
 
 \item{reps}{the number of iterations to be performed in MCMC}
 

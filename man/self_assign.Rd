@@ -4,7 +4,8 @@
 \alias{self_assign}
 \title{Do leave-one-out self-assignment of individuals in a reference baseline}
 \usage{
-self_assign(reference, gen_start_col, preCompiledParams = NULL)
+self_assign(reference, gen_start_col, preCompiledParams = NULL,
+  alle_freq_prior = list(const_scaled = 1))
 }
 \arguments{
 \item{reference}{a two-column format genetic dataset, with "repunit", "collection", and "indiv"
@@ -15,6 +16,11 @@ columns, as well as a "sample_type" column that has some "reference" entries}
 \item{preCompiledParams}{Users should never use this option.  It is here only so that
 this function can be called on a precompiled set of parameters with infer_mixture.  Don't
 use this, unless you are one of the package developers...}
+
+\item{alle_freq_prior}{a one-element named list specifying the prior to be used when
+generating Dirichlet parameters for genotype likelihood calculations. Valid methods include
+\code{"const"}, \code{"scaled_const"}, and \code{"empirical"}. See \code{?list_diploid_params}
+for method details.}
 }
 \value{
 a tibble ...

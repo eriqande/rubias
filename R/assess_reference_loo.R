@@ -33,6 +33,10 @@
 #' "dirichlet", "ppn", "cnt", "sub_dirichlet", "sub_ppn".  If you want to provide multiple different
 #' scenarios.  You can pass them in as a list.  If alpha_repunit or alpha_collection is a list with length
 #' greater than 1, the shorter will be recycled.
+#' @param alle_freq_prior a one-element named list specifying the prior to be used when
+#' generating Dirichlet parameters for genotype likelihood calculations. Valid methods include
+#' \code{"const"}, \code{"scaled_const"}, and \code{"empirical"}. See \code{?list_diploid_params}
+#' for method details.
 #' @details We still need to implement storage of individual-specific results for the simulated individuals.
 #' This we can do pretty easily, but wanted to get the proportions done and out there first.  Send eric some
 #' email if you really need individual specific output and he will prioritize it.
@@ -42,6 +46,7 @@
 #' @export
 assess_reference_loo <- function(reference, gen_start_col, reps = 50, mixsize = 100, seed = 5,
                                  alpha_repunit = 1.5, alpha_collection = 1.5, resampling_unit = "individual",
+                                 alle_freq_prior = list("const_scaled" = 1),
                                  printSummary = FALSE, return_indiv_posteriors = FALSE) {
 
   if (!(resampling_unit %in% c("gene_copies", "individual"))) stop("Choice ", resampling_unit, " unknown for resampling unit.")
@@ -55,7 +60,7 @@ assess_reference_loo <- function(reference, gen_start_col, reps = 50, mixsize = 
 
 
   # get the necessary parameters from the reference data
-  params <- tcf2param_list(reference, gen_start_col, summ = printSummary)
+  params <- tcf2param_list(reference, gen_start_col, summ = printSummary, alle_freq_prior = alle_freq_prior)
 
   # get a data frame that has the repunits and collections
   reps_and_colls <- reference %>%

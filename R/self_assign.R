@@ -2,6 +2,10 @@
 #'
 #' Returns a tidy data frame
 #' @inheritParams assess_reference_loo
+#' @param alle_freq_prior a one-element named list specifying the prior to be used when
+#' generating Dirichlet parameters for genotype likelihood calculations. Valid methods include
+#' \code{"const"}, \code{"scaled_const"}, and \code{"empirical"}. See \code{?list_diploid_params}
+#' for method details.
 #' @param preCompiledParams Users should never use this option.  It is here only so that
 #' this function can be called on a precompiled set of parameters with infer_mixture.  Don't
 #' use this, unless you are one of the package developers...
@@ -9,7 +13,8 @@
 #' @export
 #' @examples
 #' ale_sa <- self_assign(alewife, 17)
-self_assign <- function(reference, gen_start_col, preCompiledParams = NULL) {
+self_assign <- function(reference, gen_start_col, preCompiledParams = NULL,
+                        alle_freq_prior = list("const_scaled" = 1)) {
 
   # if not supplying it with preCompiledParams, check reference and get the params
   if (is.null(preCompiledParams)) {
@@ -17,7 +22,7 @@ self_assign <- function(reference, gen_start_col, preCompiledParams = NULL) {
     check_refmix(reference, gen_start_col, "reference")
 
     # get the necessary parameters from the reference data
-    params <- tcf2param_list(reference, gen_start_col, summ = T)
+    params <- tcf2param_list(reference, gen_start_col, summ = T, alle_freq_prior = alle_freq_prior)
   } else {
     # otherwise, assume the reference was checked elsewhere (i.e. in infer_mixture())
     # and just set params to preCompiledParams

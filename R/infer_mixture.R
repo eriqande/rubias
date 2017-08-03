@@ -16,6 +16,10 @@
 #' Does not need "sample_type" column, and will be overwritten if provided
 #' @param gen_start_col the first column of genetic data in both data frames
 #' @param method a choice between "MCMC", "PB" methods for estimating mixture proportions
+#' @param alle_freq_prior a one-element named list specifying the prior to be used when
+#' generating Dirichlet parameters for genotype likelihood calculations. Valid methods include
+#' \code{"const"}, \code{"scaled_const"}, and \code{"empirical"}. See \code{?list_diploid_params}
+#' for method details.
 #' @param reps the number of iterations to be performed in MCMC
 #' @param burn_in how many reps to discard in the beginning of MCMC when doing the mean calculation.
 #' They will still be returned in the traces if desired.
@@ -42,6 +46,7 @@ infer_mixture <- function(reference,
                           mixture,
                           gen_start_col,
                           method = "MCMC",
+                          alle_freq_prior = list("const_scaled" = 1),
                           reps = 2000,
                           burn_in = 100,
                           pb_iter = 100,
@@ -159,7 +164,7 @@ infer_mixture <- function(reference,
       as.integer()
 
     # and then make a params structure for doing the self-assignment to get the z-scores
-    sa_params <- list_diploid_params(ac, ref_I, ref_PO, coll_N, RU_vec, RU_starts)
+    sa_params <- list_diploid_params(ac, ref_I, ref_PO, coll_N, RU_vec, RU_starts, alle_freq_prior = alle_freq_prior)
 
   }) # close time 1 block
   message("   time: ", sprintf("%.2f", time1["elapsed"]), " seconds")
@@ -204,7 +209,7 @@ infer_mixture <- function(reference,
 
 
 
-    params <- list_diploid_params(ac, mix_I, coll, coll_N, RU_vec, RU_starts)
+    params <- list_diploid_params(ac, mix_I, coll, coll_N, RU_vec, RU_starts, alle_freq_prior = alle_freq_prior)
 
 
     ## calculate genotype log-Likelihoods for the mixture individuals ##

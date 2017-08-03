@@ -4,7 +4,8 @@
 \alias{tcf2param_list}
 \title{Generate MCMC parameter list from two-column genetic data & print summary}
 \usage{
-tcf2param_list(D, gen_start_col, samp_type = "both", summ = T)
+tcf2param_list(D, gen_start_col, samp_type = "both",
+  alle_freq_prior = list(const_scaled = 1), summ = T)
 }
 \arguments{
 \item{D}{A data frame containing two-column genetic data, preceded by metadata.
@@ -21,6 +22,11 @@ Columns must be only genetic data after genetic data starts.}
 
 \item{samp_type}{the sample groups to be include in the individual genotype list,
 whose likelihoods will be used in MCMC. Options "reference", "mixture", and "both"}
+
+\item{alle_freq_prior}{a one-element named list specifying the prior to be used when
+generating Dirichlet parameters for genotype likelihood calculations. Valid methods
+include \code{"const"}, \code{"scaled_const"}, and \code{"empirical"}. See
+\code{?list_diploid_params} for method details.}
 
 \item{summ}{logical indicating whether summary descriptions of the formatted data be provided}
 }

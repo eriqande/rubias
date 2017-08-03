@@ -284,7 +284,7 @@ allelic_list <- function(cs, ac, samp_type = "both") {
 #' ordered by locus, individual, and gene copy, with \code{NA} values represented as 0s.
 #' Similarly, \code{AC_list} is unlisted to \code{AC}, ordered by locus, collection,
 #' and allele. \code{DP} is a list of Dirichlet priors for likelihood calculations, created
-#' by adding the inverse of the number of alleles at a locus to each allele.
+#' by adding the values calculated from \code{alle_freq_prior} to each allele
 #' \code{sum_AC} and \code{sum_DP} are the summed allele values for each locus
 #' of their parent vectors, ordered by locus and collection.
 #'
@@ -299,6 +299,14 @@ allelic_list <- function(cs, ac, samp_type = "both") {
 #' @param RU_vec a vector of collection indices, sorted by reporting unit
 #' @param RU_starts a vector of indices, designating the first collection for each
 #' reporting unit in RU_vec
+#' @param alle_freq_prior a one-element named list specifying the prior to be used when
+#' generating Dirichlet parameters for genotype likelihood calculations. The name of the
+#' list item determines the type of prior used, with options \code{"const"}, \code{"scaled_const"},
+#' and \code{"empirical"}. If \code{"const"}, the listed number will be taken as a constant
+#' added to the count for each allele, locus, and collection.
+#' If \code{"scaled_const"}, the listed number will be divided by the number of alleles at a locus,
+#' then added to the allele counts. If \code{"empirical"}, the listed number will be multiplied
+#' by the relative frequency of each allele across all populations, then added to the allele counts.
 #'
 #' @return \code{list_diploid_params} returns a list of the information necessary
 #' for the calculation of genotype likelihoods in MCMC:
@@ -330,10 +338,27 @@ allelic_list <- function(cs, ac, samp_type = "both") {
 #' param_list <- list_diploid_params(ale_ac, ale_alle_list, PO, coll_N, RU_vec, RU_starts)
 #'
 #' @export
-list_diploid_params <- function(AC_list, I_list, PO, coll_N, RU_vec, RU_starts) {
+list_diploid_params <- function(AC_list, I_list, PO, coll_N, RU_vec, RU_starts,
+                                alle_freq_prior = list("const_scaled" = 1)) {
+
+  #check for a valid option in computing allele frequency priors
+  if (!(names(alle_freq_prior)[1] %in% c("const_scaled", "const", "empirical"))) stop("Choice ", names(alle_freq_prior)[1], " unknown for allele frequency prior.")
+
   as <- lapply(AC_list, nrow)
   loc_cycle <- names(AC_list)
-  DP_list <- lapply(loc_cycle, function(x) AC_list[[x]] + 1/as[[x]])
+  if(names(alle_freq_prior[1]) == "const_scaled") {
+    DP_list <- lapply(loc_cycle, function(x) AC_list[[x]] + alle_freq_prior[[1]]/as[[x]])
+  }
+  if(names(alle_freq_prior[1]) == "const") {
+    DP_list <- lapply(loc_cycle, function(x) AC_list[[x]] + alle_freq_prior[[1]])
+  }
+  if(names(alle_freq_prior[1]) == "empirical") {
+    DP_list <- lapply(AC_list, function(x){
+      rel_freq <- rowSums(x)/sum(x)
+      x + (rel_freq * alle_freq_prior[[1]])
+    })
+  }
+
   list(L = length(AC_list),
        N = length(I_list[[1]]$a),
        C = ncol(AC_list[[1]]),
@@ -379,6 +404,10 @@ list_diploid_params <- function(AC_list, I_list, PO, coll_N, RU_vec, RU_starts) 
 #' Columns must be only genetic data after genetic data starts.
 #' @param samp_type the sample groups to be include in the individual genotype list,
 #' whose likelihoods will be used in MCMC. Options "reference", "mixture", and "both"
+#' @param alle_freq_prior a one-element named list specifying the prior to be used when
+#' generating Dirichlet parameters for genotype likelihood calculations. Valid methods
+#' include \code{"const"}, \code{"scaled_const"}, and \code{"empirical"}. See
+#' \code{?list_diploid_params} for method details.
 #' @param summ logical indicating whether summary descriptions of the formatted data be provided
 #'
 #' @return \code{tcf2param_list} returns the output of \code{list_diploid_params},
@@ -390,7 +419,8 @@ list_diploid_params <- function(AC_list, I_list, PO, coll_N, RU_vec, RU_starts) 
 #' ale_par_list <- tcf2param_list(alewife, 17)
 #'
 #' @export
-tcf2param_list <- function(D, gen_start_col, samp_type = "both", summ = T){
+tcf2param_list <- function(D, gen_start_col, samp_type = "both",
+                           alle_freq_prior = list("const_scaled" = 1), summ = T){
 
   # coerce collection and repunit to be factors.  This is important since things get turned
   # into integers
@@ -433,7 +463,7 @@ tcf2param_list <- function(D, gen_start_col, samp_type = "both", summ = T){
   names(RU_starts) <- as.character(unique(Colls_by_RU$repunit))
   RU_vec <- as.integer(Colls_by_RU$collection)
   names(RU_vec) <- as.character(Colls_by_RU$collection)
-  params <- list_diploid_params(AC_list, I_list, PO, coll_N, RU_vec, RU_starts)
+  params <- list_diploid_params(AC_list, I_list, PO, coll_N, RU_vec, RU_starts, alle_freq_prior)
   percent.missing <- sum(params$I == 0)/length(params$I) * 100
   RU_list <- unique(cleaned$clean_short$repunit)
 
