@@ -19,8 +19,12 @@ count_missing_data <- function(D, gen_start_col) {
   nonmiss <- rowSums(!is.na(DM)) / 2
 
   # finally, let's also store the pattern of missing data in a list column
-  D2 <- D[, seq(1, ncol(D), by = 2)]  # just take the first column for each locus
+  D2 <- D[, seq(gen_start_col, ncol(D), by = 2)]  # just take the first column for each locus
   miss_pattern_list <- apply(D2, 1, function(x) which(is.na(x)))
+  # was having problems when no missing data is present; output to missing pattern list
+  # is a single empty integer, which is not accepted for tibble creation. Introduced
+  # the following fix:
+  if(length(miss_pattern_list) == 0) miss_pattern_list <- list(integer())[rep(1,nrow(D))]
 
 
   tibble::tibble(indiv = as.character(D$indiv), n_non_miss_loci = nonmiss, n_miss_loci = miss, missing_loci = miss_pattern_list)
