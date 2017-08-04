@@ -69,7 +69,7 @@ simulate_random_samples <- function(RU_starts, RU_vec, size = 100, alpha_repunit
 
     colls_mismatch <- base::setdiff(alpha_collection$collection, names(collections_in_order))
     if (length(colls_mismatch > 0)) {
-      stop("Requesting alpha_collection for collections(s) not in data set: ", paste(names(colls_mismatch), collapse = ", "))
+      stop("Requesting alpha_collection for collections(s) not in data set: ", paste(colls_mismatch, collapse = ", "))
     }
 
     # make a tibble of the requested values
