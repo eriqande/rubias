@@ -254,12 +254,13 @@ ggplot(map_rows, aes(x = z_score)) +
   geom_density(data = normo, colour = "black")
 ```
 
-The normal density is in black and our observed z_score is in blue.  They fit reasonably
-well, suggesting that these is not too much weird stuff going on overall.  (That is good!)  
+The normal density is in black and the distribution of our observed z_scores is in blue.  They fit reasonably
+well, suggesting that there is not too much weird stuff going on overall.  (That is good!)  
 
 The z_score statistic is most useful as a check for individuals. It
 is intended to be a quick way to identify aberrant individuals.  If you see a 
-z-score in your mixture sample that is considerably less than ones you saw in the reference,
+z-score to the maximum-a-posteriori population for an individual 
+in your mixture sample  that is considerably less than z_scores you saw in the reference,
 then you might infer that the individual doesn't actually fit any of the 
 populations in the reference well.
 
