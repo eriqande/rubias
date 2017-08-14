@@ -37,6 +37,19 @@ check_refmix <- function(D, gen_start_col, type = "reference") {
     stop("The following indiv IDs are repeated.  Number of times in parentheses: ", err_string)
   }
 
+  # now, check to make sure that no collection is associated with more than one repunit
+  msc <- D %>%
+    dplyr::count(repunit, collection) %>%
+    dplyr::group_by(collection) %>%
+    dplyr::mutate(times_seen = n()) %>%
+    dplyr::filter(times_seen > 1) %>%
+    dplyr::arrange(collection)
+
+  if (nrow(msc) > 0) {
+    err_str <- paste(paste(msc$n, "indivs in collection", msc$collection, "in repunit", msc$repunit ), collapse = ",\n\t")
+    stop("Each collection must belong to no more than one repunit.  Offenders in ", type, ":\n\t", err_str)
+  }
+
 
 }
 
