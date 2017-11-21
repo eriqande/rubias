@@ -61,7 +61,7 @@
 #'
 #' @export
 gsi_mcmc_2 <- function(SL, Rho_init, Omega_init, lambda_rho, lambda_omega, reps, burn_in, sample_int_omega, sample_int_rho, sample_int_PofZ, sample_int_PofR, RU_starts, RU_vec, coll2correctRU) {
-    .Call('rubias_gsi_mcmc_2', PACKAGE = 'rubias', SL, Rho_init, Omega_init, lambda_rho, lambda_omega, reps, burn_in, sample_int_omega, sample_int_rho, sample_int_PofZ, sample_int_PofR, RU_starts, RU_vec, coll2correctRU)
+    .Call('_rubias_gsi_mcmc_2', PACKAGE = 'rubias', SL, Rho_init, Omega_init, lambda_rho, lambda_omega, reps, burn_in, sample_int_omega, sample_int_rho, sample_int_PofZ, sample_int_PofR, RU_starts, RU_vec, coll2correctRU)
 }
 
 #' MCMC from a hierarchical GSI model for rho, pi, and the individual posterior probabilities,
@@ -122,7 +122,7 @@ gsi_mcmc_2 <- function(SL, Rho_init, Omega_init, lambda_rho, lambda_omega, reps,
 #'
 #' @export
 gsi_mcmc_bh <- function(SL, Rho_init, Omega_init, lambda_rho, lambda_omega, reps, burn_in, sample_int_omega, sample_int_rho, sample_int_PofZ, sample_int_PofR, RU_starts, RU_vec) {
-    .Call('rubias_gsi_mcmc_bh', PACKAGE = 'rubias', SL, Rho_init, Omega_init, lambda_rho, lambda_omega, reps, burn_in, sample_int_omega, sample_int_rho, sample_int_PofZ, sample_int_PofR, RU_starts, RU_vec)
+    .Call('_rubias_gsi_mcmc_bh', PACKAGE = 'rubias', SL, Rho_init, Omega_init, lambda_rho, lambda_omega, reps, burn_in, sample_int_omega, sample_int_rho, sample_int_PofZ, sample_int_PofR, RU_starts, RU_vec)
 }
 
 #' Calculate a matrix of genotype log-likelihoods for a genetic dataset
@@ -147,7 +147,7 @@ gsi_mcmc_bh <- function(SL, Rho_init, Omega_init, lambda_rho, lambda_omega, reps
 #' ale_glL <- geno_logL(ale_par_list)
 #' @export
 geno_logL <- function(par_list) {
-    .Call('rubias_geno_logL', PACKAGE = 'rubias', par_list)
+    .Call('_rubias_geno_logL', PACKAGE = 'rubias', par_list)
 }
 
 #' Calculate a matrix of sum-of-squares of genotype log-likelihoods for a genetic dataset
@@ -172,7 +172,7 @@ geno_logL <- function(par_list) {
 #' ale_glL <- geno_logL(ale_par_list)
 #' @export
 geno_logL_ssq <- function(par_list) {
-    .Call('rubias_geno_logL_ssq', PACKAGE = 'rubias', par_list)
+    .Call('_rubias_geno_logL_ssq', PACKAGE = 'rubias', par_list)
 }
 
 #' From the pattern of missing data at each individual, compute the expected mean and variance of the logl
@@ -195,7 +195,7 @@ geno_logL_ssq <- function(par_list) {
 #'
 #' @export
 rcpp_indiv_specific_logl_means_and_vars <- function(par_list, MV) {
-    .Call('rubias_rcpp_indiv_specific_logl_means_and_vars', PACKAGE = 'rubias', par_list, MV)
+    .Call('_rubias_rcpp_indiv_specific_logl_means_and_vars', PACKAGE = 'rubias', par_list, MV)
 }
 
 #' Return a matrix of locus-specific self-assignment logls
@@ -217,7 +217,7 @@ rcpp_indiv_specific_logl_means_and_vars <- function(par_list, MV) {
 #'
 #' @export
 rcpp_per_locus_logls <- function(par_list) {
-    .Call('rubias_rcpp_per_locus_logls', PACKAGE = 'rubias', par_list)
+    .Call('_rubias_rcpp_per_locus_logls', PACKAGE = 'rubias', par_list)
 }
 
 #' Sample 1 observation from cell probabilities that are columns of a matrix
@@ -233,7 +233,7 @@ rcpp_per_locus_logls <- function(par_list) {
 #' the row that was chosen in that column's sampling
 #' @export
 samp_from_mat <- function(M) {
-    .Call('rubias_samp_from_mat', PACKAGE = 'rubias', M)
+    .Call('_rubias_samp_from_mat', PACKAGE = 'rubias', M)
 }
 
 #' Simulate genotype log-likelihoods from a population by gene copy
@@ -265,7 +265,7 @@ samp_from_mat <- function(M) {
 #'
 #' @export
 gprob_sim_gc <- function(par_list, sim_colls) {
-    .Call('rubias_gprob_sim_gc', PACKAGE = 'rubias', par_list, sim_colls)
+    .Call('_rubias_gprob_sim_gc', PACKAGE = 'rubias', par_list, sim_colls)
 }
 
 #' Simulate genotype log-likelihoods from a population by individual
@@ -298,7 +298,7 @@ gprob_sim_gc <- function(par_list, sim_colls) {
 #'
 #' @export
 gprob_sim_ind <- function(par_list, sim_colls) {
-    .Call('rubias_gprob_sim_ind', PACKAGE = 'rubias', par_list, sim_colls)
+    .Call('_rubias_gprob_sim_ind', PACKAGE = 'rubias', par_list, sim_colls)
 }
 
 #' Simulate genotypes by gene copy, with missing data from chosen individuals
@@ -336,7 +336,7 @@ gprob_sim_ind <- function(par_list, sim_colls) {
 #' ale_sim_gprobs_miss <- gprob_sim_gc_missing(params, sim_colls, sim_miss)
 #' @export
 gprob_sim_gc_missing <- function(par_list, sim_colls, sim_missing) {
-    .Call('rubias_gprob_sim_gc_missing', PACKAGE = 'rubias', par_list, sim_colls, sim_missing)
+    .Call('_rubias_gprob_sim_gc_missing', PACKAGE = 'rubias', par_list, sim_colls, sim_missing)
 }
 
 #' EM algorithm from the simplest GSI model for pi and the individual posterior probabilities
@@ -365,7 +365,7 @@ gprob_sim_gc_missing <- function(par_list, sim_colls, sim_missing) {
 #'
 #' @export
 gsi_em_1 <- function(SL, Pi_init, max_iterations, tolerance, return_progression) {
-    .Call('rubias_gsi_em_1', PACKAGE = 'rubias', SL, Pi_init, max_iterations, tolerance, return_progression)
+    .Call('_rubias_gsi_em_1', PACKAGE = 'rubias', SL, Pi_init, max_iterations, tolerance, return_progression)
 }
 
 #' MCMC from the simplest GSI model for pi and the individual posterior probabilities
@@ -402,7 +402,7 @@ gsi_em_1 <- function(SL, Pi_init, max_iterations, tolerance, return_progression)
 #'
 #' @export
 gsi_mcmc_1 <- function(SL, Pi_init, lambda, reps, burn_in, sample_int_Pi, sample_int_PofZ) {
-    .Call('rubias_gsi_mcmc_1', PACKAGE = 'rubias', SL, Pi_init, lambda, reps, burn_in, sample_int_Pi, sample_int_PofZ)
+    .Call('_rubias_gsi_mcmc_1', PACKAGE = 'rubias', SL, Pi_init, lambda, reps, burn_in, sample_int_Pi, sample_int_PofZ)
 }
 
 #' Given a vector of different categories in 1...n and a prior,
@@ -424,7 +424,7 @@ gsi_mcmc_1 <- function(SL, Pi_init, lambda, reps, burn_in, sample_int_Pi, sample
 #' @param lambda priors for the categories
 #' @export
 dirch_from_allocations <- function(C, lambda) {
-    .Call('rubias_dirch_from_allocations', PACKAGE = 'rubias', C, lambda)
+    .Call('_rubias_dirch_from_allocations', PACKAGE = 'rubias', C, lambda)
 }
 
 #' Given a vector of counts for different categories in 1...n and a prior,
@@ -443,6 +443,6 @@ dirch_from_allocations <- function(C, lambda) {
 #' @param lambda priors for the categories
 #' @export
 dirch_from_counts <- function(C, lambda) {
-    .Call('rubias_dirch_from_counts', PACKAGE = 'rubias', C, lambda)
+    .Call('_rubias_dirch_from_counts', PACKAGE = 'rubias', C, lambda)
 }
 

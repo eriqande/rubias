@@ -43,12 +43,28 @@ tcf2long <- function(D, gen_start_col) {
   if(length(nt)>0) stop("Duplicated locus names: ", paste(names(nt), collapse = ", "))
   if( sum(ns) > 0) stop("Locus names cannot contain spaces: ",paste("\"", dnam[loc1][ns], "\"", sep = "", collapse = ", "))
 
+  # here is a different way to do it that should be a little bit faster.
+  num_loci <- length(loc1)
+  num_short <- nrow(D)
+  long <- tibble::tibble(
+    sample_type = rep(D$sample_type, times = num_loci * 2),
+    repunit = rep(D$repunit, times = num_loci * 2),
+    collection = rep(D$collection, times = num_loci * 2),
+    indiv = rep(D$indiv, times = num_loci * 2),
+    locus = rep(dnam[loc1], each = num_short * 2),
+    gene_copy = rep(c(rep("a", num_short), rep("b", num_short)), times = num_loci),
+    allele = as.vector(as.matrix(D[, -(1:(gen_start_col - 1))]))
+  )
+
+
   # renaming genetic column data
   names(D)[loc2] <- paste(names(D)[loc1], "b", sep = " ")
   names(D)[loc1] <- paste(names(D)[loc1], "a", sep = " ")
 
-  long <- tidyr::gather_(data = D, key_col = "Locus", value_col = "allele", gather_cols = names(D)[gen_start_col:n]) %>%
-    tidyr::separate(col = Locus, into = c("locus","gene_copy"), sep = " ")
+# long <- tidyr::gather_(data = D, key_col = "Locus", value_col = "allele", gather_cols = names(D)[gen_start_col:n]) %>%
+#  tidyr::separate(col = Locus, into = c("locus","gene_copy"), sep = " ")
+
+
 
   list(long = long, clean_short = D)
 }
@@ -344,7 +360,9 @@ list_diploid_params <- function(AC_list, I_list, PO, coll_N, RU_vec, RU_starts,
   #check for a valid option in computing allele frequency priors
   if (!(names(alle_freq_prior)[1] %in% c("const_scaled", "const", "empirical"))) stop("Choice ", names(alle_freq_prior)[1], " unknown for allele frequency prior.")
 
+  # get number of alleles at each locus
   as <- lapply(AC_list, nrow)
+
   loc_cycle <- names(AC_list)
   if(names(alle_freq_prior[1]) == "const_scaled") {
     DP_list <- lapply(loc_cycle, function(x) AC_list[[x]] + alle_freq_prior[[1]]/as[[x]])
@@ -433,13 +451,16 @@ tcf2param_list <- function(D, gen_start_col, samp_type = "both",
   I_list <- allelic_list(cleaned$clean_short, AC_list, samp_type = samp_type)$int
   #PO <- as.integer(factor(cleaned$clean_short$collection))
   if(samp_type == "both") {
-    PO <- dplyr::select(cleaned$clean_short, collection) %>%
-      simplify2array() %>%
-      factor(., levels = unique(D$collection)) %>%
-      as.integer()
-    coll_N <- dplyr::count(cleaned$clean_short, collection) %>%
-      dplyr::select(n)
-    coll_N <- unname(unlist(coll_N))
+    PO <- as.integer(cleaned$clean_short$collection)
+#    PO <- dplyr::select(cleaned$clean_short, collection) %>%
+#      simplify2array() %>%
+#      factor(., levels = unique(D$collection)) %>%
+#      as.integer()
+
+    coll_N <- unname(table(cleaned$clean_short$collection))
+#   coll_N <- dplyr::count(cleaned$clean_short, collection) %>%
+#      dplyr::select(n)
+#    coll_N <- unname(unlist(coll_N))
   } else {
     PO <- dplyr::filter(cleaned$clean_short, sample_type == samp_type) %>%
       dplyr::select(collection) %>%
@@ -453,8 +474,10 @@ tcf2param_list <- function(D, gen_start_col, samp_type = "both",
   }
 
   ### ONLY designed for factorized repunit and collection
-  Colls_by_RU <- dplyr::count(cleaned$clean_short, repunit, collection) %>%
+  Colls_by_RU <- dplyr::count(cleaned$clean_short[, c("repunit", "collection")], repunit, collection) %>%
     dplyr::select(-n)
+#  Colls_by_RU <- dplyr::count(cleaned$clean_short, repunit, collection) %>%
+#    dplyr::select(-n)
   PC <- rep(0, length(unique((Colls_by_RU$repunit))))
   for(i in 1:nrow(Colls_by_RU)) {
     PC[Colls_by_RU$repunit[i]] <- PC[Colls_by_RU$repunit[i]] + 1
@@ -475,6 +498,7 @@ tcf2param_list <- function(D, gen_start_col, samp_type = "both",
   params$indiv_names <- D$indiv
   params$collection_names <- levels(D$collection)
   params$repunit_names <- levels(D$repunit)
+  params$locus_names <- names(AC_list)
 
   if(summ == T){
     cat(paste('Summary Statistics:',

@@ -29,7 +29,7 @@ check_refmix <- function(D, gen_start_col, type = "reference") {
   }
 
   # check also to make sure that indiv IDs are unique
-  dupies <- D %>%
+  dupies <- tibble::tibble(indiv = D$indiv) %>%
     dplyr::count(indiv) %>%
     dplyr::filter(n > 1)
   if (nrow(dupies) > 0) {
@@ -38,7 +38,7 @@ check_refmix <- function(D, gen_start_col, type = "reference") {
   }
 
   # now, check to make sure that no collection is associated with more than one repunit
-  msc <- D %>%
+  msc <- D[, c("repunit", "collection")] %>%
     dplyr::count(repunit, collection) %>%
     dplyr::group_by(collection) %>%
     dplyr::mutate(times_seen = n()) %>%
