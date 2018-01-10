@@ -471,7 +471,7 @@ chin_sims_with_indivs$indiv_posteriors
 In this tibble:
 - `indiv` is an integer specifier of the simulated individual
 - `simulated_repunit` is the reporting unit the individual was simulated from
-- 'simulated_collection` is the collection the simulated genotype came from
+- `simulated_collection` is the collection the simulated genotype came from
 - `PofZ` is the mean over the MCMC of the posterior probability that the 
 individual originated from the collection. 
 
@@ -692,7 +692,7 @@ These are obtained using `method = "PB"` in `infer_mixture()`.  When invoked, th
 regular MCMC results as before, but also will population the `bootstrapped_proportions` field
 of the output.  Doing so takes a little bit longer, computationally, because there is a good deal 
 of simulation involved:
-```{r infer_mixture_pb, eval=FALSE}
+```{r infer_mixture_pb, eval=TRUE}
 mix_est_pb <- infer_mixture(reference = chinook, 
                          mixture = chinook_mix, 
                          gen_start_col = 5,
@@ -701,7 +701,7 @@ mix_est_pb <- infer_mixture(reference = chinook,
 
 And now we can compare the estimates, showing here the 10 most prevalent
 repunits, in the `rec1` fishery:
-```{r, eval=FALSE}
+```{r, eval=TRUE}
 mix_est_pb$mixing_proportions %>%
   group_by(mixture_collection, repunit) %>%
   summarise(repprop = sum(pi)) %>%
@@ -711,8 +711,6 @@ mix_est_pb$mixing_proportions %>%
   arrange(desc(repprop)) %>%
   slice(1:10)
 ```
-
-This takes a long time, so it hasn't been evaluated here right yet.  
 
 It gives us a result that we expect: no appreciable difference, because the reporting units
 are already very well resolved, so we don't expect that the parametric bootstrap procedure
