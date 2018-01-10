@@ -1,0 +1,115 @@
+---
+title: "rubias demo for Colin and Terry"
+output: 
+  html_notebook:
+    toc: true
+    toc_float: true
+---
+
+Hey guys, I know that you have your routine all figured out using `gsi_sim`, but I have
+switched lately to a purely R-based GSI package I wrote called `rubias`. It is implemented
+using Rcpp so it is not too slow.  It takes a little longer than gsi_sim to read the data in,
+but it does a little more error checking, etc, and the data input is simpler.
+
+You can read all about it, including how to install it using R, and how to use it at 
+[https://github.com/eriqande/rubias](https://github.com/eriqande/rubias).  
+
+If you are comfortable with using R and the "tidyverse," then rubias makes
+everything easier to deal with.  If you aren't on board with the tidyverse yet,
+then read the book [R for Data Science](http://r4ds.had.co.nz/) and get on board, 
+'cuz it makes all data analysis better.
+
+When I send this, I will also attach some data files in gzipped csv format
+so you can run through the same exercises here.
+
+To start, let's read in some data:
+```{r}
+library(tidyverse)
+library(rubias)
+```
+
+## Read in data
+
+This is just reading in a data frame.
+```{r}
+bco_base <- read_csv("bco_base_rubias.csv.gz", progress = FALSE)
+mco_mix <- read_csv("mco_mix_rubias.csv.gz")
+```
+Let us see what those look like.  Here are the first 8 columns and 10 rows
+```{r}
+bco_base[1:10, 1:8]
+```
+
+and
+
+```{r}
+mco_mix[1:10, 1:8]
+```
+
+Note that missing data is denoted as NA.
+
+Note that you can save these to disk in whatever format you wish, so long as it is 
+easy to read them into a data frame in R.
+
+## Mixture analysis
+
+This is just one function.  Note that if you have multiple collections in your mixture file,
+they would all be treated separately in this one run (and done quite quickly).
+```{r}
+gsi_results <- infer_mixture(bco_base, mco_mix, gen_start_col = 5, reps = 25000, burn_in = 5000)
+```
+
+As you can see, it is a little slower than gsi_sim, but not too bad.
+
+Once we have that we can do lots of stuff with it.  For example
+sort by mixing proportion:
+```{r}
+gsi_results$mixing_proportions %>%
+  arrange(desc(pi))
+```
+
+easy enough.  Or, if you wanted to look at all the fish assigned with >95% posterior,
+and where they were assigned to:
+```{r}
+gsi_results$indiv_posteriors %>%
+  filter(PofZ > 0.95)
+```
+
+etc.
+
+
+
+## Self-assignment
+
+Also, if you want to self-assign individuals to the baseline (using leave-one-out) that
+goes pretty easily:
+```{r}
+self_ass <- self_assign(bco_base, 5)
+```
+
+Now, we can easily compute the fraction of individuals correctly assigned to their
+collection:
+```{r}
+sa_summary <- self_ass %>%
+  group_by(indiv) %>%
+  top_n(n = 1, wt = scaled_likelihood) %>%
+  group_by(collection) %>%
+  summarise(fract_correct = mean(collection == inferred_collection),
+            num_total = n())
+
+sa_summary
+```
+
+
+
+And so on and so forth.
+
+We find it a lot easier than parsing through the output of gsi_sim.
+
+
+
+
+
+
+
+

@@ -1,0 +1,148 @@
+---
+title: "Mixed Fishery Simulations -- Labrador"
+output: 
+  html_notebook:
+    toc: true
+    toc_float: true
+---
+
+
+Brendan had been trying this with `gsi_sim` and got some bugs.  In looking at the error message
+I suspect it has something to do with a locus being missing in all the individuals in a population,
+but I haven't looked into it too much.  Rather than get back into the guts of `gsi_sim` I thought
+it would make better sense for me to just do the simulations using [rubias](https://github.com/eriqande/rubias),
+because that is the software that I plan to support in the future (and because the interface is way easier
+than gsi_sim---it is all R-based and largely tidyverse compliant!).
+
+Brendan, if you want to use rubias (I recommend it over gsi_sim) go to the GitHub page and read the README.
+
+So, let's do that. Load up some packages first.
+```{r}
+if (!("rubias" %in%  rownames(installed.packages()))) {
+  devtools::install_github("eriqande/rubias")
+}
+library(tidyverse)
+library(rubias)
+```
+
+## Converting gsi_sim data to rubias
+
+There is a function for this in `rubias`.  
+
+It looks like each population is a reporting unit in 
+Brendan's file, so we will just do it that way.  I will do this on my system
+but I don't expect it to work on Windows...(see `?read_gsi_sim`).
+
+After we get the file, we set reporting units to the same as collections, and then we write
+it to a file to be used later (which I will send to Brendan).
+```{r, eval=FALSE}
+labra <- read_gsi_sim("~/Downloads/All_Lab_Rivers_GSISIM.txt", sample_type = "reference") %>%
+  mutate(repunit = collection)
+
+# now, it looks like missing data are denoted by "000".  Let's turn those into NAs
+labra[labra == "000"] <- NA
+
+saveRDS(labra, file = "../data/all-lab-rivers-rubias.rds", compress = "xz")
+```
+
+So, now we can read that in again (this Brendan can do with to the file I send him...)
+```{r}
+labra <- readRDS("../data/all-lab-rivers-rubias.rds")
+```
+Look at a few rows to see that it is essentially a two column format:
+```{r}
+labra[1:10, 1:10]
+```
+
+## Self assignment exercise
+
+First things first, let's just do self-assignment of individuals. Note that this function gives a little summary of the data
+so you can make sure that it is working correctly!
+```{r}
+sa_labra <- self_assign(labra, 5)
+```
+
+Then we can have a look at how often individuals are assigned (useing maximum posterior) to their own population.
+```{r}
+map_ass <- sa_labra %>%
+  group_by(indiv) %>%
+  top_n(n = 1, wt = scaled_likelihood) %>%
+  ungroup
+
+self_ass_mat <- map_ass %>%
+  count(collection, inferred_collection) %>%
+  spread(key = inferred_collection, value = n, fill = 0)
+
+self_ass_mat
+```
+
+Great! That is looking pretty good.
+
+## Simulations of mixed fisheries
+
+### Default settings
+
+Let's do these first with samples of size 500 and just use the default 
+parameter values which "spray proportions of fish around randomly."  Let's do
+100 reps.  Also, by default, this does the CV-ML method from Anderson, Waples,
+and Kalinowski (2008), which resamples full multilocus genotypes rather than
+gene copies.  The following takes about 20 seconds or so.
+```{r, message=FALSE}
+loo_sim1 <- assess_reference_loo(labra, 5, reps = 100, mixsize = 500)
+```
+Then we can easily plot the results:
+```{r, fig.width = 10, fig.height = 14}
+ggplot(loo_sim1, aes(x = true_pi, y = post_mean_pi, colour = collection)) +
+  geom_point() +
+  geom_abline(intercept = 0, slope = 1) +
+  facet_wrap(~collection, ncol = 4)
+```
+
+That is revealing.  Everything looks pretty good but POT is a disaster (saw that in the self-assignment results, too).
+The POT fish probably are ending up in MIDBTLUWST, and there are some mild biases in some other pops (SAN a little
+funky).  But overall, this looks like a pretty great set of markers.
+
+Let's see what it looks like if we resample gene-copies rather than individuals:
+```{r, message=FALSE}
+loo_sim2 <- assess_reference_loo(labra, 5, reps = 100, mixsize = 500, resampling_unit = "gene_copies")
+```
+Then we can easily plot the results:
+```{r, fig.width = 10, fig.height = 14}
+ggplot(loo_sim2, aes(x = true_pi, y = post_mean_pi, colour = collection)) +
+  geom_point() +
+  geom_abline(intercept = 0, slope = 1) +
+  facet_wrap(~collection, ncol = 4)
+```
+Those results are pretty comparable.  Which is good.
+
+### 100 from each collection
+
+If you wanted to simulate exactly 100 from each collection (like you had in the mix1000 comms file)
+you would do like this: first make a data frame of the desired collection counts
+```{r}
+coll_counts <- labra %>%
+  count(collection) %>%
+  select(-n) %>%
+  mutate(cnt = 100)
+
+coll_counts
+
+```
+Then, pass that in for `alpha_collection`.  Let's do 20 reps.
+```{r}
+loo_sim3 <- assess_reference_loo(labra, 5, reps = 20, mixsize = 500, alpha_collection = coll_counts)
+```
+Then again, plot the result just for fun, to see that all the true values are at 100.
+```{r, fig.width = 10, fig.height = 14}
+ggplot(loo_sim3, aes(x = n, y = post_mean_pi, colour = collection)) +
+  geom_point() +
+  facet_wrap(~collection, ncol = 4) +
+  geom_hline(yintercept = 1.0 / nrow(coll_counts))
+```
+We put a horizontal line at the true value for each population.
+
+## Wrap up
+
+That is it for now.  `rubias` is way easier to use than gsi_sim.  It also can analyze multiple 
+actual mixture samples in one fell swoop.  See `infer_mixture`. 
+

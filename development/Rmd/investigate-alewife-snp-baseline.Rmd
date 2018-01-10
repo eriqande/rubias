@@ -1,0 +1,121 @@
+---
+title: "Alewife SNP Baselines"
+output:
+  html_notebook:
+    toc: yes
+  pdf_document:
+    toc: yes
+---
+
+
+```{r setup, include=FALSE}
+# set the working directory always to the project directory (one level up)
+knitr::opts_knit$set(root.dir = normalizePath(rprojroot::find_rstudio_root_file())) 
+```
+
+libraries:
+```{r load-libs}
+library(tidyverse)
+library(rubias)
+library(stringr)
+```
+
+## Get The Data
+
+First I need to read the data in and format it the way we need it.
+```{r proc-data}
+genos <- read_csv("development/data/snp-alewife-stuff/alewife-baseline.csv.gz") %>%
+  select(-(`Pop order`:`Modified IND`), -(`Drainage by year code`:Year)) %>%
+  rename(indiv = `Drainage code`) %>%
+  tidyr::separate(data = ., col = indiv, into = c("collection", "idnum"), remove = FALSE) %>%
+  select(-idnum) %>%
+  mutate(sample_type = "reference") %>%
+  select(sample_type, collection, indiv, everything())
+  
+repu <- read_tsv("development/data/snp-alewife-stuff/alewife_7_repgroups.txt") %>%
+  rename(collection = Pop,
+         repunit = RepGroup) %>%
+  select(-RepGroupNum)
+
+ale_snps7 <- left_join(genos, repu) %>%
+  select(sample_type, repunit, everything())
+  
+```
+
+## Simulate and assess reference
+
+OK, now let us do the standard simulation on these guys.
+```{r sim-and-assess}
+saar7 <- assess_reference_loo(reference = ale_snps7, 
+                                       gen_start_col = 5, 
+                                       reps = 100, 
+                                       mixsize = 200)
+```
+
+summarize that to repunit:
+```{r sum-to-rep}
+rep7 <- saar7 %>%
+  group_by(iter, repunit) %>%
+  summarize(post_mean = sum(post_mean),
+            mle = sum(mle),
+            true_rep_prop = sum(omega),
+            n = sum(n)) %>%
+  group_by(iter) %>%
+  mutate(samp_frac = n / sum(n))
+```
+plot it.
+
+```{r plot7, fig.width=7}
+ggplot(rep7, aes(x = true_rep_prop, y = post_mean, colour = repunit)) +
+  geom_point() +
+  geom_abline(intercept = 0, slope = 1, linetype = "dashed") +
+  facet_wrap(~ repunit) 
+```
+OK, that is cool.  MB, NUN, BIS, and LIS are four groups that would traditionally all
+be lumped together as "SNE".  There are problems with them, clearly, but to be honest
+they don't look all that bad.  I am curious to see if the parametric bootstrap
+bias correction might help things.
+
+Let's also look at the sample proportion, which will lessen the
+variance due to just random sampling...
+```{r plot7-2, fig.width=7}
+ggplot(rep7, aes(x = samp_frac, y = post_mean, colour = repunit)) +
+  geom_point() +
+  geom_abline(intercept = 0, slope = 1, linetype = "dashed") +
+  facet_wrap(~ repunit) 
+```
+
+## Bias comparison function
+
+Let's just give this a whirl.  There is a problem, however: collection MED has 2 indivs
+and NAN has only 9.  This causes problems for `mixture_draw()` it appears.  So, let's just 
+eliminate those to collections:
+
+```{r bias-comp, eval=FALSE}
+as7_filt <- ale_snps7 %>% 
+  filter(!(collection %in% c("MED", "NAN"))) %>%
+  mutate(collection = factor(collection, levels = unique(collection)))
+
+
+bc <- assess_pb_bias_correction(reference = as7_filt, gen_start_col = 5, seed = 5, mixsize = 200, nreps = 100)
+```
+
+2 or 3 hours later we have the results we want.  I saved those results and we can read them 
+back in:
+```{r read-output}
+bc <- readRDS("development/outputs/alewife_snps_100_of_200.rds")
+```
+
+Then plot it.
+```{r plot, fig.width = 8, fig.height = 10}
+#saveRDS(bc, "alewife_snps_100_of_200.rds")
+rho_data <- bc %>%
+      tidyr::gather(key = "method", value = "rho_est", rho_mcmc:rho_pb)
+
+g <- ggplot2::ggplot(rho_data, ggplot2::aes(x = true_rho, y = rho_est, colour = repunit)) +
+      ggplot2::geom_point() +
+      ggplot2::facet_grid(repunit ~ method) +
+      ggplot2::geom_abline(intercept = 0, slope = 1)
+
+g
+```

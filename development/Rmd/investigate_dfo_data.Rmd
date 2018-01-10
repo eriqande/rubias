@@ -64,6 +64,53 @@ bco2 <- bco %>%
   mutate(repunit = factor(repunit))
 ```
 
+## Looking at self-assignment rates
+
+I want to do self-assignment and then plot the resulting matrix as a raster using 
+ggplot.  Should not be hard, though it takes about two minutes.
+```{r}
+sa <- self_assign(bco2, 5)
+```
+
+Now, from that we want to compute the mean scaled likelihood from each collection to
+each inferred collection
+```{r}
+sclk_means <- sa %>%
+  group_by(collection, inferred_collection) %>%
+  summarise(mean_sclk = mean(scaled_likelihood)) 
+
+sclk_nas <- sclk_means %>%
+  mutate(mean_sclk = ifelse(mean_sclk < 0.02, NA, mean_sclk))  # let smallish values be missing
+
+g <- ggplot(sclk_nas, aes(x = inferred_collection, y = collection, fill = mean_sclk)) +
+  geom_raster(interpolate = FALSE, na.rm = TRUE) +
+  scale_fill_gradientn(colours = c(rev(rainbow(7))),
+                         breaks = c(0.01, 0.1, 0.5, 0.8, 0.9)) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+ggsave(g, filename = "development/ass-mat-plot.pdf", width = 20, height = 20)
+  
+getwd()
+```
+
+
+Maybe we can make an interactive heat map:
+```{r}
+library(heatmaply)
+
+sclk_wide <- sclk_means %>%
+  tidyr::spread(data = ., key = inferred_collection, value = mean_sclk)
+
+sclk_mat <- sclk_wide[, -1] %>% 
+  as.matrix()
+
+rownames(sclk_mat) <- sclk_wide$collection
+
+#heatmaply(sclk_mat)  # this works, actually... but does a poor job of clustering using
+# the default settings.
+
+
+```
 ## Running Some Simulations
 
 We will set `alpha_collection` to 0.01 which gives us about 4 to 6 populations with 

@@ -1,0 +1,87 @@
+---
+title: "Helping Kerry With Stuff"
+output: html_notebook
+---
+
+
+First get data and load libs
+```{r}
+library(tidyverse)
+library(stringr)
+library(rubias)
+
+ale_ref <- read_csv("../data/alewife-baseline-input_02062017.csv.gz")
+ale_mix <- read_csv("../data/alewife-bycatch-input_02062017.csv.gz")
+```
+
+
+Let's toss out collections that don't have at least 20 indivs
+```{r}
+ale_ref2 <- ale_ref %>%
+  group_by(repunit, collection) %>%
+  filter(n() > 20) %>%
+  ungroup()
+```
+## Assessing the reference
+
+Let's see how we do this.  First using leave one out type procedure:
+```{r}
+arl <- assess_reference_loo(reference = ale_ref2, gen_start_col = 5)
+
+
+```
+
+Then plot the result...
+First by population
+```{r, fig.width = 15, fig.height=20}
+ggplot(arl, aes(x = omega, y = post_mean, colour = repunit)) +
+  geom_point() +
+  facet_wrap(~ collection)
+         
+```
+
+And then aggregate by repunit:
+```{r}
+arl_ru <- arl %>%
+  group_by(iter, repunit) %>% 
+  summarise(true_repu_prop = sum(omega), est_repu_prop = sum(post_mean), true_repu_num = sum(n)) %>%
+  ungroup()
+```
+And plot that:
+```{r}
+ggplot(arl_ru, aes(x = true_repu_prop, y = est_repu_prop, colour = repunit)) +
+  geom_point() +
+  facet_wrap(~ repunit) +
+  geom_abline(intercept = 0, slope = 1)
+  
+```
+
+
+## Estimate the mixing proportions of the bycatch against the baseline
+
+```{r}
+mix_est <- infer_mixture(reference = ale_ref2, mixture = ale_mix, gen_start_col = 5)
+```
+
+
+The result is a list.  If we want proportions we want `mix_est$mixing_proportions`
+
+Once again we have to aggregate it over reporting units:
+```{r}
+ru_mix_ests <- mix_est$mixing_proportions %>% 
+  group_by(mixture_collection, repunit) %>%
+  summarise(repu_prop = sum(pi))
+```
+
+Now make a bar plot:
+```{r}
+ggplot(ru_mix_ests, aes(x = mixture_collection, y = repu_prop, fill = repunit)) + 
+  geom_col() +
+  coord_flip()
+```
+
+
+Let's see what happens if we do the parametric bootstrapping (just with the repunits as they are)
+```{r}
+mix_est_pb <- infer_mixture(reference = ale_ref2, mixture = ale_mix, gen_start_col = 5, method = "PB")
+```

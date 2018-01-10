@@ -1,0 +1,158 @@
+---
+title: "Developing repuclust"
+output:
+  html_notebook:
+    toc: yes
+  pdf_document:
+    toc: yes
+---
+
+
+```{r setup, include=FALSE}
+# set the working directory always to the project directory (one level up)
+knitr::opts_knit$set(root.dir = normalizePath(rprojroot::find_rstudio_root_file())) 
+```
+
+libraries:
+```{r load-libs}
+library(tidyverse)
+library(rubias)
+```
+
+My idea here is to conduct a simple, greedy, "agglomerative" algorithm to gain insight into
+what good reporting units might look like.  And then display that on a binary tree.  
+
+Here is my thought for the tree:
+
+- Each collection (population) is a leaf on the tree.
+- Each internal node represents a grouping of populations.  At its simplest, 
+a node with two daughter leaves represents a grouping of two collections.  However,
+you can also have an internal node that has daughters that are internal nodes.
+- I think this is going to have to be a rooted tree.  
+- If we have a node $c$ with daughters $a$ and $b$, then let the branch length 
+from $a$ to $c$ be $2\min\{0, S_{ab} - \frac{1}{2}\}$, where $S_{ab}$ is the average
+value of the posterior prob of each individual in $a$ being from group $a$ compared to
+group $b$.  So, if there is "perfect assignment", $S_{ab} = 1$ and the branch length is 1.
+If there is no basis for assignment (no better than a coin flip) then we get a branch
+length of 0. 
+
+
+Do the self-assignments.
+```{r get-self-ass}
+sa <- self_assign(reference = chinook, gen_start_col = 5)
+```
+
+And once we have that, we compute for each individual and each pair of collection-and-inferred-collection the normalized
+scaled likelihood.  That is, the posterior for the individual belonging to the correct versus the other collection.  Oh yeah,
+we also initialize everyone's `repuclust` to just be their true collection.  We will increment these as we merge collections into
+different nodes.
+```{r}
+pair_posts <- sa %>%
+  mutate(repuclust = as.integer(factor(collection))) %>%
+  mutate(inferred_repuclust = as.integer(factor(inferred_collection, levels = levels(factor(collection))))) %>%
+  group_by(indiv) %>%
+  mutate(self_post = scaled_likelihood[collection == inferred_collection]) %>%
+  ungroup() %>%
+  mutate(pair_post = scaled_likelihood / (scaled_likelihood + self_post)) %>%
+  filter(collection != inferred_collection) %>%
+  ungroup()
+```
+
+So, to make this easier, I need to have a data frame called `leaves` that gives me the names of the collections and the associated repuclusts.
+```{r}
+leaves <- pair_posts %>%
+  count(collection, repuclust) %>%
+  ungroup() %>%
+  select(-n) %>%
+  arrange(repuclust)
+```
+
+And while we are at it, let's add those to a list of nodes:
+```{r}
+nodes <- lapply(leaves$repuclust, function(x) list(d1 = NA, d2 = NA, members = x))
+max_node <- length(nodes)  # also, get the number of the final leaf node (will get incremented)
+```
+
+And now we can take the mean of those values for each collection and repuclust and find the ones that are highest:
+```{r}
+ppm <- pair_posts %>%
+  group_by(collection, inferred_collection, repuclust, inferred_repuclust) %>% 
+  summarise(mean_pairwise = mean(pair_post)) %>%
+  ungroup() %>%
+  arrange(desc(mean_pairwise))
+
+ppm
+  
+```
+
+So, clearly what we will do here is first combine PriestRapids_H and Hanford_Reach into a single reporting unit. That will take a number which is 
+one greater than the largest repuclust.  Then we recompute things on the basis of repuclusts and see which is the next to go.  It will be easiest,
+ultimately, to do this all in terms of integer repuclusts and integer inferred_repuclusts, and then re-associate the actual collections at the end.
+
+Note that for things that already have repunits, I will probably want to do a version that constrains the pairings to only those collections that are in the
+same repunit, to see how things look with pre-existing reporting units.  
+
+So, let's fiddle around with what that might look like. Here is a function to compute the mean_pair
+thing:
+
+```{r}
+repclust_mean_pair_func <- function(pp) {
+  pp %>%
+    group_by(repuclust, inferred_repuclust) %>% 
+    summarise(mean_pairwise = mean(pair_post)) %>%
+    ungroup() %>%
+    arrange(desc(mean_pairwise))
+}
+```
+
+Then, we take the largest of those, and get the pairs both way:
+```{r}
+rmp <- repclust_mean_pair_func(pair_posts) %>%
+  filter(repuclust %in% c(repuclust[1], inferred_repuclust[1]),
+         inferred_repuclust %in% c(repuclust[1], inferred_repuclust[1])
+         )
+
+```
+Then we would create a new node with those 
+```{r}
+max_node <- max_node + 1
+n1 <- rmp$repuclust[1]  # store the nodes of these
+n2 <- rmp$repuclust[2]
+nodes[[max_node]] <- list()
+nodes[[max_node]]$d1 <- n1
+nodes[[max_node]]$p1 <- rmp$mean_pairwise[1]
+nodes[[max_node]]$d2 <- n2
+nodes[[max_node]]$p2 <- rmp$mean_pairwise[2]
+nodes[[max_node]]$members <- base::union(nodes[[n1]]$members, nodes[[n2]]$members)
+
+```
+And after we have done that, we convert the repuclusts to max_node in.  Let's make a function
+to do that:
+```{r}
+#' @param pp the pair_posts data frame
+#' @param new_repu the index of the new reporting unit node (typically max_node)
+#' @param d1 the repuclust index of the first daughter of new_repu
+#' @param d2 the repuclust index of the second daughter of new_repu
+merge_repuclusts <- function(pp, new_repu, d1, d2) {
+  pp %>%
+    mutate(repuclust = ifelse(repuclust %in% c(d1, d2), new_repu, repuclust),
+           inferred_repuclust = ifelse(repuclust %in% c(d1, d2), new_repu, inferred_repuclust))
+}
+```
+
+And so we can use that
+```{r}
+pp_new <- merge_repuclusts(pair_posts, max_node, nodes[[max_node]]$d1, nodes[[max_node]]$d2)
+```
+And then we do it again:
+```{r}
+rmp2 <- repclust_mean_pair_func(pp_new) %>%
+  filter(repuclust %in% c(repuclust[1], inferred_repuclust[1]),
+         inferred_repuclust %in% c(repuclust[1], inferred_repuclust[1])
+         )
+
+```
+
+OK,  I think I have a clear enough picture of this now to write a function to do the 
+calculations and return a list which I can then turn into an `ape` phylo object.
+
