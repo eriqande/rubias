@@ -41,7 +41,8 @@
 #' This we can do pretty easily, but wanted to get the proportions done and out there first.  Send eric some
 #' email if you really need individual specific output and he will prioritize it.
 #' @examples
-#' ale_dev <- assess_reference_loo(alewife, 17)
+#' # very small number of reps so it is quick enough for example
+#' ale_dev <- assess_reference_loo(alewife, 17, reps = 5)
 #'
 #' @export
 assess_reference_loo <- function(reference, gen_start_col, reps = 50, mixsize = 100, seed = 5,

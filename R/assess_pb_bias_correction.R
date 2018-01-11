@@ -46,7 +46,9 @@
 #' unlike \code{mse}, this demonstrates the direction of the bias.
 #'
 #' @examples
+#' \dontrun{
 #' ale_bias <- assess_pb_bias_correction(alewife, 17)
+#' }
 #'
 #' @export
 assess_pb_bias_correction <- function(reference, gen_start_col, seed = 5,

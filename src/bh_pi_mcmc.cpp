@@ -40,6 +40,7 @@ using namespace Rcpp;
 //' collections should be in the same order as RU_vec.
 //'
 //' @examples
+//' \dontrun{
 //' params <- tcf2param_list(alewife, 15)
 //' logl <- geno_logL(params)
 //' SL <- apply(exp(logl), 2, function(x) x/sum(x))
@@ -47,6 +48,7 @@ using namespace Rcpp;
 //' lambda_omega <- rep(1/params$C, params$C)
 //' lambda_rho <- rep(1/(length(params$RU_starts)-1), length(params$RU_starts)-1 )
 //' test_bh_mcmc <- gsi_mcmc_2(SL, lambda_rho, lambda_omega, lambda_rho, lambda_omega, 10000, 2500, 50, 50, 50, 50, params$RU_starts, params$RU_vec, avg_correct)
+//' }
 //'
 //' @return \code{gsi_mcmc_2} returns a nested list of MCMC results.
 //'
@@ -289,12 +291,14 @@ List gsi_mcmc_2(NumericMatrix SL, NumericVector Rho_init, NumericVector Omega_in
 //' delineated in RU_starts
 //'
 //' @examples
+//' \dontrun{
 //' params <- tcf2param_list(alewife, 15)
 //' logl <- geno_logL(params)
 //' SL <- apply(exp(logl), 2, function(x) x/sum(x))
 //' lambda_omega <- rep(1/params$C, params$C)
 //' lambda_rho <- rep(1/(length(params$RU_starts)-1), length(params$RU_starts)-1 )
 //' test_bh_mcmc <- gsi_mcmc_bh(SL, lambda_rho, lambda_omega, lambda_rho, lambda_omega, 10000, 2500, 50, 50, 50, 50, params$RU_starts, params$RU_vec, avg_correct)
+//' }
 //'
 //' @keywords internal
 //' @return \code{gsi_mcmc_2} returns a nested list of MCMC results.

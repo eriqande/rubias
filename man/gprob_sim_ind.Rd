@@ -30,9 +30,10 @@ result of a single random draw from the genotypes of all individuals in the coll
 Gene copies and loci are therefore not independent.
 }
 \examples{
+\dontrun{
 example(tcf2param_list)
 sim_colls <- sample(ale_par_list$C, 1070, replace = T)
 ale_sim_gprobs_ind <- gprob_sim_ind(ale_par_list, sim_colls)
-
+}
 }
 \keyword{internal}

@@ -30,6 +30,8 @@ and the other with two-column structure intact, but with cleaned allele names.
 }
 \examples{
 ## Convert the alewife dataset for further processing
+\dontrun{
 ale_long <- tcf2long(alewife,17)
+}
 }
 \keyword{internal}

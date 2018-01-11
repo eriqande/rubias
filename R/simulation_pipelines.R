@@ -42,12 +42,14 @@
 #' returns the standard MCMC results, as well as the bootstrap-corrected
 #' collection proportions under \code{$mean$bootstrap}
 #' @examples
+#' \dontrun{
 #' reference <- alewife[,-1]
 #' mixture <- alewife[,-1]
 #' gen_start_col <- 14
 #' bh <- ref_and_mix_pipeline(reference, mixture, gen_start_col, method = "BH")
 #' mcmc <- ref_and_mix_pipeline(reference, mixture, gen_start_col, method = "MCMC")
 #' pb <- ref_and_mix_pipeline(reference, mixture, gen_start_col, method = "PB")
+#' }
 #'
 #' @export
 ref_and_mix_pipeline <- function(reference, mixture, gen_start_col, method = "MCMC", reps = 2000, burn_in = 100, sample_int_Pi = 0, sample_int_PofZ = 0, sample_int_omega = 0, sample_int_rho = 0, sample_int_PofR = 0) {
@@ -228,8 +230,9 @@ Hasselman_sim_colls <- function(RU_starts, RU_vec, size = 100) {
 #' @param seed a random seed for simulations
 #'
 #' @examples
+#' \dontrun{
 #' ale_dev <- Hasselman_simulation_pipeline(alewife, 17)
-#'
+#' }
 #' @export
 Hasselman_simulation_pipeline <- function(reference, gen_start_col, seed = 5) {
 
@@ -475,8 +478,9 @@ bootstrap_rho <- function(rho_est, pi_est, D, gen_start_col, niter = 100, reps =
 #' unlike \code{mse}, this demonstrates the direction of the bias.
 #'
 #' @examples
+#' \dontrun{
 #' ale_bias <- bias_comparison(alewife, 17)
-#'
+#' }
 #' @export
 bias_comparison <- function(reference, gen_start_col, seed = 5, nreps = 50, mixsize = 100) {
 

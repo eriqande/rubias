@@ -69,12 +69,14 @@ then samples values of omega scaled by their corresponding rho and the inverse o
 average rate of correct assignment.  It returns the output in a list.
 }
 \examples{
+\dontrun{
 params <- tcf2param_list(alewife, 15)
 logl <- geno_logL(params)
 SL <- apply(exp(logl), 2, function(x) x/sum(x))
 lambda_omega <- rep(1/params$C, params$C)
 lambda_rho <- rep(1/(length(params$RU_starts)-1), length(params$RU_starts)-1 )
 test_bh_mcmc <- gsi_mcmc_bh(SL, lambda_rho, lambda_omega, lambda_rho, lambda_omega, 10000, 2500, 50, 50, 50, 50, params$RU_starts, params$RU_vec, avg_correct)
+}
 
 }
 \keyword{internal}

@@ -29,9 +29,10 @@ of two random draws from the allele count matrix of that locus. Draws within an 
 are performed without replacement, but allele counts are replaced between individuals.
 }
 \examples{
+\dontrun{
 example(tcf2param_list)
 sim_colls <- sample(ale_par_list$C, 1070, replace = T)
 ale_sim_gprobs_gc <- gprob_sim_gc(ale_par_list, sim_colls)
-
+}
 }
 \keyword{internal}

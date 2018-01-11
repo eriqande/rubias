@@ -26,10 +26,11 @@ using namespace Rcpp;
 //' desired collection of origin's reference allele frequencies
 //'
 //' @examples
+//' \dontrun{
 //' example(tcf2param_list)
 //' sim_colls <- sample(ale_par_list$C, 1070, replace = T)
 //' ale_sim_gprobs_gc <- gprob_sim_gc(ale_par_list, sim_colls)
-//'
+//' }
 //' @export
 // [[Rcpp::export]]
 NumericMatrix gprob_sim_gc(List par_list, IntegerVector sim_colls) {
@@ -116,10 +117,11 @@ NumericMatrix gprob_sim_gc(List par_list, IntegerVector sim_colls) {
 //' @keywords internal
 //'
 //' @examples
+//' \dontrun{
 //' example(tcf2param_list)
 //' sim_colls <- sample(ale_par_list$C, 1070, replace = T)
 //' ale_sim_gprobs_ind <- gprob_sim_ind(ale_par_list, sim_colls)
-//'
+//' }
 //' @export
 // [[Rcpp::export]]
 NumericMatrix gprob_sim_ind(List par_list, IntegerVector sim_colls) {
@@ -192,11 +194,13 @@ NumericMatrix gprob_sim_ind(List par_list, IntegerVector sim_colls) {
 //'
 //' @keywords internal
 //' @examples
-//' # If one wanted to simulate the missing data patterns
-//' of a troublesome mixture dataset, one would run tcf2param_list,
-//' selecting samp_type = "mixture", then draw sim_miss from
-//' the mixture individual genotype list
 //'
+//' # If one wanted to simulate the missing data patterns
+//' # of a troublesome mixture dataset, one would run tcf2param_list,
+//' # selecting samp_type = "mixture", then draw sim_miss from
+//' # the mixture individual genotype list
+//'
+//' \dontrun{
 //' drawn <- mixture_draw(alewife, rhos = c(1/3, 1/3, 1/3),N = 100)
 //' ref <- drawn$reference
 //' mix <- drawn$mix
@@ -204,6 +208,7 @@ NumericMatrix gprob_sim_ind(List par_list, IntegerVector sim_colls) {
 //' sim_colls <- sample(params$C, 1070, replace = T)
 //' sim_miss <- sample(length(params$coll), 1070, replace = T)
 //' ale_sim_gprobs_miss <- gprob_sim_gc_missing(params, sim_colls, sim_miss)
+//' }
 //' @export
 // [[Rcpp::export]]
 NumericMatrix gprob_sim_gc_missing(List par_list, IntegerVector sim_colls, IntegerVector sim_missing) {

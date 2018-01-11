@@ -38,6 +38,7 @@
 #' collections should be in the same order as RU_vec.
 #'
 #' @examples
+#' \dontrun{
 #' params <- tcf2param_list(alewife, 15)
 #' logl <- geno_logL(params)
 #' SL <- apply(exp(logl), 2, function(x) x/sum(x))
@@ -45,6 +46,7 @@
 #' lambda_omega <- rep(1/params$C, params$C)
 #' lambda_rho <- rep(1/(length(params$RU_starts)-1), length(params$RU_starts)-1 )
 #' test_bh_mcmc <- gsi_mcmc_2(SL, lambda_rho, lambda_omega, lambda_rho, lambda_omega, 10000, 2500, 50, 50, 50, 50, params$RU_starts, params$RU_vec, avg_correct)
+#' }
 #'
 #' @return \code{gsi_mcmc_2} returns a nested list of MCMC results.
 #'
@@ -99,12 +101,14 @@ gsi_mcmc_2 <- function(SL, Rho_init, Omega_init, lambda_rho, lambda_omega, reps,
 #' delineated in RU_starts
 #'
 #' @examples
+#' \dontrun{
 #' params <- tcf2param_list(alewife, 15)
 #' logl <- geno_logL(params)
 #' SL <- apply(exp(logl), 2, function(x) x/sum(x))
 #' lambda_omega <- rep(1/params$C, params$C)
 #' lambda_rho <- rep(1/(length(params$RU_starts)-1), length(params$RU_starts)-1 )
 #' test_bh_mcmc <- gsi_mcmc_bh(SL, lambda_rho, lambda_omega, lambda_rho, lambda_omega, 10000, 2500, 50, 50, 50, 50, params$RU_starts, params$RU_vec, avg_correct)
+#' }
 #'
 #' @keywords internal
 #' @return \code{gsi_mcmc_2} returns a nested list of MCMC results.
@@ -143,8 +147,10 @@ gsi_mcmc_bh <- function(SL, Rho_init, Omega_init, lambda_rho, lambda_omega, reps
 #' genotype, given the allele counts in that collection
 #'
 #' @examples
+#' \dontrun{
 #' example(tcf2param_list)
 #' ale_glL <- geno_logL(ale_par_list)
+#' }
 #' @export
 geno_logL <- function(par_list) {
     .Call('_rubias_geno_logL', PACKAGE = 'rubias', par_list)
@@ -168,8 +174,10 @@ geno_logL <- function(par_list) {
 #' genotype, given the allele counts in that collection
 #'
 #' @examples
+#' \dontrun{
 #' example(tcf2param_list)
 #' ale_glL <- geno_logL(ale_par_list)
+#' }
 #' @export
 geno_logL_ssq <- function(par_list) {
     .Call('_rubias_geno_logL_ssq', PACKAGE = 'rubias', par_list)
@@ -259,10 +267,11 @@ samp_from_mat <- function(M) {
 #' desired collection of origin's reference allele frequencies
 #'
 #' @examples
+#' \dontrun{
 #' example(tcf2param_list)
 #' sim_colls <- sample(ale_par_list$C, 1070, replace = T)
 #' ale_sim_gprobs_gc <- gprob_sim_gc(ale_par_list, sim_colls)
-#'
+#' }
 #' @export
 gprob_sim_gc <- function(par_list, sim_colls) {
     .Call('_rubias_gprob_sim_gc', PACKAGE = 'rubias', par_list, sim_colls)
@@ -292,10 +301,11 @@ gprob_sim_gc <- function(par_list, sim_colls) {
 #' @keywords internal
 #'
 #' @examples
+#' \dontrun{
 #' example(tcf2param_list)
 #' sim_colls <- sample(ale_par_list$C, 1070, replace = T)
 #' ale_sim_gprobs_ind <- gprob_sim_ind(ale_par_list, sim_colls)
-#'
+#' }
 #' @export
 gprob_sim_ind <- function(par_list, sim_colls) {
     .Call('_rubias_gprob_sim_ind', PACKAGE = 'rubias', par_list, sim_colls)
@@ -322,11 +332,13 @@ gprob_sim_ind <- function(par_list, sim_colls) {
 #'
 #' @keywords internal
 #' @examples
-#' # If one wanted to simulate the missing data patterns
-#' of a troublesome mixture dataset, one would run tcf2param_list,
-#' selecting samp_type = "mixture", then draw sim_miss from
-#' the mixture individual genotype list
 #'
+#' # If one wanted to simulate the missing data patterns
+#' # of a troublesome mixture dataset, one would run tcf2param_list,
+#' # selecting samp_type = "mixture", then draw sim_miss from
+#' # the mixture individual genotype list
+#'
+#' \dontrun{
 #' drawn <- mixture_draw(alewife, rhos = c(1/3, 1/3, 1/3),N = 100)
 #' ref <- drawn$reference
 #' mix <- drawn$mix
@@ -334,6 +346,7 @@ gprob_sim_ind <- function(par_list, sim_colls) {
 #' sim_colls <- sample(params$C, 1070, replace = T)
 #' sim_miss <- sample(length(params$coll), 1070, replace = T)
 #' ale_sim_gprobs_miss <- gprob_sim_gc_missing(params, sim_colls, sim_miss)
+#' }
 #' @export
 gprob_sim_gc_missing <- function(par_list, sim_colls, sim_missing) {
     .Call('_rubias_gprob_sim_gc_missing', PACKAGE = 'rubias', par_list, sim_colls, sim_missing)
@@ -358,11 +371,12 @@ gprob_sim_gc_missing <- function(par_list, sim_colls, sim_missing) {
 #' and traces of the pi values and change in pi in each iteration
 #'
 #' @examples
+#' \dontrun{
 #' params <- tcf2param_list(alewife, 15)
 #' logl <- geno_logL(params)
 #' SL <- apply(exp(logl), 2, function(x) x/sum(x))
 #' test_em <- gsi_em_1(SL, rep(1/params$C, params$C), max_iterations = 10^6, tolerance = 10^-7, return_progression = TRUE)
-#'
+#' }
 #' @export
 gsi_em_1 <- function(SL, Pi_init, max_iterations, tolerance, return_progression) {
     .Call('_rubias_gsi_em_1', PACKAGE = 'rubias', SL, Pi_init, max_iterations, tolerance, return_progression)
@@ -394,12 +408,13 @@ gsi_em_1 <- function(SL, Pi_init, max_iterations, tolerance, return_progression)
 #' samples taken from the Markov chain at intervals of \code{sample_int_}(variable) steps.
 #'
 #' @examples
+#' \dontrun{
 #' params <- tcf2param_list(alewife, 15)
 #' logl <- geno_logL(params)
 #' SL <- apply(exp(logl), 2, function(x) x/sum(x))
 #' lambda <- rep(1/params$C, params$C)
 #' mcmc <- gsi_mcmc_1(SL, lambda, lambda, 10000, 2500, 50, 50)
-#'
+#' }
 #' @export
 gsi_mcmc_1 <- function(SL, Pi_init, lambda, reps, burn_in, sample_int_Pi, sample_int_PofZ) {
     .Call('_rubias_gsi_mcmc_1', PACKAGE = 'rubias', SL, Pi_init, lambda, reps, burn_in, sample_int_Pi, sample_int_PofZ)

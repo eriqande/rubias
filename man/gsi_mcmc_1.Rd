@@ -39,11 +39,12 @@ Using a matrix of scaled likelihoods, this function samples values of pi and the
 for all the individuals.  It returns the output in a list.
 }
 \examples{
+\dontrun{
 params <- tcf2param_list(alewife, 15)
 logl <- geno_logL(params)
 SL <- apply(exp(logl), 2, function(x) x/sum(x))
 lambda <- rep(1/params$C, params$C)
 mcmc <- gsi_mcmc_1(SL, lambda, lambda, 10000, 2500, 50, 50)
-
+}
 }
 \keyword{internal}

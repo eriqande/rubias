@@ -61,12 +61,14 @@ and "BH" uses the misassignment-scaled, hierarchial MCMC.
 All methods use a uniform 1/(# collections or RUs) prior for pi/omega and rho.
 }
 \examples{
+\dontrun{
 reference <- alewife[,-1]
 mixture <- alewife[,-1]
 gen_start_col <- 14
 bh <- ref_and_mix_pipeline(reference, mixture, gen_start_col, method = "BH")
 mcmc <- ref_and_mix_pipeline(reference, mixture, gen_start_col, method = "MCMC")
 pb <- ref_and_mix_pipeline(reference, mixture, gen_start_col, method = "PB")
+}
 
 }
 \keyword{internal}

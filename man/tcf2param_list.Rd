@@ -47,7 +47,9 @@ describing the structure of the dataset, as well as the presence of missing data
 enabling verification of proper data conversion.
 }
 \examples{
+\dontrun{
 ale_par_list <- tcf2param_list(alewife, 17)
+}
 
 }
 \keyword{internal}

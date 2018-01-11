@@ -54,7 +54,8 @@ method based on the rate of misassignment, which takes into account both genetic
 and uneven collection distribution.
 }
 \examples{
+\dontrun{
 ale_bias <- bias_comparison(alewife, 17)
-
+}
 }
 \keyword{internal}

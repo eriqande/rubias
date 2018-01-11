@@ -37,8 +37,10 @@ it will be upwardly biased, and vice versa. The inverse of this vector is used
 to scale Dirichlet draws of \code{omega} during misassignment-scaled MCMC.
 }
 \examples{
+\dontrun{
 params <- tcf2param_list(alewife, 17)
 SL <- geno_logL(params) \%>\% exp() \%>\% apply(2, function(x) x/sum(x))
 correct <- avg_coll2correctRU(SL, params$coll, params$RU_starts, params$RU_vec)
+}
 }
 \keyword{internal}

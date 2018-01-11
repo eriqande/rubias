@@ -94,7 +94,7 @@ assess_reference_mc <- function(reference, gen_start_col, reps = 50, mixsize = 1
       c <- 1
       for (coll in (params$RU_starts[ru] + 1):params$RU_starts[ru + 1]) {
         omega[params$RU_vec[coll]] <- min(coll_max_draw[params$RU_vec[coll]]/mixsize,
-                                          (rho[ru] - om_sum) * rbeta(1, 1.5, 1.5 * (length((params$RU_starts[ru] + 1):params$RU_starts[ru+1]) - c)))
+                                          (rho[ru] - om_sum) * rbeta(1, 1.5, 1.5 * (length((params$RU_starts[ru] + 1):params$RU_starts[ru + 1]) - c)))
         om_sum <- om_sum + omega[params$RU_vec[coll]]
         c <- c + 1
       }
@@ -107,7 +107,7 @@ assess_reference_mc <- function(reference, gen_start_col, reps = 50, mixsize = 1
     omega <- omega/sum(omega)
     true_n <- round(omega * mixsize,0)
     names(true_n) <- levels(reference$collection)
-    list(rho=rho, omega = omega, true_n = true_n)
+    list(rho = rho, omega = omega, true_n = true_n)
   })
 
   # now extract the true values of rho and omega from that into some data frames
@@ -195,7 +195,7 @@ assess_reference_mc <- function(reference, gen_start_col, reps = 50, mixsize = 1
   #### Now, join the estimates to the truth and coerce factors back to characters ####
   # first off, reps_and_colls must be converted to characters
   reps_and_colls_char <- reps_and_colls %>%
-    mutate(repunit = as.character(repunit),
+    dplyr::mutate(repunit = as.character(repunit),
            collection = as.character(collection))
 
   ret <- dplyr::left_join(true_omega_df, true_sim_nums) %>%

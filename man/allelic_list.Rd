@@ -25,11 +25,12 @@ Uses the allele counts from \code{a_freq_list} and the cleaned short-format outp
 \code{tcf2long} to generate a nested list of individual genotypes for each locus
 }
 \examples{
+\dontrun{
 example(a_freq_list)
 ale_cs <- tcf2long(alewife, 17)$clean_short
 # Get the vectors of gene copies a and b for all loci in integer index form
 ale_alle_list <- allelic_list(ale_cs, ale_ac)$int
-
+}
 
 }
 \keyword{internal}

@@ -61,6 +61,8 @@ expected for the input data set, and parametric bootstrapping is an empirical me
 for the removal of any existing bias.
 }
 \examples{
+\dontrun{
 ale_bias <- assess_pb_bias_correction(alewife, 17)
+}
 
 }
