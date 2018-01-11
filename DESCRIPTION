@@ -1,14 +1,17 @@
 Package: rubias
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Bayesian inference from the conditional genetic stock identification model
 Version: 0.1.0
 Authors@R: as.person(c(
     "Eric Anderson <eric.anderson@noaa.gov> [aut, cre]", 
     "Ben Moran <moran.ben@husky.neu.edu> [aut]"
   ))
-Maintainer: Who to complain to <yourfault@somewhere.net>
-Description: More about what it does (maybe more than one line)
-License: What license is it under?
+Maintainer: Eric C. Anderson <eric.anderson@noaa.gov>
+Description: This package implements Bayesian inference for the conditional genetic 
+    stock identification model.  It allows inference of mixed fisheries and also 
+    simulation of mixtures to predict accuracy.  A full description of the underlying
+    methods are in review at CJFAS.
+License: CC0
 LazyData: TRUE
 Depends:
     R (>= 3.0)
@@ -18,6 +21,7 @@ Imports:
     gtools,
     magrittr,
     Rcpp (>= 0.12.5),
+    readr,
     rlang,
     stringr,
     tibble,

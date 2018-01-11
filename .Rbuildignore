@@ -1,3 +1,10 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
 ^docs$
+^development$
+^R-main$
+^R-presentation$
+^README_cache$
+^README\.*$
+^readme-figs$
+^rubias_bib\.bibtex$
