@@ -62,7 +62,7 @@ self_assign <- function(reference, gen_start_col, preCompiledParams = NULL,
     dplyr::select(indiv, collection, repunit) %>%
     dplyr::left_join(logl_tibble, by = "indiv") %>%
     dplyr::mutate(indiv = factor(indiv, levels = unique(indiv))) %>% # this lets us keep indivs in input order
-    dplyr::arrange(indiv, desc(log_likelihood)) %>%
+    dplyr::arrange(indiv, dplyr::desc(log_likelihood)) %>%
     dplyr::mutate(indiv = as.character(indiv))  %>% # when done, coerce indiv back to character
     dplyr::mutate(z_score = (log_likelihood - expected_mean) / sqrt(expected_var)) %>%  # compute z_score
     dplyr::select(-expected_mean, -expected_var)  # remove the columns used for the z_score calculation

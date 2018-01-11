@@ -45,7 +45,15 @@
 #' avg_correct <- avg_coll2correctRU(SL, params$coll,params$RU_starts, params$RU_vec)
 #' lambda_omega <- rep(1/params$C, params$C)
 #' lambda_rho <- rep(1/(length(params$RU_starts)-1), length(params$RU_starts)-1 )
-#' test_bh_mcmc <- gsi_mcmc_2(SL, lambda_rho, lambda_omega, lambda_rho, lambda_omega, 10000, 2500, 50, 50, 50, 50, params$RU_starts, params$RU_vec, avg_correct)
+#' test_bh_mcmc <- gsi_mcmc_2(SL,
+#'                            lambda_rho,
+#'                            lambda_omega,
+#'                            lambda_rho,
+#'                            lambda_omega,
+#'                            10000, 2500, 50, 50, 50, 50,
+#'                            params$RU_starts,
+#'                            params$RU_vec,
+#'                            avg_correct)
 #' }
 #'
 #' @return \code{gsi_mcmc_2} returns a nested list of MCMC results.
@@ -107,7 +115,14 @@ gsi_mcmc_2 <- function(SL, Rho_init, Omega_init, lambda_rho, lambda_omega, reps,
 #' SL <- apply(exp(logl), 2, function(x) x/sum(x))
 #' lambda_omega <- rep(1/params$C, params$C)
 #' lambda_rho <- rep(1/(length(params$RU_starts)-1), length(params$RU_starts)-1 )
-#' test_bh_mcmc <- gsi_mcmc_bh(SL, lambda_rho, lambda_omega, lambda_rho, lambda_omega, 10000, 2500, 50, 50, 50, 50, params$RU_starts, params$RU_vec, avg_correct)
+#' test_bh_mcmc <- gsi_mcmc_bh(SL,
+#'                             lambda_rho,
+#'                             lambda_omega,
+#'                             lambda_rho,
+#'                             lambda_omega,
+#'                             10000, 2500, 50, 50, 50, 50,
+#'                             params$RU_starts,
+#'                             params$RU_vec)
 #' }
 #'
 #' @keywords internal
@@ -375,7 +390,11 @@ gprob_sim_gc_missing <- function(par_list, sim_colls, sim_missing) {
 #' params <- tcf2param_list(alewife, 15)
 #' logl <- geno_logL(params)
 #' SL <- apply(exp(logl), 2, function(x) x/sum(x))
-#' test_em <- gsi_em_1(SL, rep(1/params$C, params$C), max_iterations = 10^6, tolerance = 10^-7, return_progression = TRUE)
+#' test_em <- gsi_em_1(SL,
+#'                     rep(1/params$C, params$C),
+#'                     max_iterations = 10^6,
+#'                     tolerance = 10^-7,
+#'                     return_progression = TRUE)
 #' }
 #' @export
 gsi_em_1 <- function(SL, Pi_init, max_iterations, tolerance, return_progression) {

@@ -77,7 +77,15 @@ SL <- apply(exp(logl), 2, function(x) x/sum(x))
 avg_correct <- avg_coll2correctRU(SL, params$coll,params$RU_starts, params$RU_vec)
 lambda_omega <- rep(1/params$C, params$C)
 lambda_rho <- rep(1/(length(params$RU_starts)-1), length(params$RU_starts)-1 )
-test_bh_mcmc <- gsi_mcmc_2(SL, lambda_rho, lambda_omega, lambda_rho, lambda_omega, 10000, 2500, 50, 50, 50, 50, params$RU_starts, params$RU_vec, avg_correct)
+test_bh_mcmc <- gsi_mcmc_2(SL,
+                           lambda_rho,
+                           lambda_omega,
+                           lambda_rho,
+                           lambda_omega,
+                           10000, 2500, 50, 50, 50, 50,
+                           params$RU_starts,
+                           params$RU_vec,
+                           avg_correct)
 }
 
 }

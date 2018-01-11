@@ -36,11 +36,12 @@
 #' reporting unit proportions.
 #'
 #' @examples
+#' \dontrun{
 #' mcmc <- infer_mixture(reference = chinook,
 #'                       mixture = chinook_mix,
 #'                       gen_start_col = 5,
 #'                       method = "MCMC")
-#'
+#' }
 #' @export
 infer_mixture <- function(reference,
                           mixture,
@@ -281,7 +282,7 @@ infer_mixture <- function(reference,
         names(little_mix_forpb)[gen_start_col:ncol(little_mix_forpb)] <- names(D)[gen_start_col:ncol(D)]
 
         ref_tmp <- D %>%
-          filter(sample_type == "reference") %>%
+          dplyr::filter(sample_type == "reference") %>%
           dplyr::mutate(repunit = as.character(repunit), collection = as.character(collection))
 
         mix_tmp <- little_mix_forpb %>%

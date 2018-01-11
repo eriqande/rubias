@@ -10,7 +10,7 @@ Maintainer: Eric C. Anderson <eric.anderson@noaa.gov>
 Description: This package implements Bayesian inference for the conditional genetic 
     stock identification model.  It allows inference of mixed fisheries and also 
     simulation of mixtures to predict accuracy.  A full description of the underlying
-    methods are in review at CJFAS.
+    methods is in review at CJFAS.
 License: CC0
 LazyData: TRUE
 Depends:

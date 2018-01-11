@@ -42,8 +42,9 @@
 #' \code{"const"}, \code{"scaled_const"}, and \code{"empirical"}. See \code{?list_diploid_params}
 #' for method details.
 #' @examples
+#' \dontrun{
 #' ale_dev <- assess_reference_mc(alewife, 17)
-#'
+#' }
 #' @export
 assess_reference_mc <- function(reference, gen_start_col, reps = 50, mixsize = 100, seed = 5,
                                 alpha_repunit = 1.5, alpha_collection = 1.5, min_remaining = 5,

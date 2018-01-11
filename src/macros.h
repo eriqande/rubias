@@ -42,11 +42,12 @@ if(a1 < 0 || a2 < 0) {result = 1.0;} else {                                     
   double nsub = LOO * (1 + (a1 == a2));                                                                             \
   double dsub = LOO * 2;                                                                                            \
   result = (y1 - nsub) * (y2 - nsub + (a1 == a2)) * (1 + (a1 != a2)) / ((n - dsub) * (n + 1 - dsub));               \
-  if(result <= 0 || std::isnan(result)) printf("y1 = %f y2 = %f result = %f a1 = %d a2 = %d i = %d  l = %d  c = %d nsub = %f dsub = %f rando = %f \n", y1, y2, result, a1, a2, i, l, c, nsub, dsub, rando);\
+  if(result <= 0 || std::isnan(result)) stop("result < 0 or NAN in GPROB_DIP_FROM_SIM macro");                      \
 }                                                                                                                   \
 }                                                              \
 
-
+// This is what we had instead of the stop() above.  We used this to debug, but CRAN won't allow it.
+// printf("y1 = %f y2 = %f result = %f a1 = %d a2 = %d i = %d  l = %d  c = %d nsub = %f dsub = %f rando = %f \n", y1, y2, result, a1, a2, i, l, c, nsub, dsub, rando)
 
 // This is a little macro used while summing means and vars over loci for the z-score calculations.
 // If the locus is missing, it returns 0.0. Otherwise it returns a 1.0

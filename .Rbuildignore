@@ -8,3 +8,6 @@
 ^README\.*$
 ^readme-figs$
 ^rubias_bib\.bibtex$
+^README-data-structures\.Rmd$
+^README\.Rmd$
+^TODO\.md$

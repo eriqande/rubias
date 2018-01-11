@@ -163,8 +163,7 @@ ref_and_mix_pipeline <- function(reference, mixture, gen_start_col, method = "MC
                       sample_int_PofZ = sample_int_PofZ,
                       sample_int_PofR = sample_int_PofR,
                       RU_starts = params$RU_starts,
-                      RU_vec = params$RU_vec,
-                      coll2correctRU = ref_correctassign)
+                      RU_vec = params$RU_vec)
   }
 out
 }
@@ -337,10 +336,10 @@ Hasselman_simulation_pipeline <- function(reference, gen_start_col, seed = 5) {
 
   rho_data <- sim_data %>%
     dplyr::group_by(iter, repunit) %>%
-    dplyr::summarise(true_rho = first(rho),
-                     bh_rho = first(bh_rho),
+    dplyr::summarise(true_rho = dplyr::first(rho),
+                     bh_rho = dplyr::first(bh_rho),
                      mcmc_rho = sum(mc_pi),
-                     pb_rho = first(pb_rho))
+                     pb_rho = dplyr::first(pb_rho))
 
   rho_data <- rho_data %>%
     tidyr::gather(key = "method", value = "rho_est", bh_rho:pb_rho)

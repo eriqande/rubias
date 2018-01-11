@@ -38,7 +38,7 @@ NULL
 #' SNP data from chinook reference populations
 #'
 #' Chinook salmon baseline data similar to that which can be
-#' downloaded from \link{http://datadryad.org/resource/doi:10.5061/dryad.574sv/1}.
+#' downloaded from \url{http://datadryad.org/resource/doi:10.5061/dryad.574sv/1}.
 #' This data set includes 91 SNPs and 7301 fish and is what the Dryad data became
 #' after we converted from TaqMan to SNPtype assays (being forced to toss some loci)
 #' and tossed out a bunch of lousy historical
@@ -54,7 +54,7 @@ NULL
 #' "Locus.1" and "Locus.2" for the first and second gene copies at that locus.  For example,
 #' "Ots_104569-86.1" and  "Ots_104569-86.2".  The locus columns are ints and missing data
 #' is denoted by NA.
-#' @source \link{http://datadryad.org/resource/doi:10.5061/dryad.574sv/1}
+#' @source \url{http://datadryad.org/resource/doi:10.5061/dryad.574sv/1}
 #' @docType data
 #' @name chinook
 NULL
@@ -118,5 +118,34 @@ NULL
 #' @source Made it up!
 #' @docType data
 #' @name perfect_chinook_mix
+NULL
+
+
+#' a vector that gives a desired sort order of the chinook collections
+#'
+#' This is just an example of what one would use as levels in order to
+#' get the \code{\link{chinook}} collections in a desired sort order after
+#' analysis.  The issue here is collection in the input data frame to most
+#' functions must be a character vector, not a factor.  But, after analysis
+#' you can always make them a factor again and use a vector like this
+#' one to specify the levels.
+#' @source Made it up!
+#' @docType data
+#' @name chinook_collection_levels
+NULL
+
+
+
+#' a vector that gives a desired sort order of the chinook repunits
+#'
+#' This is just an example of what one would use as levels in order to
+#' get the \code{\link{chinook}} repunits in a desired sort order after
+#' analysis.  The issue here is that repunit in the input data frame to most
+#' functions must be a character vector, not a factor.  But, after analysis
+#' you can always make them a factor again and use a vector like this
+#' one to specify the levels.
+#' @source Made it up!
+#' @docType data
+#' @name chinook_repunit_levels
 NULL
 

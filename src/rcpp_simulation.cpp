@@ -140,7 +140,7 @@ NumericMatrix gprob_sim_ind(List par_list, IntegerVector sim_colls) {
   IntegerVector CA = as<IntegerVector>(par_list["CA"]);
   NumericVector DP = as<NumericVector>(par_list["DP"]);
   NumericVector sum_DP = as<NumericVector>(par_list["sum_DP"]);
-  double rando = 0.0, sum, gp;
+  double sum, gp;
   NumericMatrix out(C,N);
 
 

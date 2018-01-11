@@ -82,10 +82,61 @@
 #'
 #' @docType package
 #' @name rubias
+#' @importFrom stats rbeta rmultinom var
+#' @importFrom utils write.table
 #' @importFrom Rcpp evalCpp
 #' @useDynLib rubias
 NULL
 
 
+# quiets concerns of R CMD check re: the . and other column names
+# that appear in dplyr chains
+if(getRversion() >= "2.15.1")  {
+  utils::globalVariables(
+    c(
+      ".",
+      "allele",
+      "bh_rho",
+      "bias",
+      "coll_int",
+      "collection",
+      "collection_scenario",
+      "dev",
+      "expected_mean",
+      "expected_var",
+      "indiv",
+      "inferred_collection",
+      "inferred_repunit",
+      "iter",
+      "locus",
+      "log_likelihood",
+      "mc_pi",
+      "mean_bias",
+      "mean_prop_bias",
+      "method",
+      "mle",
+      "mse",
+      "n",
+      "normo_logl",
+      "omega",
+      "pb_rho",
+      "pofz",
+      "post_mean",
+      "prop_bias",
+      "repunit",
+      "repunit_scenario",
+      "rho",
+      "rho_est",
+      "rho_mcmc",
+      "rho_pb",
+      "sample_type",
+      "scaled_likelihood",
+      "simulated_collection",
+      "simulated_repunit",
+      "times_seen",
+      "true_rho"
+    )
+  )
+}
 
 

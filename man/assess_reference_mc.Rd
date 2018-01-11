@@ -62,6 +62,7 @@ rejections based on \code{min_remaining} occur. This is a reasonable certainty w
 sufficient reference collection sizes relative to the desired mixture size.
 }
 \examples{
+\dontrun{
 ale_dev <- assess_reference_mc(alewife, 17)
-
+}
 }

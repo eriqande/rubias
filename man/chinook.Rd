@@ -16,11 +16,11 @@ The remaining columns are two columns for each locus.  These columns are named l
 "Ots_104569-86.1" and  "Ots_104569-86.2".  The locus columns are ints and missing data
 is denoted by NA.}
 \source{
-\link{http://datadryad.org/resource/doi:10.5061/dryad.574sv/1}
+\url{http://datadryad.org/resource/doi:10.5061/dryad.574sv/1}
 }
 \description{
 Chinook salmon baseline data similar to that which can be
-downloaded from \link{http://datadryad.org/resource/doi:10.5061/dryad.574sv/1}.
+downloaded from \url{http://datadryad.org/resource/doi:10.5061/dryad.574sv/1}.
 This data set includes 91 SNPs and 7301 fish and is what the Dryad data became
 after we converted from TaqMan to SNPtype assays (being forced to toss some loci)
 and tossed out a bunch of lousy historical
