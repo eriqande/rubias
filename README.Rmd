@@ -4,15 +4,14 @@ date: '`r format(Sys.time(), "%d %B, %Y")`'
 output:
   github_document:
     toc: yes
-  html_notebook:
-    toc: yes
-    toc_float: yes
 bibliography: rubias_bib.bibtex
 ---
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
-
 [![DOI](https://zenodo.org/badge/63456523.svg)](https://zenodo.org/badge/latestdoi/63456523)
+[![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](http://www.repostatus.org/badges/latest/active.svg)](http://www.repostatus.org/#active)
+[![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/rubias)](https://cran.r-project.org/package=rubias)
+
 
 ```{r, echo = FALSE, message=FALSE}
 knitr::opts_chunk$set(
@@ -692,7 +691,7 @@ These are obtained using `method = "PB"` in `infer_mixture()`.  When invoked, th
 regular MCMC results as before, but also will population the `bootstrapped_proportions` field
 of the output.  Doing so takes a little bit longer, computationally, because there is a good deal 
 of simulation involved:
-```{r infer_mixture_pb, eval=TRUE}
+```{r infer_mixture_pb, eval=TRUE, cache=TRUE}
 mix_est_pb <- infer_mixture(reference = chinook, 
                          mixture = chinook_mix, 
                          gen_start_col = 5,
@@ -701,7 +700,7 @@ mix_est_pb <- infer_mixture(reference = chinook,
 
 And now we can compare the estimates, showing here the 10 most prevalent
 repunits, in the `rec1` fishery:
-```{r, eval=TRUE}
+```{r, eval=FALSE}
 mix_est_pb$mixing_proportions %>%
   group_by(mixture_collection, repunit) %>%
   summarise(repprop = sum(pi)) %>%
