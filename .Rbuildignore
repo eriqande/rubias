@@ -11,4 +11,6 @@
 ^README-data-structures\.Rmd$
 ^README\.Rmd$
 ^TODO\.md$
-^.travis.yml
+^cache$
+^\.travis\.yml$
+^cran-comments\.md$

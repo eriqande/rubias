@@ -3,18 +3,13 @@
 \docType{data}
 \name{blueback}
 \alias{blueback}
-\title{Microsat data from blueback herring reference populations.}
-\format{A tbl_df-ed (from dplyr) data frame with XXX rows and YY variables. The relevant variables for
-analyses here are:
-\describe{
-  \item{Field_Num}{unique identifier for each bird}
-  \item{Isotope.Value}{hydrogen isotope ratios measured in the bird's feather}
-  \item{lat}{latitude of the bird's breeding/sampling location}
-  \item{long}{latitude of the bird's breeding/sampling location}
-}}
+\title{Microsat data from blueback herring reference populations}
+\format{A tibble.}
 \source{
-Got it off GitHub, but must be at Dryad now too...
+http://datadryad.org/resource/doi:10.5061/dryad.80f4f
 }
 \description{
-gotta say more about it
+Standard two-column genetic data with lots of other columns preceding it.
+Can be fed directly into rubias because it has at least the columns sample_type,
+collection, repunit and indiv.
 }

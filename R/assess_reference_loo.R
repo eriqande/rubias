@@ -28,18 +28,17 @@
 #' second one must be one of "dirichlet", "ppn", or "cnt", according to whether you wish to
 #' specify dirichlet parameters, or proportions, or exact counts, respectively, for each population.
 #' If you want to make multiple simulations, pass in a list of data frames or of individual dirichlet parameters.
+#' For examples, see \code{\link{sim_spec_examples}}.
 #' @param alpha_collection The dirichlet parameter for simulating proportions of collections within reporting units. Default = 1.5.
 #' If this is a data frame then the first column must be "collection" and the second must be one of
 #' "dirichlet", "ppn", "cnt", "sub_dirichlet", "sub_ppn".  If you want to provide multiple different
 #' scenarios.  You can pass them in as a list.  If alpha_repunit or alpha_collection is a list with length
 #' greater than 1, the shorter will be recycled.
+#' For examples, see \code{\link{sim_spec_examples}}.
 #' @param alle_freq_prior a one-element named list specifying the prior to be used when
 #' generating Dirichlet parameters for genotype likelihood calculations. Valid methods include
 #' \code{"const"}, \code{"scaled_const"}, and \code{"empirical"}. See \code{?list_diploid_params}
 #' for method details.
-#' @details We still need to implement storage of individual-specific results for the simulated individuals.
-#' This we can do pretty easily, but wanted to get the proportions done and out there first.  Send eric some
-#' email if you really need individual specific output and he will prioritize it.
 #' @examples
 #' # very small number of reps so it is quick enough for example
 #' ale_dev <- assess_reference_loo(alewife, 17, reps = 5)

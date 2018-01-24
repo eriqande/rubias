@@ -1,0 +1,145 @@
+---
+title: "An Explanation of the Underlying Data Structures in rubias"
+author: "Eric C. Anderson"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE, echo = FALSE, message=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+library(tidyverse)
+library(rubias)
+```
+
+In order to be computationally efficient and allow for multiallelic markers, 
+with `rubias` we boil most of the data down to a bunch of integer vectors in a 
+data structure that we operate on with some compiled code.
+
+This document is intended to document that data structure (mostly for Eric's benefit, at this point.
+We should have had a document like this a long time ago).
+
+## The `param_list`
+The basic data structure is what we call a `param_list`. it has the following named elements, which are briefly described here. We
+will describe each in detail in separate sections below.
+
+- `L`: the number of loci, an integer
+- `N`: the number of individuals (integer)  
+- `C`: the number of collections in the reference data set (integer)
+- `A`: the number of alleles at each locus (integer vector of length L)
+- `CA`: the "cumulative number of alleles" at each locus.  For each locus this gives
+the base-0 index of the first allele at the locus (if you were to line all the alleles at
+each locus up one after another.)
+- `coll`: an integer vector of length N that gives the index of the collection that each fish is in.
+- `coll_N`: an integer vector of length C that gives the number of fish in each of the collections
+- `RU_vec`: This is the hardest one to figure out / remember.  Imagine that each collection has an index
+from 1 up to C, and imagine that each collection belongs to a single reporting unit.  Each reporting unit
+is assigned an integer.  Now, sort everything first by reporting unit index and then by collection index.  The
+order that you get is the order of the collections in `RU_vec`.  This vector is a named integer vector. 
+The collections are in the order as described above. The names are the collection names and the values are
+the base-1 index of each collection.  
+- `RU_starts`:  The base-0 index of the starting position of each reporting unit in the `RU_vec` vector.  This is a named integer vector.  For example, the first few entries of the chinook data set are:
+    ```{r}
+    cpar <- tcf2param_list(chinook, 5, summ = FALSE)
+    cpar$RU_starts[1:5]
+    ```
+and if we look at the first 15 elements of `RU_vec` it gives us the names and the indices of 
+the collections in those first 4 listed reporting units:
+    ```{r}
+    cpar$RU_vec[1:15]
+    ```
+- `I`:  an integer vector giving the allelic type of each gene copy carried by each individual. 
+For ploidy = 2 (the only case implemented so far) this vector is of length (N * L * 2).  An entry
+of 0 denotes missing data, and the observed alleles are named 1, 2, ...
+- `AC`: this is a flat integer vector of the counts of alleles of different types in the different
+populations.  It has length C * sum(A) (i.e. the number of collections in the reference
+times that total number of alleles at all the loci.).  This is created by a somewhat
+lengthy process: first the function `reference_allele_counts()` makes a long data frame 
+that has `collection`, `locus`, `allele`, and `counts`.  This then gets turned into a list of matrices 
+in `a_freq_list()`.  One matrix for each collection.  The rows are the different alleles
+and the columns are the different populations.  Then in `list_diploid_params()` that list
+of matrices gets flattened into one long integer vector.  
+One of the weaknesses as I see that now, is that the loci are arranged alphabetically, rather
+than by input order.  We should at least include the names of the loci in the order in which they 
+appear so that we can get back to the loci, if necessary.   The order of the loci coming out
+of this process is used to make sure that it corresponds to the order of the loci in `I`, which
+is good, but not super intuitive.
+At any rate, from the foregoing, it can be deduced that we can index into this vector thus (all
+indexes are base-0): if we want the count of the a-th allele at the l-th locus in the c-th collection
+then we get that by base-0 subscipting `AC` by `[C * CA[l] + c * A[l] + a].  Where `C` is the number
+of collections, `CA` is the cumulative number of alleles, and `A` is the number of alleles at each locus.
+Now it should be clear why we store `CA`---this is where we use it!
+- `sum_AC`:  the sum of the allele counts at each locus for each collection in the reference data set.  (Basically the number of observed gene copies at the locus in the reference data set). This gets computed
+in `list_diploid_params()` from the list of matrices returned by `a_freq_list()`.  It is of length
+L * C. It is a named vector with the names taking `Locus.Collection`, but I don't think those names get
+used at all.  It gets indexed as `[l * C + c]`
+- `DP`:  this is a vector completely parallel to `AC` but in which the prior weights have been added to
+each allele in each collection.  
+- `sum_DP`:  this is the sum of Dirichlet Parameters `DP` for each locus and each collection.  It is parallel
+to `sum_AC`.  
+
+Finally, we have some entries that we should have had from day one, but didn't, so they aren't
+consistently used throughout the code to access the names of entities ordered as they 
+ended up ordered:
+- `indiv_names`
+- `collection_names`
+- `repunit_names`
+- `locus_names`
+
+## How/Where do all these get set?
+
+This is a trickier question than it seems, because things are done slightly differently
+in the different top-level functions.  
+
+### assess_reference_loo() and assess_reference_mc()
+
+In both of these functions, the original data sets gets read in,
+collection and repunit get converted to factors, and then
+the `param_list` is made inside a single function: `tcf2param_list()`.
+
+### assess_pb_bias_correction()
+
+Same as above, this uses `tcf2param_list()` after doing a few other steps
+on the original data frame.
+
+### self_assign()
+
+Uses `tcf2param_list()` unless it is using preCompiledParams so that it can run through
+stuff during infer_mixture to compute the locus-specific means and variances of the log-likelihoods.
+
+
+### infer_mixture()
+
+This is the tough one.  Because we end up doing multiple mixture collections, we couldn't
+simply use `tcf2param_list()` in the function.  Rather, we create a summary for the
+reference sample (keeping track of alleles found in both the reference and the mixture),
+and then we split the mixture samples up by mixture collection and use 
+
+
+## Dealing with 012 matrices
+
+One problem with the current approach is that it is terribly slow when you start to get 
+10K+ SNPs.  It would be much faster to read and store those data in an 012 matrix.  Here is
+how I am thinking I could deal with that:
+
+- For the functions that use `tcf2param_list()` I could just write another function,
+`tcf2param_list_012()`, that took `D` as just a data frame with `sample_type`, `collection`,
+and `repunit` and `indiv`, and then had an 012 matrix with the genetic data in it, with 
+indiv names in the rownames and locus names in the colnames.  Then we just have to deal
+with seeing AC_list and I_list correctly.  _Actually_, looking at it now, I can just do it
+in the same `tcf2param_list()` function.  If the `d012` parameter is not NULL we would:
+
+    1. make `cleaned$long` NULL, and set `cleaned$clean_short` to `D`.
+    2. make the `AC_list` directly from the 012 matrix.  This should be super straightforward.
+       I would probably want to drop monomorphic loci first.
+    3. make the I_list from the 012 matrix
+
+Cool, in order to do all this I should make two new functions: `reference_allele_counts_012` and
+`allelic_list_012`.  That might give me enough insight that I could easily do it for 
+`infer_mixture`, too.  

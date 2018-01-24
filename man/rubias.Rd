@@ -4,90 +4,44 @@
 \name{rubias}
 \alias{rubias}
 \alias{rubias-package}
-\title{rubias: A package for bias correction in hierarchical GSI}
+\title{rubias: Bayesian inference from the conditional genetic stock identification model}
 \description{
-In order to document and counteract the bias presented by uneven hierarchical structure
-in genetic stock identification (GSI), this function takes input reference and mixture
-genetic data, and returns GSI results with and without bias correction options. Tests are
-also included to assess the necessity and validity of correction for a given dataset.
+Read the "rubias-overview" vignette for information on data input formats
+and how to use the package
 }
-\details{
-GSI is often confronted with a hierarchical population structure (i.e. genetic reference
-sets collected at one level, but with sample proportion estimates needed for a higher
-level made up of groups of collections). Conventional GSI obtains higher-level mixture
-proportions by summing the lower-level proportions; however, this may lead to bias when
-reporting units contain different numbers of populations, and misassignment inordinately
-favors those reporting units with higher numbers of collections.
-}
-\section{the \code{rubias} functions}{
+\section{the \code{rubias} main high-level functions}{
 
 
 The following functions are wrappers, designed for user-friendly input and useful output:
 
-\code{\link{ref_and_mix_pipeline}} is used to perform a single case of genetic stock identification.
-It takes independent and mixture datasets (with identical structure) and a choice of
-method, and returns GSI estimates of the mixture proportions and posterior probabilities
-of assignment for the mixture dataset. Options include standard MCMC, bootstrap bias
-correction, and hierarchical assignment-scaled MCMC.
+\code{\link{infer_mixture}} is used to perform genetic stock identification.
+Options include standard MCMC and the parametric bootstrap bias correction.
 
-\code{\link{Hasselman_simulation_pipeline}} submits a provided reference dataset to the validation
-methods used in Hasselman et al. (2015). Populations are simulated from the reference using
-Dirichlet-random mixture proportions, and it returns diagnostic plots and information
-after running standard MCMC, parametric bootstrapping, and hierarchical MCMC.  Eric cleaned
-this up into \code{\link{assess_reference_loo}}.
+\code{\link{self_assign}} does simple self-assignment of individuals in a reference data set
+to the various collections in the reference data set.
 
-\code{\link{bias_comparison}} runs \code{\link{mixture_draw}} with fifty Dirichlet random mixture
-proportions, and returns diagnostic plots and information after running standard MCMC,
-parametric bootstrapping, and hierarchical MCMC.  This has been changed and cleaned
-and modified for more user control into \code{\link{assess_pb_bias_correction}}.
+\code{\link{assess_reference_loo}} does leave-one-out based simulations to predict how
+accurately GSI can be done.
 
-The following functions are internal:
+\code{\link{assess_reference_mc}} uses Monte-Carlo cross-validation based simulations
+to predict how accurately GSI can be done.
 
-\code{\link{tcf2param_list}} takes two-column format genetic data
-(see \code{\link{alewife}} example datset) and returns the information necessary for other
-functions in the package.
-
-\code{\link{gprob_sim_gc}}, \code{\link{gprob_sim_ind}}, and \code{\link{gprob_sim_ind}}, simulate genotype
-log-likelihoods from a reference param_list by gene copy, individual, and by gene copy
-with missing data patterns from individuals, respectively.
-
-\code{\link{geno_logL}} calculates the genotype log-likelihoods of a given dataset; for use in
-MCMC, this output must be converted to scaled likelihoods by exponentiating and normalizing
-to sum to 1.
-
-\code{\link{gsi_mcmc_1}}, \code{\link{gsi_mcmc_2}}, and \code{\link{bootstrap_rho}} are
-the underlying genetic
-stock identification functions for standard MCMC, hierarchical assignment-scaled MCMC,
-and a parametric bootstrapping-corrected mixture estimate, respectively. Ease of use is
-best achieved through \code{ref_and_mix_pipeline}, but see the documentation of the
-individual functions for information on altering trace sampling rates, burn-in, etc.
-
-\code{\link{avg_coll2correctRU}} takes a scaled likihood matrix, along with population structure
-information contained in \code{tcf2param_list} output, and returns a matrix of the average
-rates of assignment from each population to its reporting unit; used in the "BH"
-heuristic bias correction method.
-
-\code{\link{mixture_draw}} splits a dataset into a mixture and reference dataset,
-with the mixture having specified size and reporting unit or collection proportions,
-for use in cross-validation. \emph{Note}: in the current implmentation,
-both sample size and proportions of the mixture set may not exactly match input,
-due to rounding.
+\code{\link{assess_pb_bias_correction}} attempts to demonstrate how much (or little)
+improvement can be expected from the parametric bootstrap correction given a particular
+reference data set.
 }
 
 \section{genetic data format}{
 
-If not provided as factors, the "collection" and "repunit" will be converted to factors,
-ordered by their order of appearance, for all functions in the package.
+
+See the vignette.
 }
 
 \section{example data}{
 
-\code{alewife} & \code{blueback} are examples of good times to use \code{rubias};
-there are clearly observable biases based on the number of collections in a
-reporting unit. \code{chinook} is an example of a dataset in which examination of
-the graphs from \code{bias_comparison} reveal that rubias is not appropriate;
-there was no appreciable bias to begin with, and so both the misassignment-scaling
-and parametric boostrap methods have no consistent effect on the mean residual,
-and often increase mean squared error
+
+\code{\link{alewife}}, \code{\link{blueback}}, and \code{\link{chinook}} are
+genetic data sets that are useful for playing around with rubias and testing it
+out.
 }
 
