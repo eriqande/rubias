@@ -3,7 +3,7 @@ Type: Package
 Title: Bayesian inference from the conditional genetic stock identification model
 Version: 0.1.0.900
 Authors@R: as.person(c(
-    "Eric Anderson <eric.anderson@noaa.gov> [aut, cre]", 
+    "Eric C. Anderson <eric.anderson@noaa.gov> [aut, cre]", 
     "Ben Moran <moran.ben@husky.neu.edu> [aut]"
   ))
 Maintainer: Eric C. Anderson <eric.anderson@noaa.gov>
@@ -14,7 +14,7 @@ Description: This package implements Bayesian inference for the conditional gene
 License: CC0
 LazyData: TRUE
 Depends:
-    R (>= 3.3.2)
+    R (>= 3.3.0)
 Imports:
     dplyr,
     ggplot2,

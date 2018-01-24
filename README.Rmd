@@ -17,7 +17,7 @@ bibliography: rubias_bib.bibtex
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
-  fig.path = "readme-figs/"
+  fig.path = "tools/"
 )
 library(tidyverse)
 ```
@@ -691,7 +691,7 @@ These are obtained using `method = "PB"` in `infer_mixture()`.  When invoked, th
 regular MCMC results as before, but also will population the `bootstrapped_proportions` field
 of the output.  Doing so takes a little bit longer, computationally, because there is a good deal 
 of simulation involved:
-```{r infer_mixture_pb, eval=TRUE, cache=TRUE}
+```{r infer_mixture_pb, eval=FALSE}
 mix_est_pb <- infer_mixture(reference = chinook, 
                          mixture = chinook_mix, 
                          gen_start_col = 5,

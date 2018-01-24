@@ -1,6 +1,6 @@
 ## Test environments
 * local OS X install, R 3.4.3
-* ubuntu 12.04 (on travis-ci), R 3.3.2
+* ubuntu 14.04 (on travis-ci), R 3.4.2
 * win-builder (devel and release)
 
 ## R CMD check results
@@ -15,6 +15,3 @@ Currently no known reverse dependencies
 ## User Notices
 
 This is the first submission of this package.
-I submitted it a few days ago and Uwe spotted a typo
-and also recommended that I add more examples to each function.
-I have done that now. Thank you Uwe!
