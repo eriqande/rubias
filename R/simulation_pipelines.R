@@ -9,7 +9,7 @@
 #' "MCMC" estimates mixing proportions and individual posterior
 #' probabilities of assignment through Markov-chain Monte Carlo,
 #' while "PB" does the same with a parametric bootstrapping correction,
-#' and "BH" uses the misassignment-scaled, hierarchial MCMC.
+#' and "BH" uses the misassignment-scaled, hierarchical MCMC.
 #' All methods use a uniform 1/(# collections or RUs) prior for pi/omega and rho.
 #'
 #' @keywords internal
@@ -441,7 +441,7 @@ bootstrap_rho <- function(rho_est, pi_est, D, gen_start_col, niter = 100, reps =
 #' and parametric-bootstrap MCMC bias correction
 #'
 #' The amount of bias in reporting unit proportion calculations increases with the
-#' rate of missassignment between reporting units (decreases with genetic differentiation),
+#' rate of misassignment between reporting units (decreases with genetic differentiation),
 #' and increases as the number of collections within reporting units becomes more uneven.
 #'
 #' Output from the standard Bayesian MCMC method demonstrates the level of bias to be

@@ -8,7 +8,7 @@ per_locus_means_and_vars(par_list)
 }
 \arguments{
 \item{par_list}{genetic data converted to the param_list format by \code{tcf2param_list}. This should be
-inlude genotypes only for the reference inividuals.}
+include genotypes only for the reference individuals.}
 }
 \value{
 Returns a list with two components, mean and var, each one a matrix that has

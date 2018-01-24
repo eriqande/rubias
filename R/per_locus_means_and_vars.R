@@ -5,7 +5,7 @@
 #' This assumes that you have compiled params for a reference data set and then it just
 #' calls rcpp_per_locus and then summarizes the results.
 #' @param par_list genetic data converted to the param_list format by \code{tcf2param_list}. This should be
-#' inlude genotypes only for the reference inividuals.
+#' include genotypes only for the reference individuals.
 #' @return Returns a list with two components, mean and var, each one a matrix that has
 #' C (number of collections) rows and L (number of loci) columns, giving the mean (or variance)
 #' of the genotype likelihoods in the individuals in that collection at that locus.

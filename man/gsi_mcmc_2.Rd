@@ -47,7 +47,7 @@ the starting index of a reporting unit in RU_vec (last element is total # collec
 delineated in RU_starts}
 
 \item{coll2correctRU}{a vector of average rates at which fish from each collection
-are assigned to itselfm or to another collection in the same reporting unit;
+are assigned to itself or to another collection in the same reporting unit;
 collections should be in the same order as RU_vec.}
 }
 \value{

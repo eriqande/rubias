@@ -71,7 +71,7 @@ tcf2long <- function(D, gen_start_col) {
   list(long = long, clean_short = D)
 }
 
-#' Tabulate occurences of all observed alleles in reference genetic data
+#' Tabulate occurrences of all observed alleles in reference genetic data
 #'
 #' Takes the first output of \code{tcf2long}, along with two columns named "collection" and "sample_type",
 #' and returns a data frame of allele counts for each locus within each reference population.
@@ -414,7 +414,7 @@ list_diploid_params <- function(AC_list, I_list, PO, coll_N, RU_vec, RU_starts,
 #' for genotype log-likelihood calculation from the starting two-column genetic data
 #'
 #' In order for all steps in conversion to be carried out successfully, the dataset
-#' must have "repunit", "collection", "indiv", and "sample_type" columns preceeding
+#' must have "repunit", "collection", "indiv", and "sample_type" columns preceding
 #' two-column genetic data. If \code{summ == TRUE}, the function prints summary statistics
 #' describing the structure of the dataset, as well as the presence of missing data,
 #' enabling verification of proper data conversion.

@@ -2,7 +2,7 @@
 % Please edit documentation in R/write_gsi_sim_mixture.R
 \name{write_gsi_sim_mixture}
 \alias{write_gsi_sim_mixture}
-\title{Write a mixerence data frame to gsi_sim format baseline and repunits file}
+\title{Write a mixture data frame to gsi_sim format baseline and repunits file}
 \usage{
 write_gsi_sim_mixture(mix, gen_start_col, mixprefix = "mixture")
 }

@@ -1,6 +1,6 @@
 
 
-#' Write a mixerence data frame to gsi_sim format baseline and repunits file
+#' Write a mixture data frame to gsi_sim format baseline and repunits file
 #'
 #' Note, this is only intended to work with integer-valued alleles, at the moment.
 #' It was just written for testing and verifying that things are working correctly.

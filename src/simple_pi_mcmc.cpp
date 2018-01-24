@@ -106,7 +106,7 @@ List gsi_mcmc_1(NumericMatrix SL, NumericVector Pi_init, NumericVector lambda, i
   sd.push_back(sqrt((pi_sums_sq - (num_samp * pi_sums * pi_sums)) / (num_samp - 1.0)));
 
   mean.push_back(post_sums);
-  // had to write this without rcpp sugar; seems to self-destruct trying to run on a matrix
+  // had to write this without Rcpp sugar; seems to self-destruct trying to run on a matrix
   for(c = 0; c < C; c++){
     for(r = 0; r < R; r++){
       sd_ret(r,c) = sqrt((post_sums_sq(r,c) - (num_samp * post_sums(r,c) * post_sums(r,c))) / (num_samp - 1.0));

@@ -57,7 +57,7 @@ Returns the output of the chosen estimation method
 "MCMC" estimates mixing proportions and individual posterior
 probabilities of assignment through Markov-chain Monte Carlo,
 while "PB" does the same with a parametric bootstrapping correction,
-and "BH" uses the misassignment-scaled, hierarchial MCMC.
+and "BH" uses the misassignment-scaled, hierarchical MCMC.
 All methods use a uniform 1/(# collections or RUs) prior for pi/omega and rho.
 }
 \examples{

@@ -44,7 +44,7 @@ and parametric-bootstrap MCMC bias correction
 }
 \details{
 The amount of bias in reporting unit proportion calculations increases with the
-rate of missassignment between reporting units (decreases with genetic differentiation),
+rate of misassignment between reporting units (decreases with genetic differentiation),
 and increases as the number of collections within reporting units becomes more uneven.
 
 Output from the standard Bayesian MCMC method demonstrates the level of bias to be

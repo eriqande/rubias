@@ -2,7 +2,7 @@
 % Please edit documentation in R/data_conversion.R
 \name{reference_allele_counts}
 \alias{reference_allele_counts}
-\title{Tabulate occurences of all observed alleles in reference genetic data}
+\title{Tabulate occurrences of all observed alleles in reference genetic data}
 \usage{
 reference_allele_counts(D, pop_level = "collection")
 }
