@@ -14,10 +14,10 @@ four high level functions.  Before we do this, Eric wants to make sure it is giv
 `simulate_and_assess_reference()` (maybe we should shorten that to `assess_reference_loo()`), `assess_bp_bias_correction()`, and we need one that is `self_assign()`, and `assess_reference_mccv()`  These all
 should spit out tidy data, to the extent possible.  We should try to expose very few other 
 functions.  
-- [ ] Clean up code so that it is CRAN compliant. Run Check to
+- [x] Clean up code so that it is CRAN compliant. Run Check to
 see all the problems.  We get a lot of NOTEs and
 a number of WARNINGs.  **ERIC**
-- [ ] Use `if(getRversion() >= "2.15.1") utils::globalVariables(c("my_var"))` to
+- [x] Use `if(getRversion() >= "2.15.1") utils::globalVariables(c("my_var"))` to
 keep CRAN checks from creating notes for variable `my_var` used in a dplyr context.
 Do this for all variables that create NOTEs  **ERIC**
 - [x] Deprecate the old "pipeline functions" that have been superseded by the ones in `eca_funcs.R`.
@@ -29,8 +29,8 @@ stuff needed to come out of them. **BEN**
 - [x] Update documentation to reflect the deprecation, and update the documentation
 for the _main functions_ 
 - [X] Discuss transferring "ownership" of the repo to Eric's GitHub account.
-- [ ] Set Travis-CI up to automatically run CRAN checks.  **ERIC** 
-- [ ] Write a README.Rmd that shows all the different uses of the package in an easy, step-by-step,
+- [x] Set Travis-CI up to automatically run CRAN checks.  **ERIC** 
+- [x] Write a README.Rmd that shows all the different uses of the package in an easy, step-by-step,
 beginner's mind way.  This will eventually turn into a vignette.  **ERIC** and **BEN**. 
 - [x] Minimize the number of functions that are exported and, hence, exposes to the user. In
 the roxygen block for these functions add a line: `#' @keywords internal` to keep the function
@@ -87,7 +87,7 @@ But, we need to
 
 ## Paper
 
-- [ ]  Eric needs to talk to Eric P. about the possibility of using the 
+- [x]  Eric needs to talk to Eric P. about the possibility of using the 
 alewife SNP data as an example.
-- [ ] Do the parametric bootstrapping on a few other data sets to show that
+- [x] Do the parametric bootstrapping on a few other data sets to show that
 it doesn't break anything, and it usually improves them.
