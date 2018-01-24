@@ -11,3 +11,4 @@
 ^README-data-structures\.Rmd$
 ^README\.Rmd$
 ^TODO\.md$
+^.travis.yml
