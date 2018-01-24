@@ -4,9 +4,12 @@
 * win-builder (devel and release)
 
 ## R CMD check results
-0 errors | 0 warnings | 1 notes
 
-The 1 note = "first-time submission"
+MAC, local: 0 errors | 0 warnings | 0 notes
+LINUX, travis-ci: 0 errors | 0 warnings | 1 notes
+  The 1 note = libs > 1 Mb due to Rcpp apparently?
+WINDOWS, win-builder: 0 errors | 0 warnings | 1 note
+  The 1 note = first submission
 
 ## Downstream dependencies
 
