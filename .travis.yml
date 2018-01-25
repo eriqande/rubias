@@ -5,13 +5,13 @@ sudo: false
 cache: packages
 warnings_are_errors: true
 
-r_check_args: '--as-cran --use-valgrind'
+#r_check_args: '--as-cran --use-valgrind'
 
-addons:
-  apt:
-    packages:
-      - valgrind
+#addons:
+#  apt:
+#    packages:
+#      - valgrind
 
-env:
-  - VALGRIND_OPTS='--leak-check=full --track-origins=yes'
+#env:
+#  - VALGRIND_OPTS='--leak-check=full --track-origins=yes'
 
