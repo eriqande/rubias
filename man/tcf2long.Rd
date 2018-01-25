@@ -30,6 +30,11 @@ and the other with two-column structure intact, but with cleaned allele names.
 }
 \examples{
 ## Convert the alewife dataset for further processing
-ale_long <- tcf2long(alewife,17)
+# the data frame passed into this function must have had
+# character collections and repunits converted to factors
+reference <- alewife
+reference$repunit <- factor(reference$repunit, levels = unique(reference$repunit))
+reference$collection <- factor(reference$collection, levels = unique(reference$collection))
+ale_long <- tcf2long(reference, 17)
 }
 \keyword{internal}

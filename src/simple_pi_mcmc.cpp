@@ -29,13 +29,13 @@ using namespace Rcpp;
 //' samples taken from the Markov chain at intervals of \code{sample_int_}(variable) steps.
 //'
 //' @examples
-//' \dontrun{
-//' params <- tcf2param_list(alewife, 15)
+//' # this demonstrates it with scaled likelihoods computed from
+//' # assignment of the reference samples
+//' params <- tcf2param_list(alewife, 17)
 //' logl <- geno_logL(params)
 //' SL <- apply(exp(logl), 2, function(x) x/sum(x))
 //' lambda <- rep(1/params$C, params$C)
-//' mcmc <- gsi_mcmc_1(SL, lambda, lambda, 10000, 2500, 50, 50)
-//' }
+//' mcmc <- gsi_mcmc_1(SL, lambda, lambda, 200, 50, 5, 5)
 //' @export
 // [[Rcpp::export]]
 List gsi_mcmc_1(NumericMatrix SL, NumericVector Pi_init, NumericVector lambda, int reps, int burn_in, int sample_int_Pi, int sample_int_PofZ) {

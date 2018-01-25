@@ -23,8 +23,9 @@ using namespace Rcpp;
 //' and traces of the pi values and change in pi in each iteration
 //'
 //' @examples
-//' \dontrun{
-//' params <- tcf2param_list(alewife, 15)
+//' # this is shown with a scaled likelihood matrix from self-assignment
+//' # of the reference individuals
+//' params <- tcf2param_list(alewife, 17)
 //' logl <- geno_logL(params)
 //' SL <- apply(exp(logl), 2, function(x) x/sum(x))
 //' test_em <- gsi_em_1(SL,
@@ -32,7 +33,6 @@ using namespace Rcpp;
 //'                     max_iterations = 10^6,
 //'                     tolerance = 10^-7,
 //'                     return_progression = TRUE)
-//' }
 //' @export
 // [[Rcpp::export]]
 List gsi_em_1(NumericMatrix SL, NumericVector Pi_init, int max_iterations, double tolerance, bool return_progression) {

@@ -47,6 +47,7 @@
 #'
 #' @examples
 #' \dontrun{
+#' ## This takes too long to run in R CMD CHECK
 #' ale_bias <- assess_pb_bias_correction(alewife, 17)
 #' }
 #'
@@ -129,45 +130,5 @@ assess_pb_bias_correction <- function(reference, gen_start_col, seed = 5,
     dplyr::select(iter, repunit, dplyr::everything())
 
   return(ret)
-
-  if (FALSE) {  # Just removing this block.  Will wrap it up in another few functions later
-    rho_data <- ret %>%
-      tidyr::gather(key = "method", value = "rho_est", rho_mcmc:rho_pb)
-
-    rho_dev <- rho_data %>%
-      dplyr::mutate(dev = (true_rho - rho_est)^2) %>%
-      dplyr::mutate(prop_bias = (rho_est - true_rho) / true_rho) %>%
-      dplyr::mutate(bias = rho_est - true_rho) %>%
-      dplyr::group_by(repunit, method) %>%
-      dplyr::summarise(mse = mean(dev), mean_prop_bias = mean(prop_bias), mean_bias = mean(bias))
-
-
-    g <- ggplot2::ggplot(rho_data, ggplot2::aes(x = true_rho, y = rho_est, colour = repunit)) +
-      ggplot2::geom_point() +
-      ggplot2::facet_grid(repunit ~ method) +
-      ggplot2::geom_abline(intercept = 0, slope = 1)
-    print(g)
-
-    # the standard mean error of each method and reporting unit
-    d <- ggplot2::ggplot(data = rho_dev, ggplot2::aes(x = method, y = mse, fill = repunit)) +
-      ggplot2::geom_bar(stat = "identity") +
-      ggplot2::facet_wrap(~repunit)
-    print(d)
-
-    # proportional bias makes error of equal size have larger effects
-    # on small values than large values
-    prop.bias <- ggplot2::ggplot(data = rho_dev, ggplot2::aes(x = method, y = mean_prop_bias, fill = repunit)) +
-      ggplot2::geom_bar(stat = "identity") +
-      ggplot2::facet_wrap(~repunit)
-    print(prop.bias)
-
-    # the unscaled mean bias
-    m.bias <- ggplot2::ggplot(data = rho_dev, ggplot2::aes(x = method, y = mean_bias, fill = repunit)) +
-      ggplot2::geom_bar(stat = "identity") +
-      ggplot2::facet_wrap(~repunit)
-    print(m.bias)
-
-    list("rho_iterations" = rho50, "rho_dev" = rho_dev)
-  }
 }
 

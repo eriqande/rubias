@@ -60,7 +60,6 @@ by adding the values calculated from \code{alle_freq_prior} to each allele
 of their parent vectors, ordered by locus and collection.
 }
 \examples{
-\dontrun{
 example(allelic_list)
 PO <- as.integer(factor(ale_long$clean_short$collection))
 coll_N <- as.vector(table(PO))
@@ -74,7 +73,6 @@ Colls_by_RU <- dplyr::count(ale_long$clean_short, repunit, collection) \%>\%
 RU_starts <- c(0, cumsum(PC))
 RU_vec <- as.integer(Colls_by_RU$collection)
 param_list <- list_diploid_params(ale_ac, ale_alle_list, PO, coll_N, RU_vec, RU_starts)
-}
 
 }
 \keyword{internal}

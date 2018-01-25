@@ -30,8 +30,9 @@ likelihood surface for pi, and computes the plug-in estimate of the posteriors
 for all the individuals.  It returns the output in a list.
 }
 \examples{
-\dontrun{
-params <- tcf2param_list(alewife, 15)
+# this is shown with a scaled likelihood matrix from self-assignment
+# of the reference individuals
+params <- tcf2param_list(alewife, 17)
 logl <- geno_logL(params)
 SL <- apply(exp(logl), 2, function(x) x/sum(x))
 test_em <- gsi_em_1(SL,
@@ -39,6 +40,5 @@ test_em <- gsi_em_1(SL,
                     max_iterations = 10^6,
                     tolerance = 10^-7,
                     return_progression = TRUE)
-}
 }
 \keyword{internal}

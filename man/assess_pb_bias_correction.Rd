@@ -62,6 +62,7 @@ for the removal of any existing bias.
 }
 \examples{
 \dontrun{
+## This takes too long to run in R CMD CHECK
 ale_bias <- assess_pb_bias_correction(alewife, 17)
 }
 

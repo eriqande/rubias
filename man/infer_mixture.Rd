@@ -56,10 +56,9 @@ while "PB" does the same with a parametric bootstrapping correction
 All methods use a uniform 1/(# collections or RUs) prior for the mixing proportions.
 }
 \examples{
-\dontrun{
-mcmc <- infer_mixture(reference = chinook,
-                      mixture = chinook_mix,
+mcmc <- infer_mixture(reference = small_chinook_ref,
+                      mixture = small_chinook_mix,
                       gen_start_col = 5,
-                      method = "MCMC")
-}
+                      method = "MCMC",
+                      reps  = 200)
 }

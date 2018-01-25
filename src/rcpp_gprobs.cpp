@@ -20,10 +20,8 @@ using namespace Rcpp;
 //' genotype, given the allele counts in that collection
 //'
 //' @examples
-//' \dontrun{
 //' example(tcf2param_list)
 //' ale_glL <- geno_logL(ale_par_list)
-//' }
 //' @export
 // [[Rcpp::export]]
 NumericMatrix geno_logL(List par_list) {
@@ -76,10 +74,8 @@ NumericMatrix geno_logL(List par_list) {
 //' genotype, given the allele counts in that collection
 //'
 //' @examples
-//' \dontrun{
 //' example(tcf2param_list)
 //' ale_glL <- geno_logL(ale_par_list)
-//' }
 //' @export
 // [[Rcpp::export]]
 NumericMatrix geno_logL_ssq(List par_list) {

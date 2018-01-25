@@ -25,7 +25,13 @@
 #'
 #' @examples
 #' ## Convert the alewife dataset for further processing
-#' ale_long <- tcf2long(alewife,17)
+#' # the data frame passed into this function must have had
+#' # character collections and repunits converted to factors
+#' reference <- alewife
+#' reference$repunit <- factor(reference$repunit, levels = unique(reference$repunit))
+#' reference$collection <- factor(reference$collection, levels = unique(reference$collection))
+
+#' ale_long <- tcf2long(reference, 17)
 #' @export
 tcf2long <- function(D, gen_start_col) {
   n = ncol(D)
@@ -241,7 +247,7 @@ a_freq_list <- function(D, pop_level = "collection") {
 #'
 #' @examples
 #' example(a_freq_list)
-#' ale_cs <- tcf2long(alewife, 17)$clean_short
+#' ale_cs <- ale_long$clean_short
 #' # Get the vectors of gene copies a and b for all loci in integer index form
 #' ale_alle_list <- allelic_list(ale_cs, ale_ac)$int
 #'
@@ -337,7 +343,6 @@ allelic_list <- function(cs, ac, samp_type = "both") {
 #' in later Rcpp-based calculations.
 #'
 #' @examples
-#' \dontrun{
 #' example(allelic_list)
 #' PO <- as.integer(factor(ale_long$clean_short$collection))
 #' coll_N <- as.vector(table(PO))
@@ -351,7 +356,6 @@ allelic_list <- function(cs, ac, samp_type = "both") {
 #' RU_starts <- c(0, cumsum(PC))
 #' RU_vec <- as.integer(Colls_by_RU$collection)
 #' param_list <- list_diploid_params(ale_ac, ale_alle_list, PO, coll_N, RU_vec, RU_starts)
-#' }
 #'
 #' @export
 list_diploid_params <- function(AC_list, I_list, PO, coll_N, RU_vec, RU_starts,
