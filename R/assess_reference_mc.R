@@ -42,9 +42,9 @@
 #' \code{"const"}, \code{"scaled_const"}, and \code{"empirical"}. See \code{?list_diploid_params}
 #' for method details.
 #' @examples
-#' \dontrun{
-#' ale_dev <- assess_reference_mc(alewife, 17)
-#' }
+#' # only 5 reps, so it doesn't take too long.  Typically you would
+#' # do many more
+#' ale_dev <- assess_reference_mc(alewife, 17, 5)
 #' @export
 assess_reference_mc <- function(reference, gen_start_col, reps = 50, mixsize = 100, seed = 5,
                                 alpha_repunit = 1.5, alpha_collection = 1.5, min_remaining = 5,
@@ -199,10 +199,10 @@ assess_reference_mc <- function(reference, gen_start_col, reps = 50, mixsize = 1
     dplyr::mutate(repunit = as.character(repunit),
            collection = as.character(collection))
 
-  ret <- dplyr::left_join(true_omega_df, true_sim_nums) %>%
-    dplyr::left_join(., estimates) %>%
+  ret <- dplyr::left_join(true_omega_df, true_sim_nums, by = c("iter", "collection")) %>%
+    dplyr::left_join(., estimates, by = c("iter", "collection")) %>%
     dplyr::mutate(n = ifelse(is.na(n), 0, n)) %>%
-    dplyr::left_join(., reps_and_colls_char) %>%
+    dplyr::left_join(., reps_and_colls_char, by = "collection") %>%
     dplyr::select(iter, repunit, dplyr::everything())
 
   # return that data frame

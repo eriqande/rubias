@@ -25,9 +25,7 @@
 #'
 #' @examples
 #' ## Convert the alewife dataset for further processing
-#' \dontrun{
 #' ale_long <- tcf2long(alewife,17)
-#' }
 #' @export
 tcf2long <- function(D, gen_start_col) {
   n = ncol(D)
@@ -97,10 +95,8 @@ tcf2long <- function(D, gen_start_col) {
 #'
 #' @examples
 #' ## count alleles in alewife reference populations
-#' \dontrun{
 #' example(tcf2long)  # gets variable ale_long
 #' ale_rac <- reference_allele_counts(ale_long$long)
-#' }
 #'
 #'@export
 reference_allele_counts <- function(D, pop_level = "collection") {
@@ -195,10 +191,8 @@ reference_allele_counts <- function(D, pop_level = "collection") {
 #'
 #'  # Generate a list of individual genotypes by allele from
 #'  # the alewife data's reference allele count tables
-#'  \dontrun{
 #'  example(reference_allele_counts)
 #'  ale_ac <- a_freq_list(ale_rac)
-#'  }
 #' @export
 a_freq_list <- function(D, pop_level = "collection") {
   if(pop_level == "collection"){
@@ -246,12 +240,10 @@ a_freq_list <- function(D, pop_level = "collection") {
 #' representing to loci, with two component vectors corresponding to gene copies a and b.
 #'
 #' @examples
-#' \dontrun{
 #' example(a_freq_list)
 #' ale_cs <- tcf2long(alewife, 17)$clean_short
 #' # Get the vectors of gene copies a and b for all loci in integer index form
 #' ale_alle_list <- allelic_list(ale_cs, ale_ac)$int
-#' }
 #'
 #' @export
 allelic_list <- function(cs, ac, samp_type = "both") {
@@ -348,9 +340,8 @@ allelic_list <- function(cs, ac, samp_type = "both") {
 #' \dontrun{
 #' example(allelic_list)
 #' PO <- as.integer(factor(ale_long$clean_short$collection))
-#' coll_N <- dplyr::count(ale_long$clean_short, collection) %>%
-#'   dplyr::select(n)
-#'   coll_N <- unname(unlist(coll_N))
+#' coll_N <- as.vector(table(PO))
+#'
 #' Colls_by_RU <- dplyr::count(ale_long$clean_short, repunit, collection) %>%
 #'    dplyr::select(-n)
 #'  PC <- rep(0, length(unique((Colls_by_RU$repunit))))
@@ -443,9 +434,7 @@ list_diploid_params <- function(AC_list, I_list, PO, coll_N, RU_vec, RU_starts,
 #'
 #' @keywords internal
 #' @examples
-#' \dontrun{
 #' ale_par_list <- tcf2param_list(alewife, 17)
-#' }
 #'
 #' @export
 tcf2param_list <- function(D, gen_start_col, samp_type = "both",
@@ -551,11 +540,9 @@ tcf2param_list <- function(D, gen_start_col, samp_type = "both",
 #' correct assignment at the collection level, which is too low and variable to serve
 #'  as a stable metric for \code{omega} scaling.
 #' @examples
-#' \dontrun{
 #' params <- tcf2param_list(alewife, 17)
 #' SL <- geno_logL(params) %>% exp() %>% apply(2, function(x) x/sum(x))
 #' correct <- avg_coll2correctRU(SL, params$coll, params$RU_starts, params$RU_vec)
-#' }
 #' @export
 #' @keywords internal
 avg_coll2correctRU <- function(SL, coll, RU_starts, RU_vec) {

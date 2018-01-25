@@ -2,10 +2,10 @@ Package: rubias
 Type: Package
 Title: Bayesian Inference from the Conditional Genetic Stock Identification Model
 Version: 0.1.0
-Authors@R: as.person(c(
-    "Eric C. Anderson <eric.anderson@noaa.gov> [aut, cre]", 
-    "Ben Moran <moran.ben@husky.neu.edu> [aut]"
-  ))
+Authors@R: c(
+    person(given = c("Eric", "C."), family = "Anderson", email = "eric.anderson@noaa.gov", role = c("aut", "cre")),
+    person(given = "Ben", family = "Moran", email = "moran.ben@husky.neu.edu", role = c("aut"))
+  )
 Maintainer: Eric C. Anderson <eric.anderson@noaa.gov>
 Description: Implements Bayesian inference for the conditional genetic 
     stock identification model.  It allows inference of mixed fisheries and also 

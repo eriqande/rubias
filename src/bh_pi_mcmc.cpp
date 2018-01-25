@@ -41,7 +41,7 @@ using namespace Rcpp;
 //'
 //' @examples
 //' \dontrun{
-//' params <- tcf2param_list(alewife, 15)
+//' params <- tcf2param_list(alewife, 17)
 //' logl <- geno_logL(params)
 //' SL <- apply(exp(logl), 2, function(x) x/sum(x))
 //' avg_correct <- avg_coll2correctRU(SL, params$coll,params$RU_starts, params$RU_vec)

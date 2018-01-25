@@ -33,10 +33,8 @@ The "sample_type" column must contain either "reference" or "mixture" for each s
 }
 \examples{
 ## count alleles in alewife reference populations
-\dontrun{
 example(tcf2long)  # gets variable ale_long
 ale_rac <- reference_allele_counts(ale_long$long)
-}
 
 }
 \keyword{internal}
