@@ -25,8 +25,7 @@ Imports:
     rlang,
     stringr,
     tibble,
-    tidyr,
-    tidyverse
+    tidyr
 LinkingTo: Rcpp
 RoxygenNote: 6.0.1
 Suggests: knitr,
