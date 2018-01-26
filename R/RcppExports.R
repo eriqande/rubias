@@ -136,7 +136,7 @@ samp_from_mat <- function(M) {
 #'
 #' @examples
 #' example(tcf2param_list)
-#' sim_colls <- sample(ale_par_list$C, 1070, replace = T)
+#' sim_colls <- sample(ale_par_list$C, 1070, replace = TRUE)
 #' ale_sim_gprobs_gc <- gprob_sim_gc(ale_par_list, sim_colls)
 #' @export
 gprob_sim_gc <- function(par_list, sim_colls) {
@@ -168,7 +168,7 @@ gprob_sim_gc <- function(par_list, sim_colls) {
 #'
 #' @examples
 #' example(tcf2param_list)
-#' sim_colls <- sample(ale_par_list$C, 1070, replace = T)
+#' sim_colls <- sample(ale_par_list$C, 1070, replace = TRUE)
 #' ale_sim_gprobs_ind <- gprob_sim_ind(ale_par_list, sim_colls)
 #' @export
 gprob_sim_ind <- function(par_list, sim_colls) {
@@ -209,8 +209,8 @@ gprob_sim_ind <- function(par_list, sim_colls) {
 #'
 #' # then run it...
 #' params <- tcf2param_list(rbind(ref,mix), 17, samp_type = "mixture")
-#' sim_colls <- sample(params$C, 1070, replace = T)
-#' sim_miss <- sample(length(params$coll), 1070, replace = T)
+#' sim_colls <- sample(params$C, 1070, replace = TRUE)
+#' sim_miss <- sample(length(params$coll), 1070, replace = TRUE)
 #' ale_sim_gprobs_miss <- gprob_sim_gc_missing(params, sim_colls, sim_miss)
 #' @export
 gprob_sim_gc_missing <- function(par_list, sim_colls, sim_missing) {

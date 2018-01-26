@@ -30,7 +30,7 @@ are performed without replacement, but allele counts are replaced between indivi
 }
 \examples{
 example(tcf2param_list)
-sim_colls <- sample(ale_par_list$C, 1070, replace = T)
+sim_colls <- sample(ale_par_list$C, 1070, replace = TRUE)
 ale_sim_gprobs_gc <- gprob_sim_gc(ale_par_list, sim_colls)
 }
 \keyword{internal}

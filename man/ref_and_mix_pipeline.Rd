@@ -18,7 +18,7 @@ Does not need "sample_type" column, and will be overwritten if provided}
 
 \item{gen_start_col}{the first column of genetic data in both data frames}
 
-\item{method}{a choice between "MCMC", "PB" and "BH" methods for estimating mixture proportions}
+\item{method}{this must be "MCMC".   "PB" and "BH" are no longer supported in this function.}
 
 \item{reps}{the number of iterations to be performed in MCMC}
 
@@ -65,7 +65,8 @@ reference <- small_chinook_ref
 mixture <- small_chinook_mix
 gen_start_col <- 5
 
-# this function expects things as factors
+# this function expects things as factors.  This function is old and needs
+# to be replaced and deprecated.
 
 reference$repunit <- factor(reference$repunit, levels = unique(reference$repunit))
 reference$collection <- factor(reference$collection, levels = unique(reference$collection))

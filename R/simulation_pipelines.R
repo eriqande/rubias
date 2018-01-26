@@ -20,7 +20,7 @@
 #' \code{reference} dataframe, but "collection" and "repunit" columns are ignored.
 #' Does not need "sample_type" column, and will be overwritten if provided
 #' @param gen_start_col the first column of genetic data in both data frames
-#' @param method a choice between "MCMC", "PB" and "BH" methods for estimating mixture proportions
+#' @param method this must be "MCMC".   "PB" and "BH" are no longer supported in this function.
 #' @param reps the number of iterations to be performed in MCMC
 #' @param burn_in how many reps to discard in the beginning of MCMC when doing the mean calculation.
 #' They will still be returned in the traces if desired.
@@ -46,7 +46,8 @@
 #' mixture <- small_chinook_mix
 #' gen_start_col <- 5
 #'
-#' # this function expects things as factors
+#' # this function expects things as factors.  This function is old and needs
+#' # to be replaced and deprecated.
 #'
 #' reference$repunit <- factor(reference$repunit, levels = unique(reference$repunit))
 #' reference$collection <- factor(reference$collection, levels = unique(reference$collection))
@@ -59,11 +60,11 @@
 ref_and_mix_pipeline <- function(reference, mixture, gen_start_col, method = "MCMC", reps = 2000, burn_in = 100, sample_int_Pi = 0, sample_int_PofZ = 0, sample_int_omega = 0, sample_int_rho = 0, sample_int_PofR = 0) {
 
   #check that reference and mixture data sets have identical column names
-  if(any(names(reference) != names(mixture))) stop("reference and mixture data frames differ in structure; check # columns and variable names")
+  if (any(names(reference) != names(mixture))) stop("reference and mixture data frames differ in structure; check # columns and variable names")
   # check for a valid sampling method
-  if(method != "MCMC" && method != "PB" && method != "BH") stop("invalid selection of mixture proportion estimation algorithm: please choose 'EM', 'MCMC', or 'BH'")
+  if (method != "MCMC") stop("invalid selection of mixture proportion estimation algorithm: must be 'MCMC'.  'PB' and 'BH' no longer supported in this function.")
   # any existing sample_type columns are removed, to be rewritten based on data frame
-  if(any(names(reference) == "sample_type") || any(names(mixture) == "sample_type")) {
+  if (any(names(reference) == "sample_type") || any(names(mixture) == "sample_type")) {
     reference <- dplyr::select(reference, -sample_type)
     mixture <- dplyr::select(mixture, -sample_type)
     gen_start_col <- gen_start_col - 1
@@ -89,7 +90,7 @@ ref_and_mix_pipeline <- function(reference, mixture, gen_start_col, method = "MC
     dplyr::count(repunit, collection) %>%
     dplyr::select(-n)
   PC <- rep(0, length(unique(colls_by_RU$repunit)))
-  for(i in 1:nrow(colls_by_RU)) {
+  for (i in 1:nrow(colls_by_RU)) {
     PC[colls_by_RU$repunit[i]] <- PC[colls_by_RU$repunit[i]] + 1
   }
   RU_starts <- c(0, cumsum(PC))
@@ -121,30 +122,6 @@ ref_and_mix_pipeline <- function(reference, mixture, gen_start_col, method = "MC
 
 
   # estimate population parameters based on the chosen algorithm
-  if(method == "PB") {
-    pi_out <- gsi_mcmc_1(SL = SL,
-                      Pi_init = rep(1 / params$C, params$C),
-                      lambda = rep(1 / params$C, params$C),
-                      reps = reps,
-                      burn_in = burn_in,
-                      sample_int_Pi = sample_int_Pi,
-                      sample_int_PofZ = sample_int_PofZ)
-
-    pi_mcmc <- pi_out$mean$pi
-    rho_mcmc <- lapply(1:(length(params$RU_starts) - 1), function(ru){
-      out <- sum(pi_mcmc[params$RU_vec[(params$RU_starts[ru] + 1):params$RU_starts[ru + 1]]])
-    }) %>% unlist()
-
-    dummy_mix <- dplyr::sample_n(reference, nrow(reference), replace = TRUE)
-    dummy_mix$sample_type <- rep("mixture", nrow(reference))
-
-    boot_out <- bootstrap_rho(rho_est = rho_mcmc,
-                            pi_est = pi_mcmc,
-                            D = D,
-                            gen_start_col = gen_start_col)
-    pi_out$mean$bootstrap_rho <- boot_out
-    out <- pi_out
-  }
   if (method == "MCMC") {
     out <- gsi_mcmc_1(SL = SL,
                       Pi_init = rep(1 / params$C, params$C),
@@ -154,22 +131,8 @@ ref_and_mix_pipeline <- function(reference, mixture, gen_start_col, method = "MC
                       sample_int_Pi = sample_int_Pi,
                       sample_int_PofZ = sample_int_PofZ)
   }
-  if (method == "BH") {
-    out <- gsi_mcmc_bh(SL = SL,
-                      Rho_init = rep(1 / (length(params$RU_starts) - 1), length(params$RU_starts) - 1),
-                      Omega_init = rep(1 / params$C, params$C),
-                      lambda_rho = rep(1 / (length(params$RU_starts) - 1), length(params$RU_starts) - 1),
-                      lambda_omega = rep(1 / params$C, params$C),
-                      reps = reps,
-                      burn_in = burn_in,
-                      sample_int_omega = sample_int_omega,
-                      sample_int_rho = sample_int_rho,
-                      sample_int_PofZ = sample_int_PofZ,
-                      sample_int_PofR = sample_int_PofR,
-                      RU_starts = params$RU_starts,
-                      RU_vec = params$RU_vec)
-  }
-out
+
+  out
 }
 
 #' Generate a random population structure and mixture sample, as in
@@ -205,7 +168,7 @@ Hasselman_sim_colls <- function(RU_starts, RU_vec, size = 100) {
   }) %>%
     cbind() %>%
     unlist()
-  sim_coll = sample(RU_vec, size = size, replace = T, prob = omega)
+  sim_coll = sample(RU_vec, size = size, replace = TRUE, prob = omega)
   out <- list(rho = rho, omega = omega, sim_coll = sim_coll)
 }
 

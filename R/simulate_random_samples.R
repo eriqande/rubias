@@ -102,11 +102,11 @@ simulate_random_samples <- function(RU_starts, RU_vec, size = 100, alpha_repunit
     if (spec_coll == "dirichlet") {
       if (spec_repu != "single") warning("specification for repunit ppn, dirichlet, or counts is ignored when collections are dirichlet.  To silence this warning, leave alpha_repunit unset")
       omega <- gtools::rdirichlet(1, coll_vals)[1, ]
-      sim_coll = sample(collections_in_order, size = size, replace = T, prob = omega)
+      sim_coll = sample(collections_in_order, size = size, replace = TRUE, prob = omega)
     } else if (spec_coll == "ppn") {
       if (spec_repu != "single") warning("specification for repunit ppn, dirichlet, or counts is ignored when collections are ppn.  To silence this warning, leave alpha_repunit unset")
       omega <- coll_vals / sum(coll_vals)
-      sim_coll = sample(collections_in_order, size = size, replace = T, prob = omega)
+      sim_coll = sample(collections_in_order, size = size, replace = TRUE, prob = omega)
     } else if (spec_coll == "cnt") {
       if (spec_repu != "single") warning("specification for repunit ppn, dirichlet, or counts is ignored when collections are cnt.  To silence this warning, leave alpha_repunit unset")
       if (sum(coll_vals) != size) warning("sum of collection cnt is not equal to size.  resetting size to the sum.")
@@ -168,7 +168,7 @@ simulate_random_samples <- function(RU_starts, RU_vec, size = 100, alpha_repunit
       }
 
       # now, sample the collection indexes from the collection mixing proportions
-      sim_coll = sample(collections_in_order, size = size, replace = T, prob = omega)
+      sim_coll = sample(collections_in_order, size = size, replace = TRUE, prob = omega)
     }
   }
 

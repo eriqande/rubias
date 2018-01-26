@@ -42,8 +42,8 @@ mix <- drawn$mix
 
 # then run it...
 params <- tcf2param_list(rbind(ref,mix), 17, samp_type = "mixture")
-sim_colls <- sample(params$C, 1070, replace = T)
-sim_miss <- sample(length(params$coll), 1070, replace = T)
+sim_colls <- sample(params$C, 1070, replace = TRUE)
+sim_miss <- sample(length(params$coll), 1070, replace = TRUE)
 ale_sim_gprobs_miss <- gprob_sim_gc_missing(params, sim_colls, sim_miss)
 }
 \keyword{internal}
