@@ -4,7 +4,7 @@
 \alias{write_gsi_sim_mixture}
 \title{Write a mixture data frame to gsi_sim format baseline and repunits file}
 \usage{
-write_gsi_sim_mixture(mix, gen_start_col, mixprefix = "mixture")
+write_gsi_sim_mixture(mix, gen_start_col, mixprefix)
 }
 \arguments{
 \item{mix}{mixture data frame}
@@ -12,9 +12,27 @@ write_gsi_sim_mixture(mix, gen_start_col, mixprefix = "mixture")
 \item{gen_start_col}{column in which the genetic data start}
 
 \item{mixprefix}{path to write the mixture file to.  The mixture collection name + .txt will
-be appended to this.}
+be appended to this.  This path can include directories if they exist.  An example
+would be "./my_gsi_data/mixture". This is a required argument.}
 }
 \description{
 Note, this is only intended to work with integer-valued alleles, at the moment.
 It was just written for testing and verifying that things are working correctly.
+}
+\examples{
+# this writes to file prefix "mixfile" in a temporary directory
+dd <- tempdir()
+prefix <- file.path(dd, "mixfile")
+
+# print that
+prefix
+
+# note that in practice you will probably want to specify
+# your own directory...
+
+# run the function
+write_gsi_sim_mixture(chinook_mix, 5, prefix)
+
+# see where those files live:
+dir(dd, pattern = "mixfile*", full.names = TRUE)
 }

@@ -7,9 +7,24 @@
 #'
 #' @param  ref reference data frame
 #' @param gen_start_col column in which the genetic data start
-#' @param baseout path to write the baseline file to
-#' @param repout path to write the repunits file to
+#' @param baseout path to write the baseline file to. Required.
+#' @param repout path to write the repunits file to. Required.
 #' @export
+#' @examples
+#' # create a temp directory to put example outputs
+#' dd <- tempdir()
+#' basefile <- file.path(dd, "baseline.txt")
+#' repunitsfile <- file.path(dd, "repunits.txt")
+#'
+#' # print those
+#' basefile
+#' repunitsfile
+#'
+#' # note that in practice you will probably want to specify
+#' # your own filepaths...
+#'
+#' # run the function
+#' write_gsi_sim_reference(alewife, 17, basefile, repunitsfile)
 write_gsi_sim_reference <- function(ref, gen_start_col, baseout = "baseline.txt", repout = "repunits.txt") {
 
   # first, write the reporting unit file

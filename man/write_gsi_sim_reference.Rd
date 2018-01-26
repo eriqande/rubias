@@ -12,11 +12,27 @@ write_gsi_sim_reference(ref, gen_start_col, baseout = "baseline.txt",
 
 \item{gen_start_col}{column in which the genetic data start}
 
-\item{baseout}{path to write the baseline file to}
+\item{baseout}{path to write the baseline file to. Required.}
 
-\item{repout}{path to write the repunits file to}
+\item{repout}{path to write the repunits file to. Required.}
 }
 \description{
 Note, this is only intended to work with integer-valued alleles, at the moment.
 It was just written for testing and verifying that things are working correctly.
+}
+\examples{
+# create a temp directory to put example outputs
+dd <- tempdir()
+basefile <- file.path(dd, "baseline.txt")
+repunitsfile <- file.path(dd, "repunits.txt")
+
+# print those
+basefile
+repunitsfile
+
+# note that in practice you will probably want to specify
+# your own filepaths...
+
+# run the function
+write_gsi_sim_reference(alewife, 17, basefile, repunitsfile)
 }
