@@ -43,6 +43,7 @@ NumericMatrix gprob_sim_gc(List par_list, IntegerVector sim_colls) {
   IntegerVector sum_AC = as<IntegerVector>(par_list["sum_AC"]);
   IntegerVector A = as<IntegerVector>(par_list["A"]);
   IntegerVector CA = as<IntegerVector>(par_list["CA"]);
+  IntegerVector PLOID = as<IntegerVector>(par_list["ploidies"]);
   NumericVector DP = as<NumericVector>(par_list["DP"]);
   NumericVector sum_DP = as<NumericVector>(par_list["sum_DP"]);
   double cumul, rando, sum, gp;
@@ -134,6 +135,7 @@ NumericMatrix gprob_sim_ind(List par_list, IntegerVector sim_colls) {
   IntegerVector I_coll = as<IntegerVector>(par_list["coll"]);
   IntegerVector A = as<IntegerVector>(par_list["A"]);
   IntegerVector CA = as<IntegerVector>(par_list["CA"]);
+  IntegerVector PLOID = as<IntegerVector>(par_list["ploidies"]);
   NumericVector DP = as<NumericVector>(par_list["DP"]);
   NumericVector sum_DP = as<NumericVector>(par_list["sum_DP"]);
   double sum, gp;
@@ -223,6 +225,7 @@ NumericMatrix gprob_sim_gc_missing(List par_list, IntegerVector sim_colls, Integ
   IntegerVector sum_AC = as<IntegerVector>(par_list["sum_AC"]);
   IntegerVector A = as<IntegerVector>(par_list["A"]);
   IntegerVector CA = as<IntegerVector>(par_list["CA"]);
+  IntegerVector PLOID = as<IntegerVector>(par_list["ploidies"]);
   NumericVector DP = as<NumericVector>(par_list["DP"]);
   NumericVector sum_DP = as<NumericVector>(par_list["sum_DP"]);
   double cumul, rando, sum, gp;

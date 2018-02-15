@@ -36,6 +36,7 @@ NumericMatrix geno_logL(List par_list) {
   IntegerVector coll = as<IntegerVector>(par_list["coll"]);
   NumericVector DP = as<NumericVector>(par_list["DP"]);
   NumericVector sum_DP = as<NumericVector>(par_list["sum_DP"]);
+  IntegerVector PLOID = as<IntegerVector>(par_list["ploidies"]);
   double sum, gp;
   NumericMatrix out(C, N);
 
@@ -90,6 +91,7 @@ NumericMatrix geno_logL_ssq(List par_list) {
   IntegerVector coll = as<IntegerVector>(par_list["coll"]);
   NumericVector DP = as<NumericVector>(par_list["DP"]);
   NumericVector sum_DP = as<NumericVector>(par_list["sum_DP"]);
+  IntegerVector PLOID = as<IntegerVector>(par_list["ploidies"]);
   double sum, gp;
   NumericMatrix out(C, N);
 

@@ -14,7 +14,7 @@
 check_refmix <- function(D, gen_start_col, type = "reference") {
 
   # first make sure that the data frame is not grouped
-  if (is_grouped_df(D) == TRUE) {
+  if (dplyr::is_grouped_df(D) == TRUE) {
     stop("D is a grouped data frame.  Please ungroup it before using it in rubias.")
   }
 
