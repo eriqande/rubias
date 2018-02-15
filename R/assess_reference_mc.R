@@ -51,12 +51,12 @@ assess_reference_mc <- function(reference, gen_start_col, reps = 50, mixsize = 1
                                 alle_freq_prior = list("const_scaled" = 1)) {
 
   # check that reference is formatted appropriately
-  check_refmix(reference, gen_start_col, "reference")
+  ploidies <- check_refmix(reference, gen_start_col, "reference")
 
   reference$repunit <- factor(reference$repunit, levels = unique(reference$repunit))
   reference$collection <- factor(reference$collection, levels = unique(reference$collection))
 
-  params <- tcf2param_list(reference, gen_start_col, summ = F, alle_freq_prior = alle_freq_prior)
+  params <- tcf2param_list(reference, gen_start_col, summ = F, alle_freq_prior = alle_freq_prior, ploidies = ploidies)
 
   # get a data frame that has the repunits and collections
   reps_and_colls <- reference %>%
@@ -164,6 +164,8 @@ assess_reference_mc <- function(reference, gen_start_col, reps = 50, mixsize = 1
     coll <- rep(0,length(mix_I[[1]]$a))  # populations of each individual in mix_I; not applicable for mixture samples
 
     mc_params <- list_diploid_params(ac, mix_I, coll, coll_N, RU_vec, RU_starts, alle_freq_prior = alle_freq_prior)
+    mc_params$locus_names <- names(ac)
+    mc_params$ploidies <- as.integer(unname(ploidies[mc_params$locus_names]))
 
     logl <- geno_logL(mc_params)
     SL <- apply(exp(logl), 2, function(x) x/sum(x))

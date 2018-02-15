@@ -53,8 +53,14 @@ infer_mixture <- function(reference,
                           sample_int_Pi = 1) {
 
   # check that reference and mixture are OK
-  check_refmix(reference, gen_start_col, "reference")
-  check_refmix(mixture, gen_start_col, "mixture")
+  ploidies_ref <- check_refmix(reference, gen_start_col, "reference")
+  ploidies_mix <- check_refmix(mixture, gen_start_col, "mixture")
+
+  ploidy_mismatch <- ploidies_ref != ploidies_mix
+  if (any(ploidy_mismatch)) {
+    stop("Ploidy mismatch in reference and mixture data sets at loci ", which(ploidy_mismatch))
+  }
+  ploidies <- ploidies_ref
 
 
   # save an untouched version of reference and gen_start_col (to be used for self-assignment)
@@ -165,6 +171,8 @@ infer_mixture <- function(reference,
 
     # and then make a params structure for doing the self-assignment to get the z-scores
     sa_params <- list_diploid_params(ac, ref_I, ref_PO, coll_N, RU_vec, RU_starts, alle_freq_prior = alle_freq_prior)
+    sa_params$locus_names <- names(ac)
+    sa_params$ploidies <- as.integer(unname(ploidies[sa_params$locus_names]))
 
   }) # close time 1 block
   message("   time: ", sprintf("%.2f", time1["elapsed"]), " seconds")
@@ -210,7 +218,8 @@ infer_mixture <- function(reference,
 
 
     params <- list_diploid_params(ac, mix_I, coll, coll_N, RU_vec, RU_starts, alle_freq_prior = alle_freq_prior)
-
+    params$locus_names <- names(ac)
+    params$ploidies <- as.integer(unname(ploidies[params$locus_names]))
 
     ## calculate genotype log-Likelihoods for the mixture individuals ##
     message("  calculating log-likelihoods of the mixture individuals.", appendLF = FALSE)

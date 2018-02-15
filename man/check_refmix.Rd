@@ -14,6 +14,10 @@ check_refmix(D, gen_start_col, type = "reference")
 \item{type}{For writing errors, supply "mixture" or "reference" as appropriate.}
 }
 \description{
-Just checks to make sure that column types are correct
+Just checks to make sure that column types are correct.
+}
+\details{
+It also checks the patterns of missing data, and from that infers whether
+markers are haploid or diploid.
 }
 \keyword{internal}

@@ -46,7 +46,8 @@ The collections are in the order as described above. The names are the collectio
 the base-1 index of each collection.  
 - `RU_starts`:  The base-0 index of the starting position of each reporting unit in the `RU_vec` vector.  This is a named integer vector.  For example, the first few entries of the chinook data set are:
     ```{r}
-    cpar <- tcf2param_list(chinook, 5, summ = FALSE)
+    ploidies <- check_refmix(chinook, 5)
+    cpar <- tcf2param_list(chinook, 5, summ = FALSE, ploidies = ploidies)
     cpar$RU_starts[1:5]
     ```
 and if we look at the first 15 elements of `RU_vec` it gives us the names and the indices of 

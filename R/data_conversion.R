@@ -431,7 +431,7 @@ list_diploid_params <- function(AC_list, I_list, PO, coll_N, RU_vec, RU_starts,
 #' include \code{"const"}, \code{"scaled_const"}, and \code{"empirical"}. See
 #' \code{?list_diploid_params} for method details.
 #' @param summ logical indicating whether summary descriptions of the formatted data be provided
-#'
+#' @param ploidies a named vector of ploidies (1 or 2) for each locus.  The names must the the locus names.
 #' @return \code{tcf2param_list} returns the output of \code{list_diploid_params},
 #' after the original dataset is converted to a usable format and all relevant values
 #' are extracted. See \code{?list_diploid_params} for details
@@ -442,7 +442,7 @@ list_diploid_params <- function(AC_list, I_list, PO, coll_N, RU_vec, RU_starts,
 #'
 #' @export
 tcf2param_list <- function(D, gen_start_col, samp_type = "both",
-                           alle_freq_prior = list("const_scaled" = 1), summ = T){
+                           alle_freq_prior = list("const_scaled" = 1), summ = T, ploidies){
 
   # coerce collection and repunit to be factors.  This is important since things get turned
   # into integers
@@ -503,6 +503,8 @@ tcf2param_list <- function(D, gen_start_col, samp_type = "both",
   params$collection_names <- levels(D$collection)
   params$repunit_names <- levels(D$repunit)
   params$locus_names <- names(AC_list)
+
+  params$ploidies <- as.integer(unname(ploidies[params$locus_names]))
 
   if(summ == T){
     cat(paste('Summary Statistics:',

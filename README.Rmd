@@ -95,6 +95,19 @@ in, and it is assumed that all the columns after that one contain genetic data.
 same column structure, i.e., they must have exactly the same number of columns with exactly the same
 column names, in the same order and of the same type.
 
+## How about haploid markers?
+
+At the request of the good folks at ADFG, I introduced a few hacks to allow the input to 
+include markers that are haploid (for example mtDNA haplotypes).  To denote a marker as haploid
+you _still give it two columns of data_ in your data frame, but the second column of the haploid
+marker must be entirely NAs.  When `rubias` is processing the data and it sees this, it assumes that
+the marker is haploid and it treats it appropriately.
+
+Note that if you have a diploid marker it typically does not make sense to mark one of the gene copies as
+missing and the other as non-missing.  Accordingly, if you have a diploid marker that records just one of the
+gene copies as missing in any individual, it is going to throw an error.  Likewise, if your haploid marker does
+not have every single individual with and NA at the second gene copy, then it's also going to throw an error.
+
 
 ## An example reference data file
 

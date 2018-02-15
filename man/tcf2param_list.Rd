@@ -5,7 +5,7 @@
 \title{Generate MCMC parameter list from two-column genetic data & print summary}
 \usage{
 tcf2param_list(D, gen_start_col, samp_type = "both",
-  alle_freq_prior = list(const_scaled = 1), summ = T)
+  alle_freq_prior = list(const_scaled = 1), summ = T, ploidies)
 }
 \arguments{
 \item{D}{A data frame containing two-column genetic data, preceded by metadata.
@@ -29,6 +29,8 @@ include \code{"const"}, \code{"scaled_const"}, and \code{"empirical"}. See
 \code{?list_diploid_params} for method details.}
 
 \item{summ}{logical indicating whether summary descriptions of the formatted data be provided}
+
+\item{ploidies}{a named vector of ploidies (1 or 2) for each locus.  The names must the the locus names.}
 }
 \value{
 \code{tcf2param_list} returns the output of \code{list_diploid_params},

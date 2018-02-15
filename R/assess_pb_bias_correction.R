@@ -57,7 +57,7 @@ assess_pb_bias_correction <- function(reference, gen_start_col, seed = 5,
                                       alle_freq_prior = list("const_scaled" = 1)) {
 
   # check that reference is formatted appropriately
-  check_refmix(reference, gen_start_col, "reference")
+  ploidies <- check_refmix(reference, gen_start_col, "reference")
 
   reference$collection <- factor(reference$collection, levels = unique(reference$collection))
   reference$repunit <- factor(reference$repunit, levels = unique(reference$repunit))
@@ -78,7 +78,7 @@ assess_pb_bias_correction <- function(reference, gen_start_col, seed = 5,
   if (any(is.na(reference$repunit))) stop("repunit values may not be NAs" )
   if (any(is.na(reference$collection))) stop("collection values may not be NAs")
 
-  ref_params <- tcf2param_list(reference, gen_start_col, summ = F, alle_freq_prior = alle_freq_prior)
+  ref_params <- tcf2param_list(reference, gen_start_col, summ = F, alle_freq_prior = alle_freq_prior,  ploidies = ploidies)
 
   set.seed(seed)
 

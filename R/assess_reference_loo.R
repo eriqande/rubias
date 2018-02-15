@@ -52,7 +52,7 @@ assess_reference_loo <- function(reference, gen_start_col, reps = 50, mixsize = 
   if (!(resampling_unit %in% c("gene_copies", "individual"))) stop("Choice ", resampling_unit, " unknown for resampling unit.")
 
   # check that reference is formatted OK
-  check_refmix(reference, gen_start_col, "reference")
+  ploidies <- check_refmix(reference, gen_start_col, "reference")
 
   # then coerce those repunit and collection to factor to prepare them for tcf2param_list
   reference$repunit <- factor(reference$repunit, levels = unique(reference$repunit))
@@ -60,7 +60,7 @@ assess_reference_loo <- function(reference, gen_start_col, reps = 50, mixsize = 
 
 
   # get the necessary parameters from the reference data
-  params <- tcf2param_list(reference, gen_start_col, summ = printSummary, alle_freq_prior = alle_freq_prior)
+  params <- tcf2param_list(reference, gen_start_col, summ = printSummary, alle_freq_prior = alle_freq_prior, ploidies = ploidies)
 
   # get a data frame that has the repunits and collections
   reps_and_colls <- reference %>%
