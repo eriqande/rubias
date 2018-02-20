@@ -49,7 +49,12 @@ describing the structure of the dataset, as well as the presence of missing data
 enabling verification of proper data conversion.
 }
 \examples{
-ale_par_list <- tcf2param_list(alewife, 17)
+# after adding support for haploid markers we need to pass
+# in the ploidies vector.  These markers are all diploid...
+locnames <- names(alewife)[-(1:16)][c(T,F)]
+ploidies <- rep(2, length(locnames))
+names(ploidies) <- locnames
+ale_par_list <- tcf2param_list(alewife, 17, ploidies = ploidies)
 
 }
 \keyword{internal}

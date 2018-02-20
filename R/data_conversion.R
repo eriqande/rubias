@@ -438,7 +438,12 @@ list_diploid_params <- function(AC_list, I_list, PO, coll_N, RU_vec, RU_starts,
 #'
 #' @keywords internal
 #' @examples
-#' ale_par_list <- tcf2param_list(alewife, 17)
+#' # after adding support for haploid markers we need to pass
+#' # in the ploidies vector.  These markers are all diploid...
+#' locnames <- names(alewife)[-(1:16)][c(T,F)]
+#' ploidies <- rep(2, length(locnames))
+#' names(ploidies) <- locnames
+#' ale_par_list <- tcf2param_list(alewife, 17, ploidies = ploidies)
 #'
 #' @export
 tcf2param_list <- function(D, gen_start_col, samp_type = "both",
@@ -546,7 +551,11 @@ tcf2param_list <- function(D, gen_start_col, samp_type = "both",
 #' correct assignment at the collection level, which is too low and variable to serve
 #'  as a stable metric for \code{omega} scaling.
 #' @examples
-#' params <- tcf2param_list(alewife, 17)
+#' locnames <- names(alewife)[-(1:16)][c(T,F)]
+#' ploidies <- rep(2, length(locnames))
+#' names(ploidies) <- locnames
+#'
+#' params <- tcf2param_list(alewife, 17, ploidies = ploidies)
 #' SL <- geno_logL(params) %>% exp() %>% apply(2, function(x) x/sum(x))
 #' correct <- avg_coll2correctRU(SL, params$coll, params$RU_starts, params$RU_vec)
 #' @export
