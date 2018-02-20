@@ -37,7 +37,7 @@ it will be upwardly biased, and vice versa. The inverse of this vector is used
 to scale Dirichlet draws of \code{omega} during misassignment-scaled MCMC.
 }
 \examples{
-locnames <- names(alewife)[-(1:16)][c(T,F)]
+locnames <- names(alewife)[-(1:16)][c(TRUE, FALSE)]
 ploidies <- rep(2, length(locnames))
 names(ploidies) <- locnames
 

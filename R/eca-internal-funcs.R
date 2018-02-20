@@ -1,4 +1,36 @@
 
+#' infer the ploidy from the pattern of NAs in the columns of data
+#'
+#' This is strictly internal
+#' @param tmp a data frame with 2 * L columns (two for each locus)
+#' @keywords internal
+get_ploidy_from_frame <- function(tmp) {
+  ploidy <- rep(2, ncol(tmp) / 2)  # initialize to diploid
+  locus_names <- names(tmp)[c(TRUE, FALSE)]
+  gc_mism_error <- FALSE
+  for (i in seq(1, ncol(tmp), by = 2)) {
+    a <- tmp[,i]
+    b <- tmp[,i+1]
+
+    looksHaploid <- all(is.na(b))
+    gc_mism <- any(xor(is.na(a), is.na(b)))  # returns true if one gene copy is missing and not the other for any locus
+
+    if (looksHaploid == TRUE) {
+      ploidy[i] <- 1
+      message("Scoring locus ", names(tmp)[i], " as haploid")
+    } else {
+      if(gc_mism == TRUE) {
+        message("Error in input.  At diploid loci, either both or neither gene copies must be missing. Offending locus = ", names(tmp)[i])
+        gc_mism_error <- TRUE
+      }
+    }
+  }
+  if(gc_mism_error == TRUE) stop("Bailing out due to single gene copies being missing data at non-haploid loci.")
+
+  names(ploidy) <- locus_names
+  ploidy
+}
+
 
 #' A helper function to check that the input data frame is OK
 #'
@@ -41,27 +73,8 @@ check_refmix <- function(D, gen_start_col, type = "reference") {
   # now cycle over the loci and check the pattern of missing data.  Any individual
   # with missing data must be missing at both gene copies, unless it is a haploid
   # marker, in which case it must be missing at the second gene copy in everyone.
-  ploidy <- rep(2, ncol(tmp) / 2)  # initialize to diploid
-  locus_names <- names(tmp)[c(T,F)]
-  gc_mism_error <- FALSE
-  for (i in seq(1, ncol(tmp), by = 2)) {
-    a <- tmp[,i]
-    b <- tmp[,i+1]
+  ploidy <- get_ploidy_from_frame(tmp)
 
-    looksHaploid <- all(is.na(b))
-    gc_mism <- any(xor(is.na(a), is.na(b)))  # returns true if one gene copy is missing and not the other for any locus
-
-    if (looksHaploid == TRUE) {
-      ploidy[i] <- 1
-      message("Scoring locus ", names(tmp)[i], " as haploid")
-    } else {
-      if(gc_mism == TRUE) {
-        message("Error in input.  At diploid loci, either both or neither gene copies must be missing. Offending locus = ", names(tmp)[i])
-        gc_mism_error <- TRUE
-        }
-    }
-  }
-  if(gc_mism_error == TRUE) stop("Bailing out due to single gene copies being missing data at non-haploid loci.")
 
   # check also to make sure that indiv IDs are unique
   dupies <- tibble::tibble(indiv = D$indiv) %>%
@@ -86,7 +99,6 @@ check_refmix <- function(D, gen_start_col, type = "reference") {
   }
 
   # at the end, we return a vector of ploidies (1 or 2) for the loci
-  names(ploidy) <- locus_names
   ploidy
 }
 

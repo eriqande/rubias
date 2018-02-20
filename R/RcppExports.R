@@ -208,7 +208,11 @@ gprob_sim_ind <- function(par_list, sim_colls) {
 #' mix <- drawn$mix
 #'
 #' # then run it...
-#' params <- tcf2param_list(rbind(ref,mix), 17, samp_type = "mixture")
+#' # we have to get the ploidies to pass to tcf2param_list
+#' locnames <- names(alewife)[-(1:16)][c(TRUE, FALSE)]
+#' ploidies <- rep(2, length(locnames))
+#' names(ploidies) <- locnames
+#' params <- tcf2param_list(rbind(ref,mix), 17, samp_type = "mixture", ploidies = ploidies)
 #' sim_colls <- sample(params$C, 1070, replace = TRUE)
 #' sim_miss <- sample(length(params$coll), 1070, replace = TRUE)
 #' ale_sim_gprobs_miss <- gprob_sim_gc_missing(params, sim_colls, sim_miss)
@@ -238,7 +242,12 @@ gprob_sim_gc_missing <- function(par_list, sim_colls, sim_missing) {
 #' @examples
 #' # this is shown with a scaled likelihood matrix from self-assignment
 #' # of the reference individuals
-#' params <- tcf2param_list(alewife, 17)
+#'
+#' # we have to get the ploidies to pass to tcf2param_list
+#' locnames <- names(alewife)[-(1:16)][c(TRUE, FALSE)]
+#' ploidies <- rep(2, length(locnames))
+#' names(ploidies) <- locnames
+#' params <- tcf2param_list(alewife, 17, ploidies = ploidies)
 #' logl <- geno_logL(params)
 #' SL <- apply(exp(logl), 2, function(x) x/sum(x))
 #' test_em <- gsi_em_1(SL,
@@ -279,7 +288,13 @@ gsi_em_1 <- function(SL, Pi_init, max_iterations, tolerance, return_progression)
 #' @examples
 #' # this demonstrates it with scaled likelihoods computed from
 #' # assignment of the reference samples
-#' params <- tcf2param_list(alewife, 17)
+#'
+#' # we have to get the ploidies to pass to tcf2param_list
+#' locnames <- names(alewife)[-(1:16)][c(TRUE, FALSE)]
+#' ploidies <- rep(2, length(locnames))
+#' names(ploidies) <- locnames
+#'
+#' params <- tcf2param_list(alewife, 17, ploidies = ploidies)
 #' logl <- geno_logL(params)
 #' SL <- apply(exp(logl), 2, function(x) x/sum(x))
 #' lambda <- rep(1/params$C, params$C)

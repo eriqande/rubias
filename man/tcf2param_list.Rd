@@ -51,7 +51,7 @@ enabling verification of proper data conversion.
 \examples{
 # after adding support for haploid markers we need to pass
 # in the ploidies vector.  These markers are all diploid...
-locnames <- names(alewife)[-(1:16)][c(T,F)]
+locnames <- names(alewife)[-(1:16)][c(TRUE, FALSE)]
 ploidies <- rep(2, length(locnames))
 names(ploidies) <- locnames
 ale_par_list <- tcf2param_list(alewife, 17, ploidies = ploidies)

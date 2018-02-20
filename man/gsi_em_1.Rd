@@ -32,7 +32,12 @@ for all the individuals.  It returns the output in a list.
 \examples{
 # this is shown with a scaled likelihood matrix from self-assignment
 # of the reference individuals
-params <- tcf2param_list(alewife, 17)
+
+# we have to get the ploidies to pass to tcf2param_list
+locnames <- names(alewife)[-(1:16)][c(TRUE, FALSE)]
+ploidies <- rep(2, length(locnames))
+names(ploidies) <- locnames
+params <- tcf2param_list(alewife, 17, ploidies = ploidies)
 logl <- geno_logL(params)
 SL <- apply(exp(logl), 2, function(x) x/sum(x))
 test_em <- gsi_em_1(SL,

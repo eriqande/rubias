@@ -204,7 +204,11 @@ NumericMatrix gprob_sim_ind(List par_list, IntegerVector sim_colls) {
 //' mix <- drawn$mix
 //'
 //' # then run it...
-//' params <- tcf2param_list(rbind(ref,mix), 17, samp_type = "mixture")
+//' # we have to get the ploidies to pass to tcf2param_list
+//' locnames <- names(alewife)[-(1:16)][c(TRUE, FALSE)]
+//' ploidies <- rep(2, length(locnames))
+//' names(ploidies) <- locnames
+//' params <- tcf2param_list(rbind(ref,mix), 17, samp_type = "mixture", ploidies = ploidies)
 //' sim_colls <- sample(params$C, 1070, replace = TRUE)
 //' sim_miss <- sample(length(params$coll), 1070, replace = TRUE)
 //' ale_sim_gprobs_miss <- gprob_sim_gc_missing(params, sim_colls, sim_miss)

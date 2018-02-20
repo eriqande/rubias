@@ -77,6 +77,10 @@ ref_and_mix_pipeline <- function(reference, mixture, gen_start_col, method = "MC
   D <- cbind(sample_type, D)
   gen_start_col <- gen_start_col + 1
 
+  # infer the ploidies
+  ploidies <- get_ploidy_from_frame(D[gen_start_col:ncol(D)])
+
+
   # clean the data, gather allele count matrices and collection/reporting unit groups from reference data,
   # then prepare other parameters based on the mixture data
   clean <- tcf2long(D, gen_start_col)
@@ -97,6 +101,8 @@ ref_and_mix_pipeline <- function(reference, mixture, gen_start_col, method = "MC
   RU_vec <- as.integer(colls_by_RU$collection)
   names(RU_vec) <- as.character(colls_by_RU$collection)
   params <- list_diploid_params(ac, mix_I, coll, coll_N, RU_vec, RU_starts)
+  params$locus_names <- names(ac)
+  params$ploidies <- as.integer(unname(ploidies[params$locus_names]))
 
 
   # calculate genotype log-Likelihoods for the mixture individuals
@@ -112,6 +118,8 @@ ref_and_mix_pipeline <- function(reference, mixture, gen_start_col, method = "MC
     simplify2array() %>%
     as.vector()
   ref_self_params <- list_diploid_params(ac, ref_I, ref_coll, ref_coll_N, RU_vec, RU_starts)
+  ref_self_params$ploidies <- as.integer(unname(ploidies[params$locus_names]))
+
   ref_logl <- geno_logL(ref_self_params)
   ref_SL <- apply(exp(ref_logl), 2, function(x) x/sum(x))
   ref_correctassign <- avg_coll2correctRU(ref_SL,
@@ -201,6 +209,10 @@ Hasselman_sim_colls <- function(RU_starts, RU_vec, size = 100) {
 #' @export
 #' @keywords internal
 bootstrap_rho <- function(rho_est, pi_est, D, gen_start_col, niter = 100, reps = 2000, burn_in = 100) {
+
+  # do this to get the ploidies of the loci
+  ploidies <- check_refmix(D, gen_start_col)
+
   D$collection <- factor(D$collection, levels = unique(D$collection))
   D$repunit <- factor(D$repunit, levels = unique(D$repunit))
   ref <- dplyr::filter(D, sample_type == "reference")
@@ -211,7 +223,7 @@ bootstrap_rho <- function(rho_est, pi_est, D, gen_start_col, niter = 100, reps =
     dplyr::group_by(repunit, coll_int) %>%
     dplyr::tally()
 
-  ref_star_params <- tcf2param_list(D, gen_start_col, samp_type = "reference", summ = F)
+  ref_star_params <- tcf2param_list(D, gen_start_col, samp_type = "reference", summ = F, ploidies = ploidies)
   rho_mean <- lapply(1:niter, function(rep) {
     sim_ns <- rmultinom(n = 1, size = nrow(mix), prob = pi_est)
     sim_colls <- lapply(1:length(sim_ns), function(coll){

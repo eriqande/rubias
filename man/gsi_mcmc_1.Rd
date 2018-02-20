@@ -41,7 +41,13 @@ for all the individuals.  It returns the output in a list.
 \examples{
 # this demonstrates it with scaled likelihoods computed from
 # assignment of the reference samples
-params <- tcf2param_list(alewife, 17)
+
+# we have to get the ploidies to pass to tcf2param_list
+locnames <- names(alewife)[-(1:16)][c(TRUE, FALSE)]
+ploidies <- rep(2, length(locnames))
+names(ploidies) <- locnames
+
+params <- tcf2param_list(alewife, 17, ploidies = ploidies)
 logl <- geno_logL(params)
 SL <- apply(exp(logl), 2, function(x) x/sum(x))
 lambda <- rep(1/params$C, params$C)
