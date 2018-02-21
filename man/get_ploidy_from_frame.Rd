@@ -12,3 +12,4 @@ get_ploidy_from_frame(tmp)
 \description{
 This is strictly internal
 }
+\keyword{internal}

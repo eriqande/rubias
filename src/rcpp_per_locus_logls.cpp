@@ -41,7 +41,7 @@ NumericMatrix rcpp_per_locus_logls(List par_list) {
     LOO = 1;
     c = (coll[i] - 1);  // only compute logl for the population the individual is from
     for(l = 0; l < L; l++) {  // cycle over loci
-      GPROB_DIP(i, l, c, gp);
+      GPROB(i, l, c, gp);
       out(i, l) = log(gp);
     }
   }

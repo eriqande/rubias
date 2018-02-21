@@ -45,7 +45,7 @@ NumericMatrix geno_logL(List par_list) {
       sum = 0.0;
       LOO = c == (coll[i] - 1);
       for(l = 0; l < L; l++) {  // cycle over loci
-        GPROB_DIP(i, l, c, gp);
+        GPROB(i, l, c, gp);
         sum += log(gp);
       }
       out(c, i) = sum;
@@ -100,7 +100,7 @@ NumericMatrix geno_logL_ssq(List par_list) {
       sum = 0.0;
       LOO = c == (coll[i] - 1);
       for(l = 0; l < L; l++) {  // cycle over loci
-        GPROB_DIP(i, l, c, gp);
+        GPROB(i, l, c, gp);
         sum += log(gp) * log(gp);
       }
       out(c, i) = sum;

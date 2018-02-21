@@ -83,7 +83,7 @@ NumericMatrix gprob_sim_gc(List par_list, IntegerVector sim_colls) {
         sum = 0.0;
         LOO = c == (sim_colls[i]-1);
         for(l = 0; l < L; l++) {
-          GPROB_DIP_FROM_SIM(a1_vec[l], a2_vec[l], l, c, gp);
+          GPROB_FROM_SIM(a1_vec[l], a2_vec[l], l, c, gp);
           sum += log(gp);
         }
         out(c, i) = sum;
@@ -162,7 +162,7 @@ NumericMatrix gprob_sim_ind(List par_list, IntegerVector sim_colls) {
       sum = 0.0;
       LOO = c == (sim_colls[i]-1);
       for(l = 0; l < L; l++) {
-        GPROB_DIP_FROM_SIM(a1_vec[l], a2_vec[l], l, c, gp);
+        GPROB_FROM_SIM(a1_vec[l], a2_vec[l], l, c, gp);
         sum += log(gp);
       }
       out(c, i) = sum;
@@ -277,7 +277,7 @@ NumericMatrix gprob_sim_gc_missing(List par_list, IntegerVector sim_colls, Integ
       sum = 0.0;
       LOO = c == (sim_colls[i]-1);
       for(l = 0; l < L; l++) {
-        GPROB_DIP_FROM_SIM(a1_vec[l], a2_vec[l], l, c, gp);
+        GPROB_FROM_SIM(a1_vec[l], a2_vec[l], l, c, gp);
         sum += log(gp);
       }
       out(c, i) = sum;
