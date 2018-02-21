@@ -8,15 +8,17 @@ get_ploidy_from_frame <- function(tmp) {
   ploidy <- rep(2, ncol(tmp) / 2)  # initialize to diploid
   locus_names <- names(tmp)[c(TRUE, FALSE)]
   gc_mism_error <- FALSE
+  j <- 0
   for (i in seq(1, ncol(tmp), by = 2)) {
     a <- tmp[,i]
     b <- tmp[,i+1]
+    j <- j + 1
 
     looksHaploid <- all(is.na(b))
     gc_mism <- any(xor(is.na(a), is.na(b)))  # returns true if one gene copy is missing and not the other for any locus
 
     if (looksHaploid == TRUE) {
-      ploidy[i] <- 1
+      ploidy[j] <- 1
       message("Scoring locus ", names(tmp)[i], " as haploid")
     } else {
       if(gc_mism == TRUE) {

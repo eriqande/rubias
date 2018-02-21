@@ -16,7 +16,8 @@ returns a data frame with indiv (as characters), n_non_miss_loci, n_miss_loci (a
 (as a list-column of named integer vectors)
 }
 \description{
-Takes a rubias genetic data frame that must have column "indiv".  Currently
-hard-wired for diploids.
+Takes a rubias genetic data frame that must have column "indiv". Haploids have the
+second column at each locus totally missing.  Diploids with missing data will have both gene copies
+missing.
 }
 \keyword{internal}

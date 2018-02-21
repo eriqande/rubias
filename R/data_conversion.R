@@ -512,14 +512,11 @@ tcf2param_list <- function(D, gen_start_col, samp_type = "both",
   params$ploidies <- as.integer(unname(ploidies[params$locus_names]))
 
   # to compute the percent missing from the long vector I in params, is a little
-  # trickier when we have haploid markers in there.  We could do it straight up
-  # from D, but it is fun to do this.  We want a mask for I in which the second
-  # copy of each haploid locus is FALSEd out so that we can ignore them.
-  tmplist <- list(
-    rep(c(TRUE, FALSE), params$N),
-    rep(c(TRUE, TRUE), params$N)
-    )
-  mask <- unlist(tmplist[params$ploidies])
+  # trickier when we have haploid markers in there, but not much.  Before we just
+  # added everything up, but now we will focus only on the first gene copy in each
+  # pair, since we have enforced that that one will be missing if the locus is missing,
+  # whether it is haploid or not...s
+  mask <- rep(c(TRUE, FALSE), length.out = length(params$I))
 
   percent.missing <- sum(params$I[mask] == 0)/sum(mask) * 100
 
@@ -531,7 +528,7 @@ tcf2param_list <- function(D, gen_start_col, samp_type = "both",
                           paste(levels(RU_list), collapse = ", "))),
               paste(paste(paste(params$C, 'Collections:'),
                           paste(colnames(AC_list[[1]]), collapse = ", "))),
-              paste(sprintf("%.2f", percent.missing), '% of allelic data identified as missing', sep = ""),
+              paste(sprintf("%.2f", percent.missing), '% of allelic data identified as missing\n', sep = ""),
               sep = '\n\n'))
   }
 

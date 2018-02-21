@@ -1,0 +1,77 @@
+---
+title: "Testing Haploid LogLs"
+output: html_notebook
+---
+
+
+Have just developed a way to do haploid markers and I just want to do a 
+quick test to make sure that it is working the way I would hope it might.
+
+
+Make some data that are quite simple:
+```{r}
+simp <- tibble(sample_type = "reference", 
+       repunit = "Boing", 
+       collection = paste0("coll", rep(1:3, each = 10)), 
+       indiv = paste0("indiv", rep(1:3, each = 10), "_", 1:10),
+       hap1 = as.integer(c(rep(1,10), rep(1,5), rep(2,5), rep(3,10))),
+       hap1.1 = NA
+       )
+```
+
+This is pretty straightforward.  Coll 1 and 3 are fixed for types 1 and 3 respecively.  Coll 2 has 5 1's and 5 2's.  
+Each pop has ten indivs in it.  
+
+Let's use a scaled constant prior which will give us 1/3, 1/3, 1/3.   
+
+So, any individual in collection 1 *to itself* should have a logl of 9.33333 / 10 = 0.93.
+From collection 1 to 2 should be the same for each individual...etc.
+
+From Collection 2 with a 1 allele to collection 1 should be 10.3/11
+
+```{r}
+check_it <- self_assign(simp, 5) %>%
+  mutate(like = exp(log_likelihood))
+
+```
+
+And, when you check all those out, they look solid.
+
+
+Cool, now, let's do the same, but add in a bunch of loci with random alleles.
+I basically want to check that we get the same result no matter how these 
+loci are ordered in the data set.
+
+```{r}
+set.seed(55)
+loc3a <- simp %>%
+  mutate(hap0 = sample(1:5, 30, replace = TRUE),
+         hap0.1 = sample(1:5, 30, replace = TRUE),
+         hap2 = sample(1:5, 30, replace = TRUE),
+         hap2.1 = sample(1:5, 30, replace = TRUE))
+```
+
+
+Then do it up:
+```{r}
+a <- self_assign(loc3a, 5)
+
+loc3b <- loc3a[, c(1, 2, 3, 4, 7, 8, 5, 6, 9, 10)]
+b <- self_assign(loc3b, 5)
+
+loc3c <- loc3a[, c(1, 2, 3, 4, 9, 10, 7, 8, 5, 6)]
+c <- self_assign(loc3c, 5)
+
+identical(a, b)
+identical(a, c)
+```
+
+
+Now, make some missing data
+```{r}
+loc3m <- loc3b
+loc3m[1, 7] <- NA
+loc3m[2, c(5, 6)] <- NA
+loc3m[3, c(5,6, 7)] <- NA
+m3 <- self_assign(loc3m, 5)
+```
