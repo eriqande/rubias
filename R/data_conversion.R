@@ -496,8 +496,8 @@ tcf2param_list <- function(D, gen_start_col, samp_type = "both",
   RU_vec <- as.integer(Colls_by_RU$collection)
   names(RU_vec) <- as.character(Colls_by_RU$collection)
   params <- list_diploid_params(AC_list, I_list, PO, coll_N, RU_vec, RU_starts, alle_freq_prior)
-  percent.missing <- sum(params$I == 0)/length(params$I) * 100
   RU_list <- unique(cleaned$clean_short$repunit)
+
 
   # here, the names of the indivs, collections, and repunits in the order in which they
   # appear as integers in this data structure.  We should have done this on day one, but
@@ -511,6 +511,18 @@ tcf2param_list <- function(D, gen_start_col, samp_type = "both",
 
   params$ploidies <- as.integer(unname(ploidies[params$locus_names]))
 
+  # to compute the percent missing from the long vector I in params, is a little
+  # trickier when we have haploid markers in there.  We could do it straight up
+  # from D, but it is fun to do this.  We want a mask for I in which the second
+  # copy of each haploid locus is FALSEd out so that we can ignore them.
+  tmplist <- list(
+    rep(c(TRUE, FALSE), params$N),
+    rep(c(TRUE, TRUE), params$N)
+    )
+  mask <- unlist(tmplist[params$ploidies])
+
+  percent.missing <- sum(params$I[mask] == 0)/sum(mask) * 100
+
   if(summ == T){
     cat(paste('Summary Statistics:',
               paste(params$N, 'Individuals in Sample'),
@@ -519,7 +531,7 @@ tcf2param_list <- function(D, gen_start_col, samp_type = "both",
                           paste(levels(RU_list), collapse = ", "))),
               paste(paste(paste(params$C, 'Collections:'),
                           paste(colnames(AC_list[[1]]), collapse = ", "))),
-              paste(percent.missing, '% of allelic data identified as missing', sep = ""),
+              paste(sprintf("%.2f", percent.missing), '% of allelic data identified as missing', sep = ""),
               sep = '\n\n'))
   }
 
