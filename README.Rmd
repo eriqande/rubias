@@ -20,8 +20,8 @@ knitr::opts_chunk$set(
   comment = "#>",
   fig.path = "tools/"
 )
-library(tidyverse)
 ```
+
 
 
 
@@ -127,6 +127,29 @@ head(chinook_mix[, 1:8])
 ```
 
 
+## How about known-origin individuals in the mixture?
+
+In some cases, you might know (more or less unambiguously) the origin of some fish
+in a particular mixture sample.  For example, if 10% of the individuals in a mixture
+carried coded wire tags, then you would want to include them in the sample, but 
+make sure that their collections of origin were hard-coded to be what the CWTs said.
+Another scenario in which this might occur is when the genetic data were used for parentage-based
+tagging of the individuals in the mixture sample.  In that case, some individuals might be placed
+with very high confidence to parents.  Then, they should be included in the mixture as having come
+from a known collection.  The folks at the DFO in Nanaimo, Canada are doing an amazing
+job with PBT and wondered if rubias could be modified to deal with the latter situation.
+
+We've made some small additions to accommodate this.  rubias does not do any actual inference of parentage, but if you
+know the origin of some fish in the mixture, that can be included in the rubias analysis. The way you do this with
+the function `infer_mixture()` is to include a column called `known_collection` in both the reference data frame
+and the mixture data frame.  In the reference data frame, `known_collection` should just be a copy of the `collection` column.  However, in the mixture data frame each entry in `known_collection` should be the collection that the individual is known to be from (i.e. using parentage inference or a CWT), or, if the individual is not known
+to be from any collection, it should be NA.  Note that the names of the collections in `known_collection` must match
+those found in the `collection` column in the reference data set.
+
+These modifications are not allowed for the parametric bootstrap (PB) method in `infer_mixture()`.
+
+
+
 # Performing a Genetic Mixture Analysis
 
 This is done with the `infer_mixture` function.  In the example data 
@@ -167,6 +190,8 @@ lapply(mix_est, head)
 
 This is a simple operation in the [tidyverse](http://tidyverse.org/):
 ```{r aggregating}
+library(tidyverse)  # load up the tidyverse library
+
 # for mixing proportions
 rep_mix_ests <- mix_est$mixing_proportions %>%
   group_by(mixture_collection, repunit) %>%

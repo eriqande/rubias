@@ -22,7 +22,7 @@ get_ploidy_from_frame <- function(tmp) {
       message("Scoring locus ", names(tmp)[i], " as haploid")
     } else {
       if(gc_mism == TRUE) {
-        message("Error in input.  At diploid loci, either both or neither gene copies must be missing. Offending locus = ", names(tmp)[i])
+        message("Error in input.  At diploid loci, either both or neither gene copies must be missing. Offending locus = ", names(tmp)[i], "\n\tNote! This might indicate that the gen_start_col is incorrect.")
         gc_mism_error <- TRUE
       }
     }

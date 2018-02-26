@@ -74,6 +74,19 @@ in, and it is assumed that all the columns after that one contain genetic data.
 same column structure, i.e., they must have exactly the same number of columns with exactly the same
 column names, in the same order and of the same type.
 
+## How about haploid markers?
+
+At the request of the good folks at ADFG, I introduced a few hacks to allow the input to 
+include markers that are haploid (for example mtDNA haplotypes).  To denote a marker as haploid
+you _still give it two columns of data_ in your data frame, but the second column of the haploid
+marker must be entirely NAs.  When `rubias` is processing the data and it sees this, it assumes that
+the marker is haploid and it treats it appropriately.
+
+Note that if you have a diploid marker it typically does not make sense to mark one of the gene copies as
+missing and the other as non-missing.  Accordingly, if you have a diploid marker that records just one of the
+gene copies as missing in any individual, it is going to throw an error.  Likewise, if your haploid marker does
+not have every single individual with and NA at the second gene copy, then it's also going to throw an error.
+
 
 ## An example reference data file
 
@@ -91,6 +104,29 @@ Here is the same for the mixture data frame that goes along with that reference 
 ```{r head-chinook-mix}
 head(chinook_mix[, 1:8])
 ```
+
+
+## How about known-origin individuals in the mixture?
+
+In some cases, you might know (more or less unambiguously) the origin of some fish
+in a particular mixture sample.  For example, if 10% of the individuals in a mixture
+carried coded wire tags, then you would want to include them in the sample, but 
+make sure that their collections of origin were hard-coded to be what the CWTs said.
+Another scenario in which this might occur is when the genetic data were used for parentage-based
+tagging of the individuals in the mixture sample.  In that case, some individuals might be placed
+with very high confidence to parents.  Then, they should be included in the mixture as having come
+from a known collection.  The folks at the DFO in Nanaimo, Canada are doing an amazing
+job with PBT and wondered if rubias could be modified to deal with the latter situation.
+
+We've made some small additions to accommodate this.  rubias does not do any actual inference of parentage, but if you
+know the origin of some fish in the mixture, that can be included in the rubias analysis. The way you do this with
+the function `infer_mixture()` is to include a column called `known_collection` in both the reference data frame
+and the mixture data frame.  In the reference data frame, `known_collection` should just be a copy of the `collection` column.  However, in the mixture data frame each entry in `known_collection` should be the collection that the individual is known to be from (i.e. using parentage inference or a CWT), or, if the individual is not known
+to be from any collection, it should be NA.  Note that the names of the collections in `known_collection` must match
+those found in the `collection` column in the reference data set.
+
+These modifications are not allowed for the parametric bootstrap (PB) method in `infer_mixture()`.
+
 
 
 # Performing a Genetic Mixture Analysis

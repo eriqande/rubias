@@ -62,6 +62,11 @@ infer_mixture <- function(reference,
   }
   ploidies <- ploidies_ref
 
+  # check that known_collections are OK if they exist
+  has_kc <- check_known_collections(reference, mixture)
+  if (method == "PB" & has_kc) {
+    stop("Sorry! Method PB not currently available with mixture individuals having known_collection.")
+  }
 
   # save an untouched version of reference and gen_start_col (to be used for self-assignment)
   orig_reference <- reference
@@ -249,6 +254,17 @@ infer_mixture <- function(reference,
                                     expected_var = base::as.vector(mv_sums$var))
 
 
+      # here is where we will modify the SL matrix to reflect the fish of known origin in the mixture
+      # first get the levels of the collections in the reference
+      CFL <- clean$clean_short %>%
+        dplyr::filter(sample_type == "reference") %>%
+        .$collection %>%
+        droplevels() %>%
+        levels()
+
+      KC <- little_mix[["known_collection"]]
+
+      SL <- modify_scaled_likelihoods_for_known_mixture_fish(SL = SL, KC = KC, CFL = CFL)
 
     })
     message("   time: ", sprintf("%.2f", time2["elapsed"]), " seconds")
