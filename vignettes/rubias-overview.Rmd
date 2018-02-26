@@ -282,6 +282,66 @@ then you might infer that the individual doesn't actually fit any of the
 populations in the reference well.
 
 
+## Individuals of known origin in the mixture
+
+Here I include a small, contrived example.  We use the `small_chinook` data set so that it goes
+fast.
+
+First, we analyze the data with no fish in the mixture of known collection
+```{r}
+no_kc <- infer_mixture(small_chinook_ref, small_chinook_mix, gen_start_col = 5)
+```
+And look at the results for the mixing proportions:
+```{r}
+no_kc$mixing_proportions %>% 
+  arrange(mixture_collection, desc(pi))
+```
+
+Now, we will do the same analysis, but pretend that we know that the first 8 of the 36
+fish in fishery rec1 are from the Deer_Cr_sp collection.
+
+First we have to add the known_collection column to the reference.
+
+```{r}
+# make reference file that includes the known_collection column
+kc_ref <- small_chinook_ref %>%
+  mutate(known_collection = collection) %>%
+  select(known_collection, everything())
+
+# see what that looks like
+kc_ref[1:10, 1:8]
+```
+
+Then we add the known collection column to the mixture.  We start out making it all NAs, and
+then we change that to Deer_Cr_sp for 8 of the rec1 fish:
+```{r}
+kc_mix <- small_chinook_mix %>%
+  mutate(known_collection = NA) %>%
+  select(known_collection, everything())
+
+kc_mix$known_collection[kc_mix$collection == "rec1"][1:8] <- "Deer_Cr_sp"
+
+# here is what that looks like now (dropping most of the genetic data columns)
+kc_mix[1:20, 1:7]
+```
+
+And now we can do the mixture analysis:
+```{r}
+# note that the genetic data start in column 6 now
+with_kc <- infer_mixture(kc_ref, kc_mix, 6)
+```
+
+And, when we look at the estimated proportions, we see that for rec1 they reflect
+the fact that 8 of those fish were singled out as known fish from Deer_Ck_sp:
+```{r}
+with_kc$mixing_proportions %>% 
+  arrange(mixture_collection, desc(pi))
+```
+
+The output from `infer_mixture()` in this case can be used just like it was before
+without known individuals in the baseline.
+
+
 # Assessment of Genetic References
 
 ## Self-assigning fish from the reference
