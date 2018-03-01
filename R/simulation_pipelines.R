@@ -196,6 +196,7 @@ Hasselman_sim_colls <- function(RU_starts, RU_vec, size = 100) {
 #' and "indiv" columns
 #' @param gen_start_col the first column of genetic data in D. All columns after
 #' \code{gen_start_col} must be genetic data
+#' @param pi_prior_pseudo_count_sum total weight on symmetrical prior for pi.
 #'
 #' In parametric bootstrapping, \code{niter} new mixture datasets are simulated by
 #' individual from the reference with reporting unit proportions \code{rho_est},
@@ -208,7 +209,7 @@ Hasselman_sim_colls <- function(RU_starts, RU_vec, size = 100) {
 #' bootstrapping.
 #' @export
 #' @keywords internal
-bootstrap_rho <- function(rho_est, pi_est, D, gen_start_col, niter = 100, reps = 2000, burn_in = 100) {
+bootstrap_rho <- function(rho_est, pi_est, D, gen_start_col, niter = 100, reps = 2000, burn_in = 100, pi_prior_pseudo_count_sum = 1) {
 
   # do this to get the ploidies of the loci
   ploidies <- check_refmix(D, gen_start_col)
@@ -234,7 +235,7 @@ bootstrap_rho <- function(rho_est, pi_est, D, gen_start_col, niter = 100, reps =
     SL <- apply(exp(sim_inds), 2, function(x) x/sum(x))
     pi_pb <- gsi_mcmc_1(SL = SL,
                         Pi_init = rep(1 / ref_star_params$C, ref_star_params$C),
-                        lambda = rep(1 / ref_star_params$C, ref_star_params$C),
+                        lambda = rep(pi_prior_pseudo_count_sum / ref_star_params$C, ref_star_params$C),
                         reps = reps,
                         burn_in = burn_in,
                         sample_int_Pi = 0,

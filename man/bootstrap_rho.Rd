@@ -5,7 +5,7 @@
 \title{Perform a parametric bootstrapping correction on an estimated rho vector}
 \usage{
 bootstrap_rho(rho_est, pi_est, D, gen_start_col, niter = 100, reps = 2000,
-  burn_in = 100)
+  burn_in = 100, pi_prior_pseudo_count_sum = 1)
 }
 \arguments{
 \item{rho_est}{the rho value previously estimated from MCMC GSI from the
@@ -19,7 +19,9 @@ data from which \code{rho_est} was computed; with "repunit", "collection",
 and "indiv" columns}
 
 \item{gen_start_col}{the first column of genetic data in D. All columns after
-\code{gen_start_col} must be genetic data
+\code{gen_start_col} must be genetic data}
+
+\item{pi_prior_pseudo_count_sum}{total weight on symmetrical prior for pi.
 
 In parametric bootstrapping, \code{niter} new mixture datasets are simulated by
 individual from the reference with reporting unit proportions \code{rho_est},

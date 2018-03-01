@@ -323,7 +323,8 @@ infer_mixture <- function(reference,
                                   gen_start_col = gen_start_col,
                                   niter = pb_iter,
                                   reps = reps,
-                                  burn_in = burn_in)
+                                  burn_in = burn_in,
+                                  pi_prior_pseudo_count_sum = pi_prior_pseudo_count_sum)
 
         out$mean$bootstrap_rho <- boot_out
       })
