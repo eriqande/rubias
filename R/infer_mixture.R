@@ -27,7 +27,10 @@
 #' is 100.
 #' @param sample_int_Pi how many iterations between storing the mixing proportions trace. Default is 1.
 #' Can't be 0. Can't be so large that fewer than 10 samples are taken from the burn in and the sweeps.
-#'
+#' @param pi_prior_pseudo_count_sum The prior on the mixing proportions is set as a Dirichlet vector
+#' of length C, with each element being W/C, where W is the pi_prior_pseudo_count_sum and C is the number
+#' of collections. By default this is 1.  If it is made much smaller than 1, things could start to mix more
+#' poorly.
 #' @return Tidy data frames in a list with the following components:
 #' mixing_proportions: the estimated mixing proportions of the different collections.
 #' indiv_posteriors: the posterior probs of fish being from each of the collections.
@@ -50,7 +53,8 @@ infer_mixture <- function(reference,
                           reps = 2000,
                           burn_in = 100,
                           pb_iter = 100,
-                          sample_int_Pi = 1) {
+                          sample_int_Pi = 1,
+                          pi_prior_pseudo_count_sum = 1) {
 
   # check that reference and mixture are OK
   ploidies_ref <- check_refmix(reference, gen_start_col, "reference")
@@ -276,7 +280,7 @@ infer_mixture <- function(reference,
     time_mcmc1 <- system.time({
       out <- gsi_mcmc_1(SL = SL,
                         Pi_init = rep(1 / params$C, params$C),
-                        lambda = rep(1 / params$C, params$C),
+                        lambda = rep(pi_prior_pseudo_count_sum / params$C, params$C),
                         reps = reps,
                         burn_in = burn_in,
                         sample_int_Pi = sample_int_Pi,

@@ -1,0 +1,103 @@
+---
+title: "Known Collections on DFO Real Data"
+output: html_notebook
+---
+
+Colin sent me some real data to play with.  Very cool.
+
+I have put it into development/private_data and have gitignored it all so it won't
+inadvertently get put in the cloud somewhere...
+
+Let's read it in and see what happens.
+
+```{r}
+library(tidyverse)
+library(rubias)
+
+bco <- read_tsv("../private_data/mco_escapes_rubias_Feb_12_2018/bco_rubias_Feb_28_2018.txt.gz")
+mco <- read_tsv("../private_data/mco_escapes_rubias_Feb_12_2018/mco_escapes_rubias_Feb_12_2018.txt")
+
+```
+
+
+Let's see what we have for known_collection individuals in the mixture:
+```{r}
+kc_counts <- count(mco, collection, known_collection)
+kc_counts
+```
+
+Note, for future reference, that Rosewall_Cr fish is 105_2017_54908_F.
+
+OK. We have 5 mixture collections, which are probably individuals escaping to each of the rivers there.
+
+The known collection ones are resolved using PBT.
+
+Let us very quickly compare the results that we get for each of the known_collections 
+occurring in mco (there are 6 of them), when we either use the known_collection information, or we don't.
+
+We will focus on collections rather than reporting units, since they should be harder to
+resolve, and therefore there will be more difference expected when you run it with vs without
+the known collections.
+
+## Run the MCMC, etc
+
+Here we do it with the known collections
+```{r}
+wkc <- infer_mixture(bco, mco, 6)
+```
+
+
+Here we do it without the known_collections
+```{r}
+nkc <-infer_mixture(bco[-1], mco[-1], 5)
+```
+
+### Messing with pi_prior_pseudo_count_sum
+Here we do it both with and without, but we set the pi_prior_pseudo_count_sum to be 0.05.
+
+```{r}
+wkc_pp <- infer_mixture(bco, mco, 6, pi_prior_pseudo_count_sum = 0.05)
+nkc_pp <-infer_mixture(bco[-1], mco[-1], 5, pi_prior_pseudo_count_sum = 0.05)
+```
+
+
+Merge together the mix_prop_traces for each of those so we can analyse it together.
+```{r}
+mer <- bind_rows(list(with_kc = wkc$mix_prop_traces, 
+                      without_kc = nkc$mix_prop_traces,
+                      with_kc_pp05 = wkc_pp$mix_prop_traces, 
+                      without_kc_pp05 = nkc_pp$mix_prop_traces),
+                 .id = "how_run")
+```
+
+Now pick out the populations we are particularly interested in:
+```{r}
+tmp <- kc_counts %>%
+  filter(!is.na(known_collection)) %>%
+  select(-n) %>%
+  rename(mixture_collection = collection) %>%
+  rename(collection = known_collection)
+
+slim <- mer %>%
+  semi_join(., tmp, by = c("mixture_collection", "collection")) %>%
+  filter(sweep > 500)  # burn-in
+
+slim %>% group_by(mixture_collection, collection, how_run) %>% summarise(mean = mean(pi), sd = sd(pi)) 
+```
+
+And what we see here is very little difference. Which is what we expect.  The one Rosewall_Cr fish identified by PBT
+makes the estimated fraction of Rosewall_Cr in the Puntledge_R mixture collection much higher when using the known
+collections, and, as a consequence, the sd is higher, but that is just a consequence of the fact that sd will be higher if the mean is higher.  
+
+The high confidence with which individuals are assigned using GSI can be seen by looking at the
+individual assignments.  Run this if you want to peruse them:
+```{r, eval=FALSE}
+View(nkc$indiv_posteriors %>% group_by(mixture_collection, indiv) %>% filter(near(PofZ, max(PofZ))))
+```
+
+So, overall, it looks like the known_collection option is working the way that it should, but there isn't a
+noticeable difference because the resolution with GSI is already quite good, and most of these fish are
+in mixtures where most of the fish are from one location.  
+
+Does that seem reasonable?  Please let me know if not.
+

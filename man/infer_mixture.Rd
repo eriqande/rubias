@@ -6,7 +6,7 @@
 \usage{
 infer_mixture(reference, mixture, gen_start_col, method = "MCMC",
   alle_freq_prior = list(const_scaled = 1), reps = 2000, burn_in = 100,
-  pb_iter = 100, sample_int_Pi = 1)
+  pb_iter = 100, sample_int_Pi = 1, pi_prior_pseudo_count_sum = 1)
 }
 \arguments{
 \item{reference}{a dataframe of two-column genetic format data, proceeded by "repunit", "collection",
@@ -35,6 +35,11 @@ is 100.}
 
 \item{sample_int_Pi}{how many iterations between storing the mixing proportions trace. Default is 1.
 Can't be 0. Can't be so large that fewer than 10 samples are taken from the burn in and the sweeps.}
+
+\item{pi_prior_pseudo_count_sum}{The prior on the mixing proportions is set as a Dirichlet vector
+of length C, with each element being W/C, where W is the pi_prior_pseudo_count_sum and C is the number
+of collections. By default this is 1.  If it is made much smaller than 1, things could start to mix more
+poorly.}
 }
 \value{
 Tidy data frames in a list with the following components:
