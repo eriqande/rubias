@@ -13,7 +13,11 @@ proportions in infer_mixture().
 
 * Enforced the requirement that fish of sample_type == "mixture" must have NA for their repunit.
 When things aren't NA, infer_mixture() would throw an error when method == "PB" because there 
-were extra factor levels floating around.  This 
+were extra factor levels floating around.  In the process I allow for the repunit column to be
+either character or logical as setting it to NA will always make it a logical if it is not part
+of a data frame with other non-missing character values in it.
+
+
 
 
 
