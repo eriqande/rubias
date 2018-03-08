@@ -11,6 +11,10 @@ parentage-based tagging) in the mixtures (#12).
 * Allow user to specify the total weight on the symmetrical Dirichlet prior for the mixing
 proportions in infer_mixture().
 
+* Enforced the requirement that fish of sample_type == "mixture" must have NA for their repunit.
+When things aren't NA, infer_mixture() would throw an error when method == "PB" because there 
+were extra factor levels floating around.  This 
+
 
 
 # rubias 0.1.0

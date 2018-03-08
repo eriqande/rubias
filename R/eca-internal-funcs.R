@@ -57,10 +57,25 @@ check_refmix <- function(D, gen_start_col, type = "reference") {
   if (!("collection") %in% names(D)) stop("Missing column \"collection\" in", type)
   if (!("indiv") %in% names(D)) stop("Missing column \"indiv\" in", type)
 
-  # now check to see if any of those are not character vectors
-  if (!is.character(D$repunit)) stop("Column \"repunit\" must be a character vector.  It is not in ", type, " data frame")
+  # check to make sure that if any fish has sample_type is "mixture" then it has NA for repunit
+  mixture_nonNAs <- D %>%
+    dplyr::select(sample_type, repunit) %>%
+    dplyr::filter(sample_type == "mixture" & !is.na(repunit))
+
+
+  # now check to see if any of those are not character vectors.  Mixture samples that have NA for their
+  # repunits  might be logicals, so we only freak out if they aren't all NAs and are still not characters
+  if (!all(is.na(D$repunit)) && !is.character(D$repunit)) stop("Column \"repunit\" must be a character vector.  It is not in ", type, " data frame")
   if (!is.character(D$collection)) stop("Column \"collection\" must be a character vector.  It is not in ", type, " data frame")
   if (!is.character(D$indiv)) stop("Column \"indiv\" must be a character vector.  It is not in ", type, " data frame")
+
+
+  if(nrow(mixture_nonNAs) > 0) {
+    stop("Error. All fish of sample_type == \"mixture\" must have repunit == NA. ",
+         nrow(mixture_nonNAs),
+         " fish have sample_type == \"mixture\" but repunit is: ",
+         paste(unique(mixture_nonNAs$repunit), collapse = ", "))
+  }
 
   # now, check to make sure that all the locus columns are character or integer (or logical, as the case
   # might be if they are all missing to denote haploids).
