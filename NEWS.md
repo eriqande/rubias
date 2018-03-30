@@ -17,7 +17,7 @@ were extra factor levels floating around.  In the process I allow for the repuni
 either character or logical as setting it to NA will always make it a logical if it is not part
 of a data frame with other non-missing character values in it.
 
-
+* Modified vignette so that we don't have to put tidyverse in the Suggests
 
 
 

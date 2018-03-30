@@ -90,11 +90,30 @@ not have every single individual with and NA at the second gene copy, then it's 
 
 ## An example reference data file
 
+
+Load our packages first:
+```{r, eval=FALSE}
+library(rubias)
+library(tidyverse)
+```
+
+```{r, echo=FALSE}
+# this is what we actually evaluate.
+library(rubias)
+
+# all the following libraries can be loaded with "library(tidyverse)"
+# but then you have to put tidyverse in the Suggests because this is
+# in the vignette, and that is bad practice, so, load the packages separately...
+library(tibble)
+library(dplyr)
+library(tidyr)
+library(stringr)
+library(ggplot2)
+```
+
 Here are the meta data columns and the first two loci for eight individuals in the `chinook` reference data set that comes with the 
 package:
 ```{r head-chinook}
-library(rubias)
-library(tidyverse)
 head(chinook[, 1:8])
 ```
 
