@@ -21,9 +21,14 @@
 #' \code{"const"}, \code{"scaled_const"}, and \code{"empirical"}. See \code{?list_diploid_params}
 #' for method details.
 #' @param pi_prior The prior to be added to the collection allocations, in order to generate pseudo-count
-#' Dirichlet parameters for the simulation of a new pi vector. Non-default values should be a vector of
-#' length equal to the number of populations in the reference dataset. Default value of NA leads to the
-#' calculation of a symmetrical prior based on \code{pi_prior_pseudo_count_sum}.
+#' Dirichlet parameters for the simulation of new pi vectors in MCMC. Default value of NA leads to the
+#' calculation of a symmetrical prior based on \code{pi_prior_sum}. Non-default values may
+#' be 1) a numeric vector of length equal to the number of collections, in which case parameters
+#' should be listed in the same order as in the dataset, or 2) a data frame with two columns, "collection"
+#' listing the relevant collection, and "pi_param" listing the desired prior for that collection.
+#' Specific priors may be listed for as few as one collection. The special collection name "DEFAULT_PI"
+#' is used to set the prior for all collections not explicitly listed; if no "DEFAULT_PI" is given, it is
+#' taken to be 1/(# collections).
 #' @param reps the number of iterations to be performed in MCMC
 #' @param burn_in how many reps to discard in the beginning of MCMC when doing the mean calculation.
 #' They will still be returned in the traces if desired.
@@ -31,8 +36,8 @@
 #' is 100.
 #' @param sample_int_Pi how many iterations between storing the mixing proportions trace. Default is 1.
 #' Can't be 0. Can't be so large that fewer than 10 samples are taken from the burn in and the sweeps.
-#' @param pi_prior_pseudo_count_sum For \code{pi_prior = NA}, the prior on the mixing proportions is set
-#' as a Dirichlet vector of length C, with each element being W/C, where W is the pi_prior_pseudo_count_sum
+#' @param pi_prior_sum For \code{pi_prior = NA}, the prior on the mixing proportions is set
+#' as a Dirichlet vector of length C, with each element being W/C, where W is the pi_prior_sum
 #' and C is the number of collections. By default this is 1.  If it is made much smaller than 1, things
 #' could start to mix more poorly.
 #' @return Tidy data frames in a list with the following components:
@@ -59,7 +64,7 @@ infer_mixture <- function(reference,
                           burn_in = 100,
                           pb_iter = 100,
                           sample_int_Pi = 1,
-                          pi_prior_pseudo_count_sum = 1) {
+                          pi_prior_sum = 1) {
 
   # check that reference and mixture are OK
   ploidies_ref <- check_refmix(reference, gen_start_col, "reference")
@@ -120,10 +125,19 @@ infer_mixture <- function(reference,
 
   # Check for valid prior on pi
   if(!(identical(pi_prior, NA))) {
+    if(any(is.na(pi_prior))) stop("Custom pi_prior vectors may not contain NA values")
+
     if(is.numeric(pi_prior)) {
-      if(any(is.na(pi_prior))) stop("Custom pi prior vectors may not contain NA values")
-      if(length(pi_prior) != length(unique(reference$collection))) stop("Length of pi prior vector does not match number of collections in reference dataset")
-    } else stop("Prior for pi must be a numeric vector")
+      if(length(pi_prior) != length(unique(reference$collection))) stop("Length of numeric pi prior vector does not match number of collections in reference dataset")
+
+    } else if(is.data.frame(pi_prior)) {
+        if (!("collection") %in% names(pi_prior)) stop("Missing column \"collection\" in pi_prior")
+        if (!("pi_param") %in% names(pi_prior)) stop("Missing column \"pi_param\" in pi_prior")
+
+        valid_colls <- c(as.character(unique(reference$collection)), "DEFAULT_PI")
+        if(!(setequal(pi_prior$collection, intersect(pi_prior$collection, valid_colls)))) stop("Invalid collection name \"", setdiff(pi_prior$collection, intersect(pi_prior$collection, valid_colls)), "\" in pi_prior")
+
+    } else stop("pi_prior must be NA, a numeric vector, or a data frame")
   }
 
 
@@ -243,10 +257,11 @@ infer_mixture <- function(reference,
     params$locus_names <- names(ac)
     params$ploidies <- as.integer(unname(ploidies[params$locus_names]))
 
-    ## create scaled constant priors on pi, if no non-default priors are submitted
+    ## create priors on pi, if no non-default priors are submitted
     if(identical(pi_prior, NA)) {
-      lambda <- rep(pi_prior_pseudo_count_sum / params$C, params$C)
-    } else lambda <- pi_prior
+      lambda <- rep(pi_prior_sum / params$C, params$C)
+    } else if(is.numeric(pi_prior)) lambda <- pi_prior
+    else lambda <- custom_pi_prior(P = pi_prior, C = data.frame(collection = colnames(ac[[1]])))
 
     ## calculate genotype log-Likelihoods for the mixture individuals ##
     message("  calculating log-likelihoods of the mixture individuals.", appendLF = FALSE)
@@ -343,7 +358,7 @@ infer_mixture <- function(reference,
                                   reps = reps,
                                   burn_in = burn_in,
                                   pi_prior = pi_prior,
-                                  pi_prior_pseudo_count_sum = pi_prior_pseudo_count_sum)
+                                  pi_prior_sum = pi_prior_sum)
 
         out$mean$bootstrap_rho <- boot_out
       })

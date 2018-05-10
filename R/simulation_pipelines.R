@@ -200,8 +200,8 @@ Hasselman_sim_colls <- function(RU_starts, RU_vec, size = 100) {
 #' to generate pseudo-count Dirichlet parameters for the simulation of a new pi vector.
 #' Non-default values should be a vector of length equal to the number of populations
 #' in the reference dataset. Default value of NA leads to the
-#' calculation of a symmetrical prior based on \code{pi_prior_pseudo_count_sum}.
-#' @param pi_prior_pseudo_count_sum total weight on default symmetrical prior for pi.
+#' calculation of a symmetrical prior based on \code{pi_prior_sum}.
+#' @param pi_prior_sum total weight on default symmetrical prior for pi.
 #'
 #' In parametric bootstrapping, \code{niter} new mixture datasets are simulated by
 #' individual from the reference with reporting unit proportions \code{rho_est},
@@ -214,7 +214,7 @@ Hasselman_sim_colls <- function(RU_starts, RU_vec, size = 100) {
 #' bootstrapping.
 #' @export
 #' @keywords internal
-bootstrap_rho <- function(rho_est, pi_est, D, gen_start_col, niter = 100, reps = 2000, burn_in = 100, pi_prior = NA, pi_prior_pseudo_count_sum = 1) {
+bootstrap_rho <- function(rho_est, pi_est, D, gen_start_col, niter = 100, reps = 2000, burn_in = 100, pi_prior = NA, pi_prior_sum = 1) {
 
   # do this to get the ploidies of the loci
   ploidies <- check_refmix(D, gen_start_col)
@@ -233,8 +233,13 @@ bootstrap_rho <- function(rho_est, pi_est, D, gen_start_col, niter = 100, reps =
 
   ## create symmetrical priors on pi, if no non-default priors are submitted
   if(identical(pi_prior, NA)) {
-    lambda <- rep(pi_prior_pseudo_count_sum / ref_star_params$C, ref_star_params$C)
+    lambda <- rep(pi_prior_sum / ref_star_params$C, ref_star_params$C)
   } else lambda <- pi_prior
+  if(identical(pi_prior, NA)) {
+    lambda <- rep(pi_prior_sum / ref_star_params$C, ref_star_params$C)
+  } else if(is.numeric(pi_prior)) lambda <- pi_prior
+  else lambda <- custom_pi_prior(P = pi_prior, C = data.frame(collection = unique(D$collection)))
+
 
   rho_mean <- lapply(1:niter, function(rep) {
     sim_ns <- rmultinom(n = 1, size = nrow(mix), prob = pi_est)
