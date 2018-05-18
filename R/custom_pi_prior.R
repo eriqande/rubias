@@ -11,12 +11,12 @@
 #' is a character vector, with valid values including the names of any reference collections,
 #' or the special value "DEFAULT_PI". The second column, "pi_param" is the prior value to be
 #' used for each collection.
-#' @param C a character vector of all unique reference collection names
+#' @param C a tibble with a column "collection" collection names
 #' @keywords internal
 #' @export
 custom_pi_prior <- function(P, C) {
   if(!("DEFAULT_PI") %in% P$collection) {
-    default <- 1/length(C)
+    default <- 1/nrow(C)
   } else default <- P$pi_param[P$collection == "DEFAULT_PI"]
   ret <- dplyr::left_join(C, P) %>%
     tidyr::replace_na(list(pi_param = default))

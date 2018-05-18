@@ -5,7 +5,7 @@
 \title{Perform a parametric bootstrapping correction on an estimated rho vector}
 \usage{
 bootstrap_rho(rho_est, pi_est, D, gen_start_col, niter = 100, reps = 2000,
-  burn_in = 100, pi_prior_pseudo_count_sum = 1)
+  burn_in = 100, pi_prior = NA, pi_prior_sum = 1)
 }
 \arguments{
 \item{rho_est}{the rho value previously estimated from MCMC GSI from the
@@ -21,7 +21,13 @@ and "indiv" columns}
 \item{gen_start_col}{the first column of genetic data in D. All columns after
 \code{gen_start_col} must be genetic data}
 
-\item{pi_prior_pseudo_count_sum}{total weight on symmetrical prior for pi.
+\item{pi_prior}{The prior to be added to the collection allocations, in order
+to generate pseudo-count Dirichlet parameters for the simulation of a new pi vector.
+Non-default values should be a vector of length equal to the number of populations
+in the reference dataset. Default value of NA leads to the
+calculation of a symmetrical prior based on \code{pi_prior_sum}.}
+
+\item{pi_prior_sum}{total weight on default symmetrical prior for pi.
 
 In parametric bootstrapping, \code{niter} new mixture datasets are simulated by
 individual from the reference with reporting unit proportions \code{rho_est},

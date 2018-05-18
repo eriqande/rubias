@@ -1,0 +1,80 @@
+---
+title: "Checking on Kyle Shedd's haploid marker example"
+output: 
+  html_notebook:
+    toc: true
+---
+
+
+
+
+Kyle sent me an .Rdata file saying this:
+
+>My apologies for being so slow in getting back to you. We’ve been playing around with rubias and love it so far! However, I’m not sure my haploid issue has been totally resolved. Here is a .RData file with a very small Chignik sockeye baseline with 22 loci and with 19 loci associated with my comment on issue #14. The only difference is the omission of 3 haploid SNPs (1 mtDNA, 2 combined diploid markers). Those three markers are very informative for this baseline, so I was a bit worried when none of the likelihoods changed with/without them. Let me know what you think!
+
+So, I need to figure out what is going on here.
+
+
+
+```{r}
+devtools::install_github("eriqande/rubias")
+
+library(tidyverse)
+library(rubias)
+
+
+load("../private_data/kyle_shedd_mtdna/chignik_sockeye_rubias_example.RData")
+```
+
+
+Here are the columns that have been removed:
+```{r}
+dropped_cols <- setdiff(names(chignik_7pops_22loci.rubias_base), names(chignik_7pops_19loci.rubias_base))
+```
+Check to make sure that they all have NAs and nothing else in the second column:
+```{r}
+lapply(chignik_7pops_22loci.rubias_base[dropped_cols], function(x) all(is.na(x)))
+```
+
+So, their file is set up correctly and the self-assignment results they get do, indeed, look the same between the
+22 and the 19 locus data set.  I do note that in the 22-locus data set the number of missing loci is not very ably recorded!  So, that is something I will need to fix...or it might be that Kyle is using an earlier version of
+rubias.
+
+So, I am going to do self assignment here and see if I get the same:
+```{r}
+eca_sa22 <- self_assign(chignik_7pops_22loci.rubias_base, gen_start_col = 5)
+eca_sa19 <- self_assign(chignik_7pops_19loci.rubias_base, gen_start_col = 5)
+```
+
+
+In this case, I get a difference between those results, and the number of missing loci is reported
+correctly.  So, I suspect that Kyle is working from the an earlier version of rubias still.
+Perhaps the install with devtools from GitHub failed.
+
+Let's looks at the difference in the scaled likelihoods for assignments to the correct reporting
+groups for the 22 and the 19 locus panels.
+```{r, fig.width = 9, fig.height=9}
+repu_scores <- list(all_22_loci = eca_sa22,
+     only_19_loci = eca_sa19) %>%
+  bind_rows(.id = "DataSet") %>%
+  group_by(DataSet, indiv, collection, repunit, inferred_repunit) %>%
+  summarise(repu_scaled_lik = sum(scaled_likelihood)) %>%
+  ungroup() %>%
+  filter(repunit == inferred_repunit) %>%
+  spread(DataSet, value = repu_scaled_lik)
+
+# then plot them
+ggplot(repu_scores, aes(x = only_19_loci, y = all_22_loci, colour = repunit)) + 
+  geom_point() +
+  facet_wrap(~ collection) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed")
+  
+```
+
+Check the version number of the installed version:
+```{r}
+installed.packages()["rubias", "Version"]
+```
+
+I just incremented that to have the .900 ending so that it is clear when you have the developmental version.
+

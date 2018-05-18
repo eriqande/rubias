@@ -19,6 +19,10 @@ of a data frame with other non-missing character values in it.
 
 * Modified vignette so that we don't have to put tidyverse in the Suggests
 
+* Added support for user specified parameters for the Dirichlet prior on mixing proportions.
+
+
+
 
 
 # rubias 0.1.0

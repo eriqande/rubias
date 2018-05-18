@@ -184,6 +184,73 @@ lapply(mix_est, head)
 ```
 
 
+## Setting the prior for the mixing proportions
+
+In some cases there might be a reason to explicitly set the parameters of the
+Dirichlet prior on the mixing proportions of the collections.  For a contrived example,
+we could imagine that we wanted a Dirichlet prior with all parameters equal to 
+1/(# of collections), except for the parameters for all the Central Valley Fall Run
+populations, to which we would like to assign Dirichlet parameters of 2.  That can be 
+accomplished with the `pi_prior` argument to the `infer_mixture()` function,
+which will let you pass in a tibble in which 
+one column named "collection" gives the collection, and the other column, named "pi_param"
+gives the desired parameter.  
+
+Here we construct that kind of input:
+```{r}
+prior_tibble <- chinook %>%
+  count(repunit, collection) %>%
+  filter(repunit == "CentralValleyfa") %>%
+  select(collection) %>%
+  mutate(pi_param = 2)
+
+# see what it looks like:
+prior_tibble
+```
+
+Then we can run that in infer_mixture():
+```{r}
+set.seed(12)
+mix_est_with_prior <- infer_mixture(reference = chinook, 
+                         mixture = chinook_mix, 
+                         gen_start_col = 5,
+                         pi_prior = prior_tibble)
+```
+
+and now, for fun, we can compare the results for the mixing proportions of different collections
+there with and without the prior for the mixture collection rec1:
+```{r}
+comp_mix_ests <- list(
+  `pi (default prior)` = mix_est$mixing_proportions,
+  `pi (cv fall gets 2s prior)` = mix_est_with_prior$mixing_proportions
+) %>%
+  bind_rows(.id = "prior_type") %>%
+  filter(mixture_collection == "rec1") %>%
+  select(prior_type, repunit, collection, pi) %>%
+  spread(prior_type, pi) %>%
+  mutate(coll_group = ifelse(repunit == "CentralValleyfa", "CV_fall", "Not_CV_fall"))
+
+ggplot(comp_mix_ests, 
+       aes(x = `pi (default prior)`, 
+           y = `pi (cv fall gets 2s prior)`,
+           colour = coll_group
+           )) +
+  geom_point() +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed")
+```
+
+Yep, slightly different than before.  Let's look at the sums of everything:
+```{r}
+comp_mix_ests %>% 
+  group_by(coll_group) %>% 
+  summarise(with_explicit_prior = sum(`pi (cv fall gets 2s prior)`), 
+            with_default_prior = sum(`pi (default prior)`))
+```
+
+We see that for the most part this change to the prior changed the distribution of
+fish into different collections within the Central Valley Fall reporting unit.  This 
+is not suprising---it is very hard to tell apart fish from those different collections.  However, it did not greatly change the estimated proportion of the whole reporting unit.  This also turns out to make sense if you consider the effect that the extra weight in the prior will have.  
+
 ## Aggregating collections into reporting units
 
 This is a simple operation in the [tidyverse](http://tidyverse.org/):
