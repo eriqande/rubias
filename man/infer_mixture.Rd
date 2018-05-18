@@ -27,9 +27,8 @@ for method details.}
 
 \item{pi_prior}{The prior to be added to the collection allocations, in order to generate pseudo-count
 Dirichlet parameters for the simulation of new pi vectors in MCMC. Default value of NA leads to the
-calculation of a symmetrical prior based on \code{pi_prior_sum}. Non-default values may
-be 1) a numeric vector of length equal to the number of collections, in which case parameters
-should be listed in the same order as in the dataset, or 2) a data frame with two columns, "collection"
+calculation of a symmetrical prior based on \code{pi_prior_sum}. To provide other values to
+certain collections, you can pass in a data frame with two columns, "collection"
 listing the relevant collection, and "pi_param" listing the desired prior for that collection.
 Specific priors may be listed for as few as one collection. The special collection name "DEFAULT_PI"
 is used to set the prior for all collections not explicitly listed; if no "DEFAULT_PI" is given, it is
