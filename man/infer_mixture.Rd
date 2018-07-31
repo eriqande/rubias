@@ -5,8 +5,9 @@
 \title{Estimate mixing proportions and origin probabilities from one or several mixtures}
 \usage{
 infer_mixture(reference, mixture, gen_start_col, method = "MCMC",
-  alle_freq_prior = list(const_scaled = 1), pi_prior = NA, reps = 2000,
-  burn_in = 100, pb_iter = 100, sample_int_Pi = 1, pi_prior_sum = 1)
+  alle_freq_prior = list(const_scaled = 1), pi_prior = NA, pi_init = NULL,
+  reps = 2000, burn_in = 100, pb_iter = 100, sample_int_Pi = 1,
+  pi_prior_sum = 1)
 }
 \arguments{
 \item{reference}{a dataframe of two-column genetic format data, proceeded by "repunit", "collection",
@@ -33,6 +34,13 @@ listing the relevant collection, and "pi_param" listing the desired prior for th
 Specific priors may be listed for as few as one collection. The special collection name "DEFAULT_PI"
 is used to set the prior for all collections not explicitly listed; if no "DEFAULT_PI" is given, it is
 taken to be 1/(# collections).}
+
+\item{pi_init}{The initial value to use for the mixing proportion of collections.  This lets
+the user start the chain from a specific value of the mixing proportion vector.  If pi_init is NULL
+(the default) then the mixing proportions are all initialized to be equal.  Otherwise, you pass
+in a data frame with one column named "collection" and the other named "pi_init".  Every value of
+pi_init must be strictly positive (> 0), and a value must be given for every collection.  If they sum
+to more than one the values will be normalized to sum to one.}
 
 \item{reps}{the number of iterations to be performed in MCMC}
 

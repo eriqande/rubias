@@ -28,6 +28,12 @@
 #' Specific priors may be listed for as few as one collection. The special collection name "DEFAULT_PI"
 #' is used to set the prior for all collections not explicitly listed; if no "DEFAULT_PI" is given, it is
 #' taken to be 1/(# collections).
+#' @param pi_init  The initial value to use for the mixing proportion of collections.  This lets
+#' the user start the chain from a specific value of the mixing proportion vector.  If pi_init is NULL
+#' (the default) then the mixing proportions are all initialized to be equal.  Otherwise, you pass
+#' in a data frame with one column named "collection" and the other named "pi_init".  Every value of
+#' pi_init must be strictly positive (> 0), and a value must be given for every collection.  If they sum
+#' to more than one the values will be normalized to sum to one.
 #' @param reps the number of iterations to be performed in MCMC
 #' @param burn_in how many reps to discard in the beginning of MCMC when doing the mean calculation.
 #' They will still be returned in the traces if desired.
@@ -59,6 +65,7 @@ infer_mixture <- function(reference,
                           method = "MCMC",
                           alle_freq_prior = list("const_scaled" = 1),
                           pi_prior = NA,
+                          pi_init = NULL,
                           reps = 2000,
                           burn_in = 100,
                           pb_iter = 100,
@@ -139,6 +146,27 @@ infer_mixture <- function(reference,
     } else stop("pi_prior must be NA, a numeric vector, or a data frame")
   }
 
+
+  # check to make sure pi_init is properly taken care of if non-null
+  if(!is.null(pi_init)) {
+    if (!("collection") %in% names(pi_init)) stop("Missing column \"collection\" in pi_init")
+    if (!("pi_init") %in% names(pi_init)) stop("Missing column \"pi_init\" in pi_init")
+    stopifnot(!duplicated(pi_init$collection)) # make sure no values are duplicated
+    stopifnot(all(pi_init$pi_init > 0))
+    all_colls <- as.character(unique(reference$collection))
+    not_in_pi_init <- setdiff(pi_init$collection, all_colls)
+    if(length(not_in_pi_init) > 0) stop("Missing these collections from pi_init collection column: ",
+                                        paste(not_in_pi_init, collapse = ", "))
+    in_pi_init_wrongly <- setdiff(all_colls, pi_init$collection)
+    if(length(in_pi_init_wrongly) > 0) stop("Missing these collections from pi_init collection column: ",
+                                        paste(in_pi_init_wrongly, collapse = ", "))
+
+    named_pi_init <- pi_init$pi_init
+    names(named_pi_init) <- pi_init$collection
+    named_pi_init <- named_pi_init / sum(named_pi_init)
+  } else {
+    named_pi_init <- NULL
+  }
 
   ## cleaning and summarizing data ##
   message("Collating data; compiling reference allele frequencies, etc.", appendLF = FALSE)
@@ -309,9 +337,17 @@ infer_mixture <- function(reference,
 
     ## regardless of whether the method is PB or MCMC, you are going to run the MCMC once, at least ##
     message("  performing ", burn_in, " burn-in and ", reps, " more sweeps of method \"MCMC\"", appendLF = FALSE)
+
+    # deal with initializing pi
+    if(!is.null(named_pi_init)) {
+      pi_init_to_use <- named_pi_init[colnames(ac[[1]])]
+    } else {
+      pi_init_to_use <- rep(1 / params$C, params$C)
+    }
+
     time_mcmc1 <- system.time({
       out <- gsi_mcmc_1(SL = SL,
-                        Pi_init = rep(1 / params$C, params$C),
+                        Pi_init = pi_init_to_use,
                         lambda = lambda,
                         reps = reps,
                         burn_in = burn_in,
