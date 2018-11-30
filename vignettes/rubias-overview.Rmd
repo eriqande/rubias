@@ -125,6 +125,58 @@ head(chinook_mix[, 1:8])
 ```
 
 
+## Preliminary good practice --- check for duplicate individuals
+
+Sometimes, for a variety of reasons, an individual's genotype might appear more than once in a data
+set.  `rubias` has a quick and dirty function to spot pairs of individuals that share a large number of 
+genotypes.  Clearly you only want to look at pairs that don't have a whole lot of missing data, so one
+parameter is the fraction of loci that are non-missing in either fish. In our experience with Fluidigm
+assays, if a fish is missing at > 10% of the SNPs, the remaining genotypes are likely to have
+a fairly high error rate.  So, to look for matching samples, let's require 85% of the genotypes
+to be non-missing in both members of the pair.  The last parameter is the
+fraction of non-missing loci at which the pair has the same genotype.  We will set that to 0.94 first.
+Here we see it in action:
+```{r}
+# combine chinook and chinook_mix into one big data frame,
+# but drop the California_Coho collection because Coho all
+# have pretty much the same genotype at these loci!
+chinook_all <- bind_rows(chinook, chinook_mix) %>%
+  filter(collection != "California_Coho")
+
+# then toss them into a function.  This takes half a minute or so...
+matchy_pairs <- close_matching_samples(D = chinook_all, 
+                                       gen_start_col = 5, 
+                                       min_frac_non_miss = 0.85, 
+                                       min_frac_matching = 0.94
+                                       )
+
+# see that that looks like:
+matchy_pairs %>%
+  arrange(desc(num_non_miss), desc(num_match))
+```
+
+Check that out.  This reveals 33 pairs in the data set that are likely duplicate
+samples.  
+
+If we reduce the min_frac_matching, we get more matches, but these are very unlikely
+to be the same individual, unless genotyping error rates are very high.  
+```{r}
+# then toss them into a function.  This takes half a minute or so...
+matchy_pairs2 <- close_matching_samples(D = chinook_all, 
+                                       gen_start_col = 5, 
+                                       min_frac_non_miss = 0.85, 
+                                       min_frac_matching = 0.85
+                                       )
+
+# see that that looks like:
+matchy_pairs2 %>%
+  arrange(desc(num_non_miss), desc(num_match))
+```
+A more principled approach would be to use the allele frequencies in each collection
+and take a likelihood based approach, but this is adequate for finding obvious duplicates.
+
+
+
 ## How about known-origin individuals in the mixture?
 
 In some cases, you might know (more or less unambiguously) the origin of some fish

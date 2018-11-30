@@ -5,9 +5,9 @@
 \title{Estimate mixing proportions and origin probabilities from one or several mixtures}
 \usage{
 infer_mixture(reference, mixture, gen_start_col, method = "MCMC",
-  alle_freq_prior = list(const_scaled = 1), pi_prior = NA, pi_init = NULL,
-  reps = 2000, burn_in = 100, pb_iter = 100, sample_int_Pi = 1,
-  pi_prior_sum = 1)
+  alle_freq_prior = list(const_scaled = 1), pi_prior = NA,
+  pi_init = NULL, reps = 2000, burn_in = 100, pb_iter = 100,
+  sample_int_Pi = 1, pi_prior_sum = 1)
 }
 \arguments{
 \item{reference}{a dataframe of two-column genetic format data, proceeded by "repunit", "collection",

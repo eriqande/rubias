@@ -5,6 +5,19 @@
 
 using namespace Rcpp;
 
+// rcpp_close_matchers
+List rcpp_close_matchers(List par_list, double non_miss_fract, double match_fract);
+RcppExport SEXP _rubias_rcpp_close_matchers(SEXP par_listSEXP, SEXP non_miss_fractSEXP, SEXP match_fractSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< List >::type par_list(par_listSEXP);
+    Rcpp::traits::input_parameter< double >::type non_miss_fract(non_miss_fractSEXP);
+    Rcpp::traits::input_parameter< double >::type match_fract(match_fractSEXP);
+    rcpp_result_gen = Rcpp::wrap(rcpp_close_matchers(par_list, non_miss_fract, match_fract));
+    return rcpp_result_gen;
+END_RCPP
+}
 // geno_logL
 NumericMatrix geno_logL(List par_list);
 RcppExport SEXP _rubias_geno_logL(SEXP par_listSEXP) {
@@ -156,6 +169,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_rubias_rcpp_close_matchers", (DL_FUNC) &_rubias_rcpp_close_matchers, 3},
     {"_rubias_geno_logL", (DL_FUNC) &_rubias_geno_logL, 1},
     {"_rubias_geno_logL_ssq", (DL_FUNC) &_rubias_geno_logL_ssq, 1},
     {"_rubias_rcpp_indiv_specific_logl_means_and_vars", (DL_FUNC) &_rubias_rcpp_indiv_specific_logl_means_and_vars, 2},

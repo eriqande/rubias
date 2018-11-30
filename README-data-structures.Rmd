@@ -2,11 +2,11 @@
 title: 'An explanation of rubias data structures'
 date: '`r format(Sys.time(), "%d %B, %Y")`'
 output:
-  github_document:
-    toc: yes
   html_notebook:
     toc: yes
     toc_float: yes
+  github_document:
+    toc: yes
 ---
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->

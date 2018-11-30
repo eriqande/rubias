@@ -24,7 +24,9 @@ of a data frame with other non-missing character values in it.
 * Added support for user-specified initial starting values for the pi parameter (the mixing proportions of collections)
 in the function infer_mixture().
 
-
+* Added a simple function, close_matching_samples(), to tabulate pairs of
+individuals with only a small number of mismatching
+genotypes.  This is useful for identifying accidentally duplicated samples. (#23)
 
 
 

@@ -4,10 +4,11 @@
 \alias{assess_reference_loo}
 \title{Simulate mixtures and estimate reporting group and collection proportions.}
 \usage{
-assess_reference_loo(reference, gen_start_col, reps = 50, mixsize = 100,
-  seed = 5, alpha_repunit = 1.5, alpha_collection = 1.5,
-  resampling_unit = "individual", alle_freq_prior = list(const_scaled = 1),
-  printSummary = FALSE, return_indiv_posteriors = FALSE)
+assess_reference_loo(reference, gen_start_col, reps = 50,
+  mixsize = 100, seed = 5, alpha_repunit = 1.5,
+  alpha_collection = 1.5, resampling_unit = "individual",
+  alle_freq_prior = list(const_scaled = 1), printSummary = FALSE,
+  return_indiv_posteriors = FALSE)
 }
 \arguments{
 \item{reference}{a two-column format genetic dataset, with "repunit", "collection", and "indiv"

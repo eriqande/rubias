@@ -5,8 +5,9 @@
 \title{Estimate mixing proportions from reference and mixture datasets}
 \usage{
 ref_and_mix_pipeline(reference, mixture, gen_start_col, method = "MCMC",
-  reps = 2000, burn_in = 100, sample_int_Pi = 0, sample_int_PofZ = 0,
-  sample_int_omega = 0, sample_int_rho = 0, sample_int_PofR = 0)
+  reps = 2000, burn_in = 100, sample_int_Pi = 0,
+  sample_int_PofZ = 0, sample_int_omega = 0, sample_int_rho = 0,
+  sample_int_PofR = 0)
 }
 \arguments{
 \item{reference}{a dataframe of two-column genetic format data, proceeded by "repunit", "collection",
