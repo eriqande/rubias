@@ -28,6 +28,11 @@ in the function infer_mixture().
 individuals with only a small number of mismatching
 genotypes.  This is useful for identifying accidentally duplicated samples. (#23)
 
+* Made changes to be compatible with dplyr 0.8.0, which no longer discards
+empty factor levels.  Mostly this involved filtering 0's after group_by() and
+tally()  or count() calls.  It looks like things are all working (passing all tests
+and building vignettes all right.)
+
 
 
 # rubias 0.1.0
