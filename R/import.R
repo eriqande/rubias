@@ -15,4 +15,6 @@ NULL
 
 
 #' @importFrom rlang .data
+#' @importFrom stats setNames
+#' @importFrom dplyr n
 NULL

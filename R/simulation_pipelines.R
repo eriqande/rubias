@@ -92,6 +92,8 @@ ref_and_mix_pipeline <- function(reference, mixture, gen_start_col, method = "MC
   colls_by_RU <- dplyr::filter(clean$clean_short, sample_type == "reference") %>%
     droplevels() %>%
     dplyr::count(repunit, collection) %>%
+    dplyr::ungroup() %>%
+    dplyr::filter(n > 0) %>%
     dplyr::select(-n)
   PC <- rep(0, length(unique(colls_by_RU$repunit)))
   for (i in 1:nrow(colls_by_RU)) {
@@ -114,9 +116,11 @@ ref_and_mix_pipeline <- function(reference, mixture, gen_start_col, method = "MC
   ref_coll <- as.integer(factor(reference$collection,
                                 levels = unique(reference$collection)))
   ref_coll_N <- dplyr::count(reference, collection) %>%
+    dplyr::filter(n > 0) %>%
     dplyr::select(n) %>%
     simplify2array() %>%
     as.vector()
+
   ref_self_params <- list_diploid_params(ac, ref_I, ref_coll, ref_coll_N, RU_vec, RU_starts)
   ref_self_params$ploidies <- as.integer(unname(ploidies[params$locus_names]))
 

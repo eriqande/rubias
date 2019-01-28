@@ -198,8 +198,10 @@ infer_mixture <- function(reference,
     colls_by_RU <- dplyr::filter(clean$clean_short, sample_type == "reference") %>%
       droplevels() %>%
       dplyr::count(repunit, collection) %>%
-      dplyr::select(-n) %>%
-      dplyr::ungroup()
+      dplyr::ungroup() %>%
+      dplyr::filter(n > 0) %>% # this is now necessary for the new dplyr that counts zeroes in factor combinations
+      dplyr::select(-n)
+
 
     # here we want to get a tibble of the collection names in the order in which
     # they occur in the reference once it is squashed down.  This is the levels of reference$collection

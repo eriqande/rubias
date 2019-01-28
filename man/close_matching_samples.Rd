@@ -29,5 +29,6 @@ of the genotypes not missing in either fish, and which were matching at a fracti
 of those non-missing pairs of genotypes.
 }
 \examples{
-
+# one pair found in the interal alewife data set:
+close_matching_samples(alewife, 17)
 }

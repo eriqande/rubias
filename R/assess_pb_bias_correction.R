@@ -67,7 +67,8 @@ assess_pb_bias_correction <- function(reference, gen_start_col, seed = 5,
     dplyr::mutate(coll_int = as.integer(factor(reference$collection, levels = unique(reference$collection)))) %>%
     dplyr::select(repunit, coll_int) %>%
     dplyr::group_by(repunit, coll_int) %>%
-    dplyr::tally()
+    dplyr::tally() %>%
+    dplyr::filter(n > 0)
 
   if (is.null(reference$sample_type)) {
     sample_type <- rep("reference", nrow(reference))

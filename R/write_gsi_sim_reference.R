@@ -30,6 +30,7 @@ write_gsi_sim_reference <- function(ref, gen_start_col, baseout = "baseline.txt"
   # first, write the reporting unit file
   reps_list <- ref %>%
     dplyr::count(repunit, collection) %>%
+    dplyr::filter(n > 0) %>%
     dplyr::select(-n) %>%
     dplyr::arrange(repunit, collection) %>%
     base::split(.$repunit)

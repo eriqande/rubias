@@ -67,6 +67,7 @@ assess_reference_loo <- function(reference, gen_start_col, reps = 50, mixsize = 
     dplyr::group_by(repunit, collection) %>%
     dplyr::tally() %>%
     dplyr::ungroup() %>%
+    dplyr::filter(n > 0) %>%
     dplyr::select(-n)
 
   # set seed
@@ -189,7 +190,7 @@ assess_reference_loo <- function(reference, gen_start_col, reps = 50, mixsize = 
 
       if(return_indiv_posteriors == TRUE) {
         # put mixing proportions in a data_frame
-        mix_prop <- dplyr::data_frame(collection = levels(reference$collection),
+        mix_prop <- tibble::tibble(collection = levels(reference$collection),
                                       post_mean = pi_out$mean$pi,
                                       mle = em_out$pi)
         # put PofZ in a dataframe with collection names
@@ -209,7 +210,7 @@ assess_reference_loo <- function(reference, gen_start_col, reps = 50, mixsize = 
 
       } else {
         # put only mixing proportions in a data_frame, and return
-        dplyr::data_frame(collection = levels(reference$collection),
+        tibble::tibble(collection = levels(reference$collection),
                                       post_mean = pi_out$mean$pi,
                                       mle = em_out$pi)
         }

@@ -65,6 +65,7 @@ PO <- as.integer(factor(ale_long$clean_short$collection))
 coll_N <- as.vector(table(PO))
 
 Colls_by_RU <- dplyr::count(ale_long$clean_short, repunit, collection) \%>\%
+   dplyr::filter(n > 0) \%>\%
    dplyr::select(-n)
  PC <- rep(0, length(unique((Colls_by_RU$repunit))))
  for(i in 1:nrow(Colls_by_RU)) {

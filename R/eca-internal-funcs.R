@@ -105,6 +105,7 @@ check_refmix <- function(D, gen_start_col, type = "reference") {
   # now, check to make sure that no collection is associated with more than one repunit
   msc <- D[, c("repunit", "collection")] %>%
     dplyr::count(repunit, collection) %>%
+    dplyr::filter(n > 0) %>%
     dplyr::group_by(collection) %>%
     dplyr::mutate(times_seen = n()) %>%
     dplyr::filter(times_seen > 1) %>%

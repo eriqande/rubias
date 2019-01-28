@@ -15,7 +15,8 @@
 #' @return a tibble ...
 #' @export
 #' @examples
-#'
+#' # one pair found in the interal alewife data set:
+#' close_matching_samples(alewife, 17)
 close_matching_samples <- function(D, gen_start_col, min_frac_non_miss = .7, min_frac_matching = .9) {
 
     # make sure the reference file is OK

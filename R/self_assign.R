@@ -73,8 +73,9 @@ self_assign <- function(reference, gen_start_col, preCompiledParams = NULL,
   # this ugly thing just gets a tibble that associates repunits with collections
   repu_assoc <- result %>%
     dplyr::count(collection, repunit) %>%
-    dplyr::select(-n) %>%
     dplyr::ungroup() %>%
+    dplyr::filter(n > 0) %>%
+    dplyr::select(-n) %>%
     dplyr::rename(inferred_collection = collection,
                   inferred_repunit = repunit)
 

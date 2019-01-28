@@ -348,6 +348,7 @@ allelic_list <- function(cs, ac, samp_type = "both") {
 #' coll_N <- as.vector(table(PO))
 #'
 #' Colls_by_RU <- dplyr::count(ale_long$clean_short, repunit, collection) %>%
+#'    dplyr::filter(n > 0) %>%
 #'    dplyr::select(-n)
 #'  PC <- rep(0, length(unique((Colls_by_RU$repunit))))
 #'  for(i in 1:nrow(Colls_by_RU)) {
@@ -484,6 +485,7 @@ tcf2param_list <- function(D, gen_start_col, samp_type = "both",
 
   ### ONLY designed for factorized repunit and collection
   Colls_by_RU <- dplyr::count(cleaned$clean_short[, c("repunit", "collection")], repunit, collection) %>%
+    dplyr::filter(n > 0) %>%
     dplyr::select(-n)
 #  Colls_by_RU <- dplyr::count(cleaned$clean_short, repunit, collection) %>%
 #    dplyr::select(-n)

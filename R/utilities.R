@@ -27,7 +27,9 @@ mixture_draw <- function(D, rhos = NULL, omegas = NULL, N, min_remaining = 0) {
   repidxs <- D %>%
     dplyr::select(repunit, collection) %>%
     dplyr::group_by(repunit, collection) %>%
-    dplyr::tally()
+    dplyr::tally() %>%
+    dplyr::filter(n > 0)
+
   coll_props <- repidxs$n /sum(repidxs$n)
 
   if(sum(repidxs$n) < N) stop("Cannot take mixture sample of size greater than reference dataset")
@@ -50,7 +52,9 @@ mixture_draw <- function(D, rhos = NULL, omegas = NULL, N, min_remaining = 0) {
     new_repidxs <- new_D %>%
       dplyr::select(repunit, collection) %>%
       dplyr::group_by(repunit, collection) %>%
-      dplyr::tally()
+      dplyr::tally() %>%
+      dplyr::filter(n > 0)
+
     coll_props <- new_repidxs$n /sum(new_repidxs$n)
   }
 
@@ -67,7 +71,9 @@ mixture_draw <- function(D, rhos = NULL, omegas = NULL, N, min_remaining = 0) {
     new_repidxs <- new_D %>%
       dplyr::select(repunit, collection) %>%
       dplyr::group_by(repunit, collection) %>%
-      dplyr::tally()
+      dplyr::tally() %>%
+      dplyr::filter(n > 0)
+
     coll_props <- new_repidxs$n /sum(new_repidxs$n)
   }
 

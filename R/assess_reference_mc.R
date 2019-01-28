@@ -64,6 +64,7 @@ assess_reference_mc <- function(reference, gen_start_col, reps = 50, mixsize = 1
     dplyr::group_by(repunit, collection) %>%
     dplyr::tally() %>%
     dplyr::ungroup() %>%
+    dplyr::filter(n > 0) %>%
     dplyr::mutate(coll_int = 1:length(unique(reference$collection)))
 
   # set seed
@@ -112,15 +113,15 @@ assess_reference_mc <- function(reference, gen_start_col, reps = 50, mixsize = 1
   })
 
   # now extract the true values of rho and omega from that into some data frames
-  true_omega_df <- lapply(draw_colls, function(x) dplyr::data_frame(collection = levels(reference$collection), omega = x$omega)) %>%
+  true_omega_df <- lapply(draw_colls, function(x) tibble::tibble(collection = levels(reference$collection), omega = x$omega)) %>%
     dplyr::bind_rows(.id = "iter") %>%
     dplyr::mutate(iter = as.integer(iter))
-  true_rho_df <- lapply(draw_colls, function(x) dplyr::data_frame(collection = levels(reference$repunit), rho = x$rho)) %>%
+  true_rho_df <- lapply(draw_colls, function(x) tibble::tibble(collection = levels(reference$repunit), rho = x$rho)) %>%
     dplyr::bind_rows(.id = "iter") %>%
     dplyr::mutate(iter = as.integer(iter))
 
   # and finally, extract the true numbers of individuals from each collection into a data frame
-  true_sim_nums <- lapply(draw_colls, function(x) dplyr::data_frame(collection = levels(reference$collection), n = x$true_n)) %>%
+  true_sim_nums <- lapply(draw_colls, function(x) tibble::tibble(collection = levels(reference$collection), n = x$true_n)) %>%
     dplyr::bind_rows(.id = "iter") %>%
     dplyr::mutate(iter = as.integer(iter))
 
@@ -149,8 +150,10 @@ assess_reference_mc <- function(reference, gen_start_col, reps = 50, mixsize = 1
     colls_by_RU <- dplyr::filter(clean$clean_short, sample_type == "reference") %>%
       droplevels() %>%
       dplyr::count(repunit, collection) %>%
-      dplyr::select(-n) %>%
-      dplyr::ungroup()
+      dplyr::ungroup() %>%
+      dplyr::filter(n > 0) %>%
+      dplyr::select(-n)
+
 
     PC <- rep(0, length(unique(colls_by_RU$repunit)))
     for (i in 1:nrow(colls_by_RU)) {
@@ -186,7 +189,7 @@ assess_reference_mc <- function(reference, gen_start_col, reps = 50, mixsize = 1
                        tolerance = 10^-7, return_progression = FALSE)
 
     # put those in a data_frame
-    dplyr::data_frame(collection = levels(reference$collection),
+    tibble::tibble(collection = levels(reference$collection),
                       post_mean = pi_out$mean$pi,
                       mle = em_out$pi
     )
