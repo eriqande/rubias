@@ -8,8 +8,7 @@
 MAC, local: 0 errors | 0 warnings | 0 notes
 LINUX, travis-ci: 0 errors | 0 warnings | 1 notes
   The 1 note = libs > 1 Mb due to Rcpp apparently?
-WINDOWS, win-builder: 0 errors | 0 warnings | 1 note
-  The 1 note = first submission
+WINDOWS, win-builder: 0 errors | 0 warnings | 0 notes
 
 ## Downstream dependencies
 
@@ -17,6 +16,7 @@ Currently no known reverse dependencies
 
 ## User Notices
 
-Updated a few things for compatibility with the
+Added a number of features (see NEWS) and updated a few things for compatibility with the
 soon-to-be-released dplyr 0.8.0.
+
 
