@@ -287,7 +287,7 @@ infer_mixture <- function(reference,
     params$ploidies <- as.integer(unname(ploidies[params$locus_names]))
 
     ## create priors on pi, if no non-default priors are submitted
-    if(is.na(pi_prior)) {
+    if(identical(pi_prior, NA)) {
       lambda <- rep(pi_prior_sum / params$C, params$C)
     } else {
       if(is.numeric(pi_prior)) {
