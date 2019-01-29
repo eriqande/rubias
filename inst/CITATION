@@ -1,0 +1,11 @@
+citHeader("To cite rubias in publications, please use:")
+
+citEntry(entry = "Article",
+  textVersion = "Moran, BM and Anderson, EC. 2018. Bayesian inference from the conditional genetic stock identification model. Canadian Journal of Fisheries and Aquatic Sciences. https://doi.org/10.1139/cjfas-2018-0016.",
+  title = "Bayesian inference from the conditional genetic stock identification model",
+  author = "Benjamin M Moran and Eric C Anderson",
+  journal = "Canadian Journal of Fisheries and Aquatic Sciences",
+  year = "2018",
+  url = "https://doi.org/10.1139/cjfas-2018-0016",
+  publisher = "NRC Research Press"
+)

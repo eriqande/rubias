@@ -10,7 +10,8 @@ Maintainer: Eric C. Anderson <eric.anderson@noaa.gov>
 Description: Implements Bayesian inference for the conditional genetic 
     stock identification model.  It allows inference of mixed fisheries and also 
     simulation of mixtures to predict accuracy.  A full description of the underlying
-    methods is in review at Canadian Journal of Fisheries and Aquatic Sciences.
+    methods is available in a recently published article in the
+    Canadian Journal of Fisheries and Aquatic Sciences: https://doi.org/10.1139/cjfas-2018-0016.
 License: CC0
 LazyData: TRUE
 Depends:
