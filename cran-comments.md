@@ -16,7 +16,7 @@ Currently no known reverse dependencies
 
 ## User Notices
 
-Added a number of features (see NEWS) and updated a few things for compatibility with the
-soon-to-be-released dplyr 0.8.0.
+Added a number of features (see NEWS) and updated a few things for compatibility with
+dplyr 0.8.0.
 
 
