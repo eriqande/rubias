@@ -18,6 +18,23 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// gsi_mcmc_fb
+List gsi_mcmc_fb(List par_list, NumericVector Pi_init, NumericVector lambda, int reps, int burn_in, int sample_int_Pi, int sample_int_PofZ);
+RcppExport SEXP _rubias_gsi_mcmc_fb(SEXP par_listSEXP, SEXP Pi_initSEXP, SEXP lambdaSEXP, SEXP repsSEXP, SEXP burn_inSEXP, SEXP sample_int_PiSEXP, SEXP sample_int_PofZSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< List >::type par_list(par_listSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type Pi_init(Pi_initSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type lambda(lambdaSEXP);
+    Rcpp::traits::input_parameter< int >::type reps(repsSEXP);
+    Rcpp::traits::input_parameter< int >::type burn_in(burn_inSEXP);
+    Rcpp::traits::input_parameter< int >::type sample_int_Pi(sample_int_PiSEXP);
+    Rcpp::traits::input_parameter< int >::type sample_int_PofZ(sample_int_PofZSEXP);
+    rcpp_result_gen = Rcpp::wrap(gsi_mcmc_fb(par_list, Pi_init, lambda, reps, burn_in, sample_int_Pi, sample_int_PofZ));
+    return rcpp_result_gen;
+END_RCPP
+}
 // geno_logL
 NumericMatrix geno_logL(List par_list);
 RcppExport SEXP _rubias_geno_logL(SEXP par_listSEXP) {
@@ -111,6 +128,18 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// update_dp
+NumericVector update_dp(List par_list, IntegerVector allocations);
+RcppExport SEXP _rubias_update_dp(SEXP par_listSEXP, SEXP allocationsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< List >::type par_list(par_listSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type allocations(allocationsSEXP);
+    rcpp_result_gen = Rcpp::wrap(update_dp(par_list, allocations));
+    return rcpp_result_gen;
+END_RCPP
+}
 // gsi_em_1
 List gsi_em_1(NumericMatrix SL, NumericVector Pi_init, int max_iterations, double tolerance, bool return_progression);
 RcppExport SEXP _rubias_gsi_em_1(SEXP SLSEXP, SEXP Pi_initSEXP, SEXP max_iterationsSEXP, SEXP toleranceSEXP, SEXP return_progressionSEXP) {
@@ -170,6 +199,7 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_rubias_rcpp_close_matchers", (DL_FUNC) &_rubias_rcpp_close_matchers, 3},
+    {"_rubias_gsi_mcmc_fb", (DL_FUNC) &_rubias_gsi_mcmc_fb, 7},
     {"_rubias_geno_logL", (DL_FUNC) &_rubias_geno_logL, 1},
     {"_rubias_geno_logL_ssq", (DL_FUNC) &_rubias_geno_logL_ssq, 1},
     {"_rubias_rcpp_indiv_specific_logl_means_and_vars", (DL_FUNC) &_rubias_rcpp_indiv_specific_logl_means_and_vars, 2},
@@ -178,6 +208,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_rubias_gprob_sim_gc", (DL_FUNC) &_rubias_gprob_sim_gc, 2},
     {"_rubias_gprob_sim_ind", (DL_FUNC) &_rubias_gprob_sim_ind, 2},
     {"_rubias_gprob_sim_gc_missing", (DL_FUNC) &_rubias_gprob_sim_gc_missing, 3},
+    {"_rubias_update_dp", (DL_FUNC) &_rubias_update_dp, 2},
     {"_rubias_gsi_em_1", (DL_FUNC) &_rubias_gsi_em_1, 5},
     {"_rubias_gsi_mcmc_1", (DL_FUNC) &_rubias_gsi_mcmc_1, 7},
     {"_rubias_dirch_from_allocations", (DL_FUNC) &_rubias_dirch_from_allocations, 2},

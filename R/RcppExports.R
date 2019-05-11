@@ -16,6 +16,50 @@ rcpp_close_matchers <- function(par_list, non_miss_fract, match_fract) {
     .Call('_rubias_rcpp_close_matchers', PACKAGE = 'rubias', par_list, non_miss_fract, match_fract)
 }
 
+#' MCMC from the fully Bayesian GSI model for pi and the individual posterior probabilities
+#'
+#' Using a matrix of scaled likelihoods, this function samples values of pi and the posteriors
+#' for all the individuals.  It returns the output in a list.
+#' @keywords internal
+#' @param SL  matrix of the scaled likelihoods.  This is should have values for each individual in a column
+#' (going down in the rows are values for different populations).
+#' @param Pi_init  Starting value for the pi (collection mixture proportion) vector.
+#' @param lambda the prior to be added to the collection allocations, in order to
+#' generate pseudo-count Dirichlet parameters for the simulation of a new pi vector
+#' @param reps total number of reps (sweeps) to do.
+#' @param burn_in how many reps to discard in the beginning when doing the mean calculation. They will still be
+#' returned in the traces if desired
+#' @param sample_int_Pi the number of reps between samples being taken for Pi traces.  If 0 no trace samples are taken
+#' @param sample_int_PofZ the number of reps between samples being taken for the traces of posterior of each individual's origin. If 0
+#' no trace samples are taken.
+#'
+#' @return \code{gsi_mcmc_fb} returns a list of three. \code{$mean} lists the posterior
+#' means for collection proportions \code{pi} and for the individual posterior
+#' probabilities of assignment \code{PofZ}. \code{$sd} returns the posterior standard
+#' deviations for the same values.
+#'
+#' If the corresponding \code{sample_int} variables are not 0, \code{$trace} contains
+#' samples taken from the Markov chain at intervals of \code{sample_int_}(variable) steps.
+#'
+#' @examples
+#' # this demonstrates it with scaled likelihoods computed from
+#' # assignment of the reference samples
+#'
+#' # we have to get the ploidies to pass to tcf2param_list
+#' locnames <- names(alewife)[-(1:16)][c(TRUE, FALSE)]
+#' ploidies <- rep(2, length(locnames))
+#' names(ploidies) <- locnames
+#'
+#' params <- tcf2param_list(alewife, 17, ploidies = ploidies)
+#' logl <- geno_logL(params)
+#' SL <- apply(exp(logl), 2, function(x) x/sum(x))
+#' lambda <- rep(1/params$C, params$C)
+#' mcmc <- gsi_mcmc_1(SL, lambda, lambda, 200, 50, 5, 5)
+#' @export
+gsi_mcmc_fb <- function(par_list, Pi_init, lambda, reps, burn_in, sample_int_Pi, sample_int_PofZ) {
+    .Call('_rubias_gsi_mcmc_fb', PACKAGE = 'rubias', par_list, Pi_init, lambda, reps, burn_in, sample_int_Pi, sample_int_PofZ)
+}
+
 #' Calculate a matrix of genotype log-likelihoods for a genetic dataset
 #'
 #' Takes a list of key parameters from a genetic dataset, and calculates
@@ -234,6 +278,28 @@ gprob_sim_ind <- function(par_list, sim_colls) {
 #' @export
 gprob_sim_gc_missing <- function(par_list, sim_colls, sim_missing) {
     .Call('_rubias_gprob_sim_gc_missing', PACKAGE = 'rubias', par_list, sim_colls, sim_missing)
+}
+
+#' Update a matrix of Dirichlet parameters given a set of collection allocations
+#'
+#' Takes a list of key parameters from a genetic dataset, as well as a vector
+#' of collections to which individuals have been allocated, and updates the baseline
+#' allele frequencies as if the individuals were known to originate from said collections
+#'
+#' For each individual and locus, this identifies the alleles held by that individual,
+#' then adds 1 to these alleles' counts in the Dirichlet parameter vector
+#'
+#' @keywords internal
+#'
+#' @param par_list genetic data converted to the param_list format by \code{tcf2param_list}
+#' @param allocations an N-long vector of collection ID numbers from \code{samp_from_post}
+#'
+#' @return \code{geno_logL} returns a matrix with C rows and I columns. Each column
+#' represents an individual, and each row the log-likelihood of that individual's
+#' genotype, given the allele counts in that collection
+#' @export
+update_dp <- function(par_list, allocations) {
+    .Call('_rubias_update_dp', PACKAGE = 'rubias', par_list, allocations)
 }
 
 #' EM algorithm from the simplest GSI model for pi and the individual posterior probabilities
