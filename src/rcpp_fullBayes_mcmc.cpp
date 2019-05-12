@@ -50,7 +50,7 @@ List gsi_mcmc_fb(List par_list, NumericVector Pi_init, NumericVector lambda,
                  int reps, int burn_in, int sample_int_Pi, int sample_int_PofZ) {
 
   // Code from geno_logl, creating C X N loglikelihood matrix
-  int i, c, l;
+  int i, c, l, a1, a2;
   IntegerVector I = as<IntegerVector>(par_list["I"]);
   int N = as<int>(par_list["N"]);
   int C = as<int>(par_list["C"]);
@@ -69,7 +69,6 @@ List gsi_mcmc_fb(List par_list, NumericVector Pi_init, NumericVector lambda,
   NumericMatrix sweep_logl(C, N);
   NumericMatrix SL(C, N);
 
-  // code from gsi_mcmc_1
   int r;
   List pi_list;
   List PofZ_list;
@@ -82,12 +81,15 @@ List gsi_mcmc_fb(List par_list, NumericVector Pi_init, NumericVector lambda,
   NumericMatrix post_sums_sq(SL.nrow(), SL.ncol());
   NumericMatrix sd_ret(SL.nrow(), SL.ncol());
   IntegerVector allocs(SL.ncol());
-  NumericVector DP_temp(DP.size());
+  NumericVector DP_temp = clone(DP);
+  NumericVector sum_DP_temp = clone(sum_DP);
 
   double tmp;
   int num_samp = reps - burn_in;
-
+  if(num_samp <= 1) stop("reps - burn_in <= 1");
+  //begin MCMC cycling
   for(r = 0; r < reps; r++) {
+
     // store pi value
     if( (sample_int_Pi > 0) && (r % sample_int_Pi == 0) ) {
       pi_list.push_back(pi);
@@ -97,18 +99,21 @@ List gsi_mcmc_fb(List par_list, NumericVector Pi_init, NumericVector lambda,
       pi_sums_sq += pi * pi;
     }
 
+    // genotype likelihood calculations
     for(i = 0; i < N; i++) { // cycle over individuals
-    for(c = 0; c < C; c++) { // cycle over collections
-      sum = 0.0;
-      LOO = c == (coll[i] - 1);
-      for(l = 0; l < L; l++) {  // cycle over loci
-        GPROB(i, l, c, gp);
-        sum += log(gp);
+      colsums(i) = 0.0;
+      colmeans(i) = 0.0;
+      for(c = 0; c < C; c++) { // cycle over collections
+        sum = 0.0;
+        LOO = c == (coll[i] - 1);
+        for(l = 0; l < L; l++) {  // cycle over loci
+          GPROB_FULLBAYES(i, l, c, gp);
+          sum += log(gp);
+        }
+        logl(c, i) = sum;
+        colsums(i) += sum; // sum across collections for column mean calculation
       }
-      logl(c, i) = sum;
-      colsums(i) += sum; // sum across collections for column mean calculation
     }
-  }
 
   // take column means, then sweep out from each logl
   for(i = 0; i < N; i++) {
@@ -117,6 +122,7 @@ List gsi_mcmc_fb(List par_list, NumericVector Pi_init, NumericVector lambda,
       sweep_logl(c, i) = logl(c, i) - colmeans(i);
     }
   }
+
 
   // convert to scaled logl matrix SL
   for(i = 0; i < N; i++) {
@@ -128,13 +134,6 @@ List gsi_mcmc_fb(List par_list, NumericVector Pi_init, NumericVector lambda,
       SL(c, i) = exp(sweep_logl(c, i)) / sum;
     }
   }
-
-  // code from gsi_mcmc_1
-
-
-
-  if(num_samp <= 1) stop("reps - burn_in <= 1");
-
 
     // normalize the scaled likelihoods into posteriors
     for(i = 0; i < N; i++) {
@@ -162,15 +161,38 @@ List gsi_mcmc_fb(List par_list, NumericVector Pi_init, NumericVector lambda,
     allocs = samp_from_mat(posts);
     pi = dirch_from_allocations(allocs, lambda);
     // compute a new Dirichlet Parameter Vector based on the allocations
-    DP = update_dp(par_list, allocs);
+    //DP_temp = update_dp(par_list, allocs);
+
+    DP_temp = clone(DP);
+    for(i = 0; i < N; i++) {
+      for(l = 0; l < L; l++) {
+        a1 = I[I_dx(l, i, 0, 2, N)] - 1;
+        a2 = I[I_dx(l, i, 1, 2, N)] - 1;
+        c = allocs[i] - 1;
+
+        if(PLOID[l] == 1) {
+          if(a1 >= 0) {
+            DP_temp[D_dx(l, c, a1, L, C, A, CA)] += 1;
+          }
+        } else {
+          if(a1 >= 0 && a2 >= 0) {
+            DP_temp[D_dx(l, c, a1, L, C, A, CA)] += 1;
+            DP_temp[D_dx(l, c, a2, L, C, A, CA)] += 1;
+          }
+        }
+      }
+    }
+
+    // update sum_DP;
+    sum_DP_temp = clone(sum_DP);
 
     for(i = 0; i < N; i++) {
       c = allocs[i] - 1;
       for(l = 0; l < L; l++) {
         if(PLOID[l] == 1) {
-          sum_DP[SD_dx(l, c, C)] += 1;
+          sum_DP_temp[SD_dx(l, c, C)] += 1;
         } else {
-          sum_DP[SD_dx(l, c, C)] += 2;
+          sum_DP_temp[SD_dx(l, c, C)] += 2;
         }
       }
     }
