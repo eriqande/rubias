@@ -1,12 +1,14 @@
 #' Estimate mixing proportions and origin probabilities from one or several mixtures
 #'
 #' Takes a mixture and reference dataframe of two-column genetic data, and a
-#' desired method of estimation for the population mixture proportions (MCMC, PB)
+#' desired method of estimation for the population mixture proportions (MCMC, PB, BR)
 #' Returns the output of the chosen estimation method
 #'
 #' "MCMC" estimates mixing proportions and individual posterior
 #' probabilities of assignment through Markov-chain Monte Carlo,
-#' while "PB" does the same with a parametric bootstrapping correction
+#' while "PB" does the same with a parametric bootstrapping correction,
+#' and "BR" runs additional MCMC sweeps while updating collection allele frequencies
+#' using the genotypes of mixture individuals and allocations from the previous sweep.
 #' All methods default to a uniform 1/(# collections or RUs) prior for the mixing proportions.
 #'
 #' @param reference a dataframe of two-column genetic format data, proceeded by "repunit", "collection",
@@ -15,7 +17,7 @@
 #' \code{reference} dataframe, but "collection" and "repunit" columns are ignored.
 #' Does not need "sample_type" column, and will be overwritten if provided
 #' @param gen_start_col the first column of genetic data in both data frames
-#' @param method a choice between "MCMC", "PB" methods for estimating mixture proportions
+#' @param method a choice between "MCMC", "PB", "BR" methods for estimating mixture proportions
 #' @param alle_freq_prior a one-element named list specifying the prior to be used when
 #' generating Dirichlet parameters for genotype likelihood calculations. Valid methods include
 #' \code{"const"}, \code{"scaled_const"}, and \code{"empirical"}. See \code{?list_diploid_params}
@@ -37,6 +39,10 @@
 #' @param reps the number of iterations to be performed in MCMC
 #' @param burn_in how many reps to discard in the beginning of MCMC when doing the mean calculation.
 #' They will still be returned in the traces if desired.
+#' @param br_reps how many MCMC sweeps with baseline resampling to perform after \code{reps} sweeps
+#' without baseline resampling
+#' @param br_burn_in how many reps to discard in the beginning of fully Bayesian MCMC
+#' when doing the mean calculation. They will still be returned in the traces if desired.
 #' @param pb_iter how many bootstrapped data sets to do for bootstrap correction using method PB.  Default
 #' is 100.
 #' @param sample_int_Pi how many iterations between storing the mixing proportions trace. Default is 1.
@@ -68,6 +74,8 @@ infer_mixture <- function(reference,
                           pi_init = NULL,
                           reps = 2000,
                           burn_in = 100,
+                          br_reps = 2000,
+                          br_burn_in = 100,
                           pb_iter = 100,
                           sample_int_Pi = 1,
                           pi_prior_sum = 1) {
@@ -120,10 +128,10 @@ infer_mixture <- function(reference,
   # check to make sure that the type of each of the locus colums is the same
   type_cols_differ <- sapply(reference[-(1:(gen_start_col - 1))], class) != sapply(mixture[-(1:(gen_start_col - 1))], class)
   if (any(type_cols_differ)) stop("Data types of locus columns differ between reference and mixture at: ",
-                                 paste(names(type_cols_differ[type_cols_differ]), collapse = ", "), ". Please fix that and rerun.")
+                                  paste(names(type_cols_differ[type_cols_differ]), collapse = ", "), ". Please fix that and rerun.")
 
   # check for a valid sampling method
-  if (method != "MCMC" && method != "PB") stop("invalid selection of mixture proportion estimation algorithm: please choose 'PB', 'MCMC'")
+  if (method != "MCMC" && method != "PB" && method != "BR") stop("invalid selection of mixture proportion estimation algorithm: please choose 'PB', 'MCMC'")
 
   # get the number of missing and non-missing loci for the mixture fish and hold it
   # till the end, when we join it on there
@@ -137,11 +145,11 @@ infer_mixture <- function(reference,
       if(length(pi_prior) != length(unique(reference$collection))) stop("Length of numeric pi prior vector does not match number of collections in reference dataset")
 
     } else if(is.data.frame(pi_prior)) {
-        if (!("collection") %in% names(pi_prior)) stop("Missing column \"collection\" in pi_prior")
-        if (!("pi_param") %in% names(pi_prior)) stop("Missing column \"pi_param\" in pi_prior")
+      if (!("collection") %in% names(pi_prior)) stop("Missing column \"collection\" in pi_prior")
+      if (!("pi_param") %in% names(pi_prior)) stop("Missing column \"pi_param\" in pi_prior")
 
-        valid_colls <- c(as.character(unique(reference$collection)), "DEFAULT_PI")
-        if(!(setequal(pi_prior$collection, intersect(pi_prior$collection, valid_colls)))) stop("Invalid collection name \"", setdiff(pi_prior$collection, intersect(pi_prior$collection, valid_colls)), "\" in pi_prior")
+      valid_colls <- c(as.character(unique(reference$collection)), "DEFAULT_PI")
+      if(!(setequal(pi_prior$collection, intersect(pi_prior$collection, valid_colls)))) stop("Invalid collection name \"", setdiff(pi_prior$collection, intersect(pi_prior$collection, valid_colls)), "\" in pi_prior")
 
     } else stop("pi_prior must be NA, a numeric vector, or a data frame")
   }
@@ -159,7 +167,7 @@ infer_mixture <- function(reference,
                                         paste(not_in_pi_init, collapse = ", "))
     in_pi_init_wrongly <- setdiff(all_colls, pi_init$collection)
     if(length(in_pi_init_wrongly) > 0) stop("Missing these collections from pi_init collection column: ",
-                                        paste(in_pi_init_wrongly, collapse = ", "))
+                                            paste(in_pi_init_wrongly, collapse = ", "))
 
     named_pi_init <- pi_init$pi_init
     names(named_pi_init) <- pi_init$collection
@@ -342,7 +350,7 @@ infer_mixture <- function(reference,
 
 
 
-    ## regardless of whether the method is PB or MCMC, you are going to run the MCMC once, at least ##
+    ## regardless of whether the method is PB, BR or MCMC, you are going to run the MCMC once, at least ##
     message("  performing ", burn_in, " burn-in and ", reps, " more sweeps of method \"MCMC\"", appendLF = FALSE)
 
     # deal with initializing pi
@@ -363,6 +371,31 @@ infer_mixture <- function(reference,
     })
     message("   time: ", sprintf("%.2f", time_mcmc1["elapsed"]), " seconds")
 
+    ## block of code for estimating mixture using baseline resampling
+    if (method == "BR") {
+
+      message("  performing ", br_burn_in, " burn-in and ", br_reps, " more sweeps of method \"BR\"", appendLF = FALSE)
+
+      # deal with initializing pi
+      if(!is.null(out$mean$pi)) {
+        pi_init_to_use <- out$mean$pi
+      } else if(!is.null(named_pi_init)) {
+        pi_init_to_use <- named_pi_init[colnames(ac[[1]])]
+      } else {
+        pi_init_to_use <- rep(1 / params$C, params$C)
+      }
+
+      time_mcmc2 <- system.time({
+        out <- gsi_mcmc_fb(par_list = params,
+                          Pi_init = pi_init_to_use,
+                          lambda = lambda,
+                          reps = br_reps,
+                          burn_in = br_burn_in,
+                          sample_int_Pi = sample_int_Pi,
+                          sample_int_PofZ = sample_int_PofZ)
+      })
+      message("   time: ", sprintf("%.2f", time_mcmc2["elapsed"]), " seconds")
+    }
 
 
 
