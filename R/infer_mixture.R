@@ -1,13 +1,14 @@
 #' Estimate mixing proportions and origin probabilities from one or several mixtures
 #'
 #' Takes a mixture and reference dataframe of two-column genetic data, and a
-#' desired method of estimation for the population mixture proportions (MCMC, PB, BR)
+#' desired method of estimation for the population mixture proportions (MCMC, PB, BR).
 #' Returns the output of the chosen estimation method
 #'
 #' "MCMC" estimates mixing proportions and individual posterior
-#' probabilities of assignment through Markov-chain Monte Carlo,
+#' probabilities of assignment through Markov-chain Monte Carlo
+#' conditional on the reference allele frequencies,
 #' while "PB" does the same with a parametric bootstrapping correction,
-#' and "BR" runs additional MCMC sweeps while updating collection allele frequencies
+#' and "BR" runs MCMC sweeps while updating reference allele frequencies
 #' using the genotypes of mixture individuals and allocations from the previous sweep.
 #' All methods default to a uniform 1/(# collections or RUs) prior for the mixing proportions.
 #'
@@ -39,10 +40,6 @@
 #' @param reps the number of iterations to be performed in MCMC
 #' @param burn_in how many reps to discard in the beginning of MCMC when doing the mean calculation.
 #' They will still be returned in the traces if desired.
-#' @param br_reps how many MCMC sweeps with baseline resampling to perform after \code{reps} sweeps
-#' without baseline resampling
-#' @param br_burn_in how many reps to discard in the beginning of fully Bayesian MCMC
-#' when doing the mean calculation. They will still be returned in the traces if desired.
 #' @param pb_iter how many bootstrapped data sets to do for bootstrap correction using method PB.  Default
 #' is 100.
 #' @param sample_int_Pi how many iterations between storing the mixing proportions trace. Default is 1.
@@ -55,7 +52,7 @@
 #' mixing_proportions: the estimated mixing proportions of the different collections.
 #' indiv_posteriors: the posterior probs of fish being from each of the collections.
 #' mix_prop_traces: the traces of the mixing proportions.  Useful for computing credible intervals.
-#' bootstrapped_proportions: If using method "BH" this returns the bootstrap corrected
+#' bootstrapped_proportions: If using method "PB" this returns the bootstrap corrected
 #' reporting unit proportions.
 #'
 #' @examples
@@ -74,8 +71,6 @@ infer_mixture <- function(reference,
                           pi_init = NULL,
                           reps = 2000,
                           burn_in = 100,
-                          br_reps = 2000,
-                          br_burn_in = 100,
                           pb_iter = 100,
                           sample_int_Pi = 1,
                           pi_prior_sum = 1) {
@@ -131,7 +126,7 @@ infer_mixture <- function(reference,
                                   paste(names(type_cols_differ[type_cols_differ]), collapse = ", "), ". Please fix that and rerun.")
 
   # check for a valid sampling method
-  if (method != "MCMC" && method != "PB" && method != "BR") stop("invalid selection of mixture proportion estimation algorithm: please choose 'PB', 'MCMC'")
+  if (method != "MCMC" && method != "PB" && method != "BR") stop("invalid selection of mixture proportion estimation algorithm: please choose 'PB', 'MCMC', 'BR'")
 
   # get the number of missing and non-missing loci for the mixture fish and hold it
   # till the end, when we join it on there
@@ -350,7 +345,8 @@ infer_mixture <- function(reference,
 
 
 
-    ## regardless of whether the method is PB, BR or MCMC, you are going to run the MCMC once, at least ##
+    ## If the method is PB or MCMC, you are going to run the conditional MCMC once, at least ##
+    if(method == "PB" || method == "MCMC") {
     message("  performing ", burn_in, " burn-in and ", reps, " more sweeps of method \"MCMC\"", appendLF = FALSE)
 
     # deal with initializing pi
@@ -370,16 +366,14 @@ infer_mixture <- function(reference,
                         sample_int_PofZ = sample_int_PofZ)
     })
     message("   time: ", sprintf("%.2f", time_mcmc1["elapsed"]), " seconds")
-
-    ## block of code for estimating mixture using baseline resampling
+  }
+    ## If the method is BR, you are going to run the MCMC with baseline resampling
     if (method == "BR") {
 
-      message("  performing ", br_burn_in, " burn-in and ", br_reps, " more sweeps of method \"BR\"", appendLF = FALSE)
+      message("  performing ", burn_in, " burn-in and ", reps, " more sweeps of method \"BR\"", appendLF = FALSE)
 
       # deal with initializing pi
-      if(!is.null(out$mean$pi)) {
-        pi_init_to_use <- out$mean$pi
-      } else if(!is.null(named_pi_init)) {
+      if(!is.null(named_pi_init)) {
         pi_init_to_use <- named_pi_init[colnames(ac[[1]])]
       } else {
         pi_init_to_use <- rep(1 / params$C, params$C)
@@ -389,8 +383,8 @@ infer_mixture <- function(reference,
         out <- gsi_mcmc_fb(par_list = params,
                           Pi_init = pi_init_to_use,
                           lambda = lambda,
-                          reps = br_reps,
-                          burn_in = br_burn_in,
+                          reps = reps,
+                          burn_in = burn_in,
                           sample_int_Pi = sample_int_Pi,
                           sample_int_PofZ = sample_int_PofZ)
       })

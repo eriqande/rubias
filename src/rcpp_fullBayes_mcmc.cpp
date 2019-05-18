@@ -50,7 +50,7 @@ List gsi_mcmc_fb(List par_list, NumericVector Pi_init, NumericVector lambda,
                  int reps, int burn_in, int sample_int_Pi, int sample_int_PofZ) {
 
   // Code from geno_logl, creating C X N loglikelihood matrix
-  int i, c, l, a1, a2;
+  int r, i, c, l, a1, a2;
   IntegerVector I = as<IntegerVector>(par_list["I"]);
   int N = as<int>(par_list["N"]);
   int C = as<int>(par_list["C"]);
@@ -62,14 +62,12 @@ List gsi_mcmc_fb(List par_list, NumericVector Pi_init, NumericVector lambda,
   NumericVector DP = as<NumericVector>(par_list["DP"]);
   NumericVector sum_DP = as<NumericVector>(par_list["sum_DP"]);
   IntegerVector PLOID = as<IntegerVector>(par_list["ploidies"]);
-  double sum, gp;
+  double sum, gp, colmean;
   NumericVector colsums(N);
-  NumericVector colmeans(N);
   NumericMatrix logl(C, N);
   NumericMatrix sweep_logl(C, N);
   NumericMatrix SL(C, N);
 
-  int r;
   List pi_list;
   List PofZ_list;
   List trace, mean, sd, ret;
@@ -102,7 +100,6 @@ List gsi_mcmc_fb(List par_list, NumericVector Pi_init, NumericVector lambda,
     // genotype likelihood calculations
     for(i = 0; i < N; i++) { // cycle over individuals
       colsums(i) = 0.0;
-      colmeans(i) = 0.0;
       for(c = 0; c < C; c++) { // cycle over collections
         sum = 0.0;
         LOO = c == (coll[i] - 1);
@@ -117,9 +114,9 @@ List gsi_mcmc_fb(List par_list, NumericVector Pi_init, NumericVector lambda,
 
   // take column means, then sweep out from each logl
   for(i = 0; i < N; i++) {
-    colmeans(i) = colsums(i)/C;
+    colmean = colsums(i)/C;
     for(c = 0; c < C; c++) {
-      sweep_logl(c, i) = logl(c, i) - colmeans(i);
+      sweep_logl(c, i) = logl(c, i) - colmean;
     }
   }
 
@@ -128,10 +125,12 @@ List gsi_mcmc_fb(List par_list, NumericVector Pi_init, NumericVector lambda,
   for(i = 0; i < N; i++) {
     sum = 0.0;
     for(c = 0; c < C; c++) {
-      sum += exp(sweep_logl(c, i));
+      tmp = exp(sweep_logl(c, i));
+      SL(c, i) = tmp;
+      sum += tmp;
     }
     for(c = 0; c < C; c++) {
-      SL(c, i) = exp(sweep_logl(c, i)) / sum;
+      SL(c, i) /= sum;
     }
   }
 
@@ -160,10 +159,10 @@ List gsi_mcmc_fb(List par_list, NumericVector Pi_init, NumericVector lambda,
     // allocate individuals to populations and simulate a new pi
     allocs = samp_from_mat(posts);
     pi = dirch_from_allocations(allocs, lambda);
-    // compute a new Dirichlet Parameter Vector based on the allocations
-    //DP_temp = update_dp(par_list, allocs);
 
-    DP_temp = clone(DP);
+    // compute a new Dirichlet Parameter Vector based on the allocations
+
+    std::copy(DP.begin(), DP.end(), DP_temp.begin());
     for(i = 0; i < N; i++) {
       for(l = 0; l < L; l++) {
         a1 = I[I_dx(l, i, 0, 2, N)] - 1;
@@ -184,7 +183,7 @@ List gsi_mcmc_fb(List par_list, NumericVector Pi_init, NumericVector lambda,
     }
 
     // update sum_DP;
-    sum_DP_temp = clone(sum_DP);
+    std::copy(sum_DP.begin(), sum_DP.end(), sum_DP_temp.begin());
 
     for(i = 0; i < N; i++) {
       c = allocs[i] - 1;
