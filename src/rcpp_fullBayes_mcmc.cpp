@@ -163,6 +163,7 @@ List gsi_mcmc_fb(List par_list, NumericVector Pi_init, NumericVector lambda,
     // compute a new Dirichlet Parameter Vector based on the allocations
 
     std::copy(DP.begin(), DP.end(), DP_temp.begin());
+    std::copy(sum_DP.begin(), sum_DP.end(), sum_DP_temp.begin());
     for(i = 0; i < N; i++) {
       for(l = 0; l < L; l++) {
         a1 = I[I_dx(l, i, 0, 2, N)] - 1;
@@ -172,26 +173,14 @@ List gsi_mcmc_fb(List par_list, NumericVector Pi_init, NumericVector lambda,
         if(PLOID[l] == 1) {
           if(a1 >= 0) {
             DP_temp[D_dx(l, c, a1, L, C, A, CA)] += 1;
+            sum_DP_temp[SD_dx(l, c, C)] += 1;
           }
         } else {
           if(a1 >= 0 && a2 >= 0) {
             DP_temp[D_dx(l, c, a1, L, C, A, CA)] += 1;
             DP_temp[D_dx(l, c, a2, L, C, A, CA)] += 1;
+            sum_DP_temp[SD_dx(l, c, C)] += 2;
           }
-        }
-      }
-    }
-
-    // update sum_DP;
-    std::copy(sum_DP.begin(), sum_DP.end(), sum_DP_temp.begin());
-
-    for(i = 0; i < N; i++) {
-      c = allocs[i] - 1;
-      for(l = 0; l < L; l++) {
-        if(PLOID[l] == 1) {
-          sum_DP_temp[SD_dx(l, c, C)] += 1;
-        } else {
-          sum_DP_temp[SD_dx(l, c, C)] += 2;
         }
       }
     }
