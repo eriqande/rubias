@@ -62,8 +62,7 @@ List gsi_mcmc_fb(List par_list, NumericVector Pi_init, NumericVector lambda,
   NumericVector DP = as<NumericVector>(par_list["DP"]);
   NumericVector sum_DP = as<NumericVector>(par_list["sum_DP"]);
   IntegerVector PLOID = as<IntegerVector>(par_list["ploidies"]);
-  double sum, gp, colmean;
-  NumericVector colsums(N);
+  double sum, gp, colmean, colsum;
   NumericMatrix logl(C, N);
   NumericMatrix sweep_logl(C, N);
   NumericMatrix SL(C, N);
@@ -99,7 +98,7 @@ List gsi_mcmc_fb(List par_list, NumericVector Pi_init, NumericVector lambda,
 
     // genotype likelihood calculations
     for(i = 0; i < N; i++) { // cycle over individuals
-      colsums[i] = 0.0;
+      colsum = 0.0;
       for(c = 0; c < C; c++) { // cycle over collections
         sum = 0.0;
         LOO = c == (coll[i] - 1);
@@ -108,13 +107,11 @@ List gsi_mcmc_fb(List par_list, NumericVector Pi_init, NumericVector lambda,
           sum += log(gp);
         }
         logl(c, i) = sum;
-        colsums[i] += sum; // sum across collections for column mean calculation
+        colsum += sum; // sum across collections for column mean calculation
       }
-    }
 
-    // take column means, then sweep out from each logl
-    for(i = 0; i < N; i++) {
-      colmean = colsums[i]/C;
+      // take column means, then sweep out from each logl
+      colmean = colsum/C;
       for(c = 0; c < C; c++) {
         sweep_logl(c, i) = logl(c, i) - colmean;
       }
