@@ -99,7 +99,7 @@ List gsi_mcmc_fb(List par_list, NumericVector Pi_init, NumericVector lambda,
 
     // genotype likelihood calculations
     for(i = 0; i < N; i++) { // cycle over individuals
-      colsums(i) = 0.0;
+      colsums[i] = 0.0;
       for(c = 0; c < C; c++) { // cycle over collections
         sum = 0.0;
         LOO = c == (coll[i] - 1);
@@ -108,37 +108,23 @@ List gsi_mcmc_fb(List par_list, NumericVector Pi_init, NumericVector lambda,
           sum += log(gp);
         }
         logl(c, i) = sum;
-        colsums(i) += sum; // sum across collections for column mean calculation
+        colsums[i] += sum; // sum across collections for column mean calculation
       }
     }
 
-  // take column means, then sweep out from each logl
-  for(i = 0; i < N; i++) {
-    colmean = colsums(i)/C;
-    for(c = 0; c < C; c++) {
-      sweep_logl(c, i) = logl(c, i) - colmean;
+    // take column means, then sweep out from each logl
+    for(i = 0; i < N; i++) {
+      colmean = colsums[i]/C;
+      for(c = 0; c < C; c++) {
+        sweep_logl(c, i) = logl(c, i) - colmean;
+      }
     }
-  }
 
-
-  // convert to scaled logl matrix SL
-  for(i = 0; i < N; i++) {
-    sum = 0.0;
-    for(c = 0; c < C; c++) {
-      tmp = exp(sweep_logl(c, i));
-      SL(c, i) = tmp;
-      sum += tmp;
-    }
-    for(c = 0; c < C; c++) {
-      SL(c, i) /= sum;
-    }
-  }
-
-    // normalize the scaled likelihoods into posteriors
+    // convert to likelihood and calculate the posterior in one go
     for(i = 0; i < N; i++) {
       sum = 0.0;
       for(c = 0; c < C; c++) {
-        tmp = SL(c, i) * pi[c];
+        tmp = exp(sweep_logl(c,i)) * pi[c];
         posts(c, i) = tmp;
         sum += tmp;
       }
@@ -163,35 +149,30 @@ List gsi_mcmc_fb(List par_list, NumericVector Pi_init, NumericVector lambda,
     // compute a new Dirichlet Parameter Vector based on the allocations
 
     std::copy(DP.begin(), DP.end(), DP_temp.begin());
-    for(i = 0; i < N; i++) {
-      for(l = 0; l < L; l++) {
-        a1 = I[I_dx(l, i, 0, 2, N)] - 1;
-        a2 = I[I_dx(l, i, 1, 2, N)] - 1;
-        c = allocs[i] - 1;
-
-        if(PLOID[l] == 1) {
-          if(a1 >= 0) {
-            DP_temp[D_dx(l, c, a1, L, C, A, CA)] += 1;
-          }
-        } else {
-          if(a1 >= 0 && a2 >= 0) {
-            DP_temp[D_dx(l, c, a1, L, C, A, CA)] += 1;
-            DP_temp[D_dx(l, c, a2, L, C, A, CA)] += 1;
-          }
-        }
-      }
-    }
-
-    // update sum_DP;
     std::copy(sum_DP.begin(), sum_DP.end(), sum_DP_temp.begin());
 
     for(i = 0; i < N; i++) {
       c = allocs[i] - 1;
       for(l = 0; l < L; l++) {
+        a1 = I[I_dx(l, i, 0, 2, N)] - 1;
+        a2 = I[I_dx(l, i, 1, 2, N)] - 1;
+
+
         if(PLOID[l] == 1) {
-          sum_DP_temp[SD_dx(l, c, C)] += 1;
+          if(a1 >= 0) {
+            DP_temp[D_dx(l, c, a1, L, C, A, CA)] += 1;
+            sum_DP_temp[SD_dx(l, c, C)] += 1;
+          }
+
+
         } else {
-          sum_DP_temp[SD_dx(l, c, C)] += 2;
+          if(a1 >= 0 && a2 >= 0) {
+            DP_temp[D_dx(l, c, a1, L, C, A, CA)] += 1;
+            DP_temp[D_dx(l, c, a2, L, C, A, CA)] += 1;
+            sum_DP_temp[SD_dx(l, c, C)] += 2;
+          }
+
+
         }
       }
     }
