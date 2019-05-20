@@ -79,8 +79,8 @@ List gsi_mcmc_fb(List par_list, NumericVector Pi_init, NumericVector lambda,
   NumericMatrix post_sums_sq(SL.nrow(), SL.ncol());
   NumericMatrix sd_ret(SL.nrow(), SL.ncol());
   IntegerVector allocs(SL.ncol());
-  NumericVector DP_temp = clone(DP);
-  NumericVector sum_DP_temp = clone(sum_DP);
+  NumericVector DP_temp(DP.size());
+  NumericVector sum_DP_temp(sum_DP.size());
 
   double tmp;
   int num_samp = reps - burn_in;
@@ -99,7 +99,7 @@ List gsi_mcmc_fb(List par_list, NumericVector Pi_init, NumericVector lambda,
 
     // genotype likelihood calculations
     for(i = 0; i < N; i++) { // cycle over individuals
-      colsums(i) = 0.0;
+      colsums[i] = 0.0;
       for(c = 0; c < C; c++) { // cycle over collections
         sum = 0.0;
         LOO = c == (coll[i] - 1);
@@ -108,37 +108,26 @@ List gsi_mcmc_fb(List par_list, NumericVector Pi_init, NumericVector lambda,
           sum += log(gp);
         }
         logl(c, i) = sum;
-        colsums(i) += sum; // sum across collections for column mean calculation
+        colsums[i] += sum; // sum across collections for column mean calculation
       }
     }
 
-  // take column means, then sweep out from each logl
-  for(i = 0; i < N; i++) {
-    colmean = colsums(i)/C;
-    for(c = 0; c < C; c++) {
-      sweep_logl(c, i) = logl(c, i) - colmean;
-    }
-  }
-
-
-  // convert to scaled logl matrix SL
-  for(i = 0; i < N; i++) {
-    sum = 0.0;
-    for(c = 0; c < C; c++) {
-      tmp = exp(sweep_logl(c, i));
-      SL(c, i) = tmp;
-      sum += tmp;
-    }
-    for(c = 0; c < C; c++) {
-      SL(c, i) /= sum;
-    }
-  }
-
-    // normalize the scaled likelihoods into posteriors
+    // take column means, then sweep out from each logl
     for(i = 0; i < N; i++) {
+      colmean = colsums[i]/C;
+      for(c = 0; c < C; c++) {
+        sweep_logl(c, i) = logl(c, i) - colmean;
+      }
+    }
+
+
+
+    for(i = 0; i < N; i++) {
+
+      // convert to likelihood & calculate posterior probabilities in one go
       sum = 0.0;
       for(c = 0; c < C; c++) {
-        tmp = SL(c, i) * pi[c];
+        tmp = exp(sweep_logl(c, i)) * pi[c];
         posts(c, i) = tmp;
         sum += tmp;
       }
