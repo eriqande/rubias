@@ -8,6 +8,8 @@ gsi_mcmc_fb(par_list, Pi_init, lambda, reps, burn_in, sample_int_Pi,
   sample_int_PofZ)
 }
 \arguments{
+\item{par_list}{genetic data converted to the param_list format by \code{tcf2param_list}}
+
 \item{Pi_init}{Starting value for the pi (collection mixture proportion) vector.}
 
 \item{lambda}{the prior to be added to the collection allocations, in order to
@@ -22,9 +24,6 @@ returned in the traces if desired}
 
 \item{sample_int_PofZ}{the number of reps between samples being taken for the traces of posterior of each individual's origin. If 0
 no trace samples are taken.}
-
-\item{SL}{matrix of the scaled likelihoods.  This is should have values for each individual in a column
-(going down in the rows are values for different populations).}
 }
 \value{
 \code{gsi_mcmc_fb} returns a list of three. \code{$mean} lists the posterior
@@ -36,8 +35,10 @@ If the corresponding \code{sample_int} variables are not 0, \code{$trace} contai
 samples taken from the Markov chain at intervals of \code{sample_int_}(variable) steps.
 }
 \description{
-Using a matrix of scaled likelihoods, this function samples values of pi and the posteriors
-for all the individuals.  It returns the output in a list.
+Given a list of key parameters from a genetic dataset, this function samples values of pi
+and the posteriors for all the individuals. Each MCMC iteration includes a recalculation
+of the scaled genotype likelihood matrix, with baseline allele frequencies updated
+based on the previous iteration's allocations. It returns the output in a list.
 }
 \examples{
 # this demonstrates it with scaled likelihoods computed from
@@ -49,9 +50,7 @@ ploidies <- rep(2, length(locnames))
 names(ploidies) <- locnames
 
 params <- tcf2param_list(alewife, 17, ploidies = ploidies)
-logl <- geno_logL(params)
-SL <- apply(exp(logl), 2, function(x) x/sum(x))
 lambda <- rep(1/params$C, params$C)
-mcmc <- gsi_mcmc_1(SL, lambda, lambda, 200, 50, 5, 5)
+mcmc <- gsi_mcmc_fb(params, lambda, lambda, 200, 50, 5, 5)
 }
 \keyword{internal}

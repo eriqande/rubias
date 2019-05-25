@@ -18,11 +18,13 @@ rcpp_close_matchers <- function(par_list, non_miss_fract, match_fract) {
 
 #' MCMC from the fully Bayesian GSI model for pi and the individual posterior probabilities
 #'
-#' Using a matrix of scaled likelihoods, this function samples values of pi and the posteriors
-#' for all the individuals.  It returns the output in a list.
+#' Given a list of key parameters from a genetic dataset, this function samples values of pi
+#' and the posteriors for all the individuals. Each MCMC iteration includes a recalculation
+#' of the scaled genotype likelihood matrix, with baseline allele frequencies updated
+#' based on the previous iteration's allocations. It returns the output in a list.
 #' @keywords internal
-#' @param SL  matrix of the scaled likelihoods.  This is should have values for each individual in a column
-#' (going down in the rows are values for different populations).
+#'
+#' @param par_list genetic data converted to the param_list format by \code{tcf2param_list}
 #' @param Pi_init  Starting value for the pi (collection mixture proportion) vector.
 #' @param lambda the prior to be added to the collection allocations, in order to
 #' generate pseudo-count Dirichlet parameters for the simulation of a new pi vector
@@ -51,10 +53,8 @@ rcpp_close_matchers <- function(par_list, non_miss_fract, match_fract) {
 #' names(ploidies) <- locnames
 #'
 #' params <- tcf2param_list(alewife, 17, ploidies = ploidies)
-#' logl <- geno_logL(params)
-#' SL <- apply(exp(logl), 2, function(x) x/sum(x))
 #' lambda <- rep(1/params$C, params$C)
-#' mcmc <- gsi_mcmc_1(SL, lambda, lambda, 200, 50, 5, 5)
+#' mcmc <- gsi_mcmc_fb(params, lambda, lambda, 200, 50, 5, 5)
 #' @export
 gsi_mcmc_fb <- function(par_list, Pi_init, lambda, reps, burn_in, sample_int_Pi, sample_int_PofZ) {
     .Call('_rubias_gsi_mcmc_fb', PACKAGE = 'rubias', par_list, Pi_init, lambda, reps, burn_in, sample_int_Pi, sample_int_PofZ)

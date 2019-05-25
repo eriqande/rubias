@@ -7,11 +7,13 @@ using namespace Rcpp;
 
 //' MCMC from the fully Bayesian GSI model for pi and the individual posterior probabilities
 //'
-//' Using a matrix of scaled likelihoods, this function samples values of pi and the posteriors
-//' for all the individuals.  It returns the output in a list.
+//' Given a list of key parameters from a genetic dataset, this function samples values of pi
+//' and the posteriors for all the individuals. Each MCMC iteration includes a recalculation
+//' of the scaled genotype likelihood matrix, with baseline allele frequencies updated
+//' based on the previous iteration's allocations. It returns the output in a list.
 //' @keywords internal
-//' @param SL  matrix of the scaled likelihoods.  This is should have values for each individual in a column
-//' (going down in the rows are values for different populations).
+//'
+//' @param par_list genetic data converted to the param_list format by \code{tcf2param_list}
 //' @param Pi_init  Starting value for the pi (collection mixture proportion) vector.
 //' @param lambda the prior to be added to the collection allocations, in order to
 //' generate pseudo-count Dirichlet parameters for the simulation of a new pi vector
@@ -40,10 +42,8 @@ using namespace Rcpp;
 //' names(ploidies) <- locnames
 //'
 //' params <- tcf2param_list(alewife, 17, ploidies = ploidies)
-//' logl <- geno_logL(params)
-//' SL <- apply(exp(logl), 2, function(x) x/sum(x))
 //' lambda <- rep(1/params$C, params$C)
-//' mcmc <- gsi_mcmc_1(SL, lambda, lambda, 200, 50, 5, 5)
+//' mcmc <- gsi_mcmc_fb(params, lambda, lambda, 200, 50, 5, 5)
 //' @export
 // [[Rcpp::export]]
 List gsi_mcmc_fb(List par_list, NumericVector Pi_init, NumericVector lambda,
@@ -65,7 +65,6 @@ List gsi_mcmc_fb(List par_list, NumericVector Pi_init, NumericVector lambda,
   double sum, gp, colmean, colsum;
   NumericMatrix logl(C, N);
   NumericMatrix sweep_logl(C, N);
-  NumericMatrix SL(C, N);
 
   List pi_list;
   List PofZ_list;
@@ -73,20 +72,22 @@ List gsi_mcmc_fb(List par_list, NumericVector Pi_init, NumericVector lambda,
   NumericVector pi = clone(Pi_init);
   NumericVector pi_sums(Pi_init.size());
   NumericVector pi_sums_sq(Pi_init.size());
-  NumericMatrix posts = clone(SL);
-  NumericMatrix post_sums(SL.nrow(), SL.ncol());
-  NumericMatrix post_sums_sq(SL.nrow(), SL.ncol());
-  NumericMatrix sd_ret(SL.nrow(), SL.ncol());
-  IntegerVector allocs(SL.ncol());
+  NumericMatrix posts = clone(logl);
+  NumericMatrix post_sums(logl.nrow(), logl.ncol());
+  NumericMatrix post_sums_sq(logl.nrow(), logl.ncol());
+  NumericMatrix sd_ret(logl.nrow(), logl.ncol());
+  IntegerVector allocs(logl.ncol());
   NumericVector DP_temp = clone(DP);
   NumericVector sum_DP_temp = clone(sum_DP);
 
   double tmp;
   int num_samp = reps - burn_in;
   if(num_samp <= 1) stop("reps - burn_in <= 1");
+
   //begin MCMC cycling
   for(r = 0; r < reps; r++) {
 
+    checkUserInterrupt();
     // store pi value
     if( (sample_int_Pi > 0) && (r % sample_int_Pi == 0) ) {
       pi_list.push_back(pi);
