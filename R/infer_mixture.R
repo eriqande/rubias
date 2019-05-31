@@ -8,7 +8,7 @@
 #' probabilities of assignment through Markov-chain Monte Carlo
 #' conditional on the reference allele frequencies,
 #' while "PB" does the same with a parametric bootstrapping correction,
-#' and "BR" runs MCMC sweeps while updating reference allele frequencies
+#' and "BR" runs MCMC sweeps while simulating reference allele frequencies
 #' using the genotypes of mixture individuals and allocations from the previous sweep.
 #' All methods default to a uniform 1/(# collections or RUs) prior for the mixing proportions.
 #'
@@ -42,6 +42,9 @@
 #' They will still be returned in the traces if desired.
 #' @param pb_iter how many bootstrapped data sets to do for bootstrap correction using method PB.  Default
 #' is 100.
+#' @param prelim_reps for method "BR", the number of reps of conditional MCMC (as in method "MCMC")
+#' to perform prior to MCMC with baseline resampling. The posterior mean of mixing proportions
+#' from this conditional MCMC is then used as \code{pi_init} in the baseline resampling MCMC.
 #' @param sample_int_Pi how many iterations between storing the mixing proportions trace. Default is 1.
 #' Can't be 0. Can't be so large that fewer than 10 samples are taken from the burn in and the sweeps.
 #' @param pi_prior_sum For \code{pi_prior = NA}, the prior on the mixing proportions is set
@@ -72,6 +75,7 @@ infer_mixture <- function(reference,
                           reps = 2000,
                           burn_in = 100,
                           pb_iter = 100,
+                          prelim_reps = NULL,
                           sample_int_Pi = 1,
                           pi_prior_sum = 1) {
 
@@ -346,34 +350,52 @@ infer_mixture <- function(reference,
 
 
     ## If the method is PB or MCMC, you are going to run the conditional MCMC once, at least ##
-    if(method == "PB" || method == "MCMC") {
-    message("  performing ", burn_in, " burn-in and ", reps, " more sweeps of method \"MCMC\"", appendLF = FALSE)
+    if(method == "PB" || method == "MCMC" || (method == "BR" && !is.null(prelim_reps))) {
 
-    # deal with initializing pi
-    if(!is.null(named_pi_init)) {
-      pi_init_to_use <- named_pi_init[colnames(ac[[1]])]
-    } else {
-      pi_init_to_use <- rep(1 / params$C, params$C)
+      # deal with initializing pi
+      if(!is.null(named_pi_init)) {
+        pi_init_to_use <- named_pi_init[colnames(ac[[1]])]
+      } else {
+        pi_init_to_use <- rep(1 / params$C, params$C)
+      }
+
+      if(method == "BR") {
+        message("  performing ", burn_in, " burn-in and ", prelim_reps, " more sweeps of method \"MCMC\"", appendLF = FALSE)
+
+        time_mcmc1 <- system.time({
+          out <- gsi_mcmc_1(SL = SL,
+                            Pi_init = pi_init_to_use,
+                            lambda = lambda,
+                            reps = prelim_reps,
+                            burn_in = burn_in,
+                            sample_int_Pi = sample_int_Pi,
+                            sample_int_PofZ = sample_int_PofZ)
+        })
+      } else {
+        message("  performing ", burn_in, " burn-in and ", reps, " more sweeps of method \"MCMC\"", appendLF = FALSE)
+        time_mcmc1 <- system.time({
+          out <- gsi_mcmc_1(SL = SL,
+                            Pi_init = pi_init_to_use,
+                            lambda = lambda,
+                            reps = reps,
+                            burn_in = burn_in,
+                            sample_int_Pi = sample_int_Pi,
+                            sample_int_PofZ = sample_int_PofZ)
+        })
+      }
+
+
+      message("   time: ", sprintf("%.2f", time_mcmc1["elapsed"]), " seconds")
     }
-
-    time_mcmc1 <- system.time({
-      out <- gsi_mcmc_1(SL = SL,
-                        Pi_init = pi_init_to_use,
-                        lambda = lambda,
-                        reps = reps,
-                        burn_in = burn_in,
-                        sample_int_Pi = sample_int_Pi,
-                        sample_int_PofZ = sample_int_PofZ)
-    })
-    message("   time: ", sprintf("%.2f", time_mcmc1["elapsed"]), " seconds")
-  }
     ## If the method is BR, you are going to run the MCMC with baseline resampling
     if (method == "BR") {
 
       message("  performing ", burn_in, " burn-in and ", reps, " more sweeps of method \"BR\"", appendLF = FALSE)
 
       # deal with initializing pi
-      if(!is.null(named_pi_init)) {
+      if(!is.null(prelim_reps)) {
+        pi_init_to_use <- out$mean$pi
+      } else if(!is.null(named_pi_init)) {
         pi_init_to_use <- named_pi_init[colnames(ac[[1]])]
       } else {
         pi_init_to_use <- rep(1 / params$C, params$C)

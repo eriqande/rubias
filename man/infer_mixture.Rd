@@ -7,7 +7,7 @@
 infer_mixture(reference, mixture, gen_start_col, method = "MCMC",
   alle_freq_prior = list(const_scaled = 1), pi_prior = NA,
   pi_init = NULL, reps = 2000, burn_in = 100, pb_iter = 100,
-  sample_int_Pi = 1, pi_prior_sum = 1)
+  prelim_reps = NULL, sample_int_Pi = 1, pi_prior_sum = 1)
 }
 \arguments{
 \item{reference}{a dataframe of two-column genetic format data, proceeded by "repunit", "collection",
@@ -50,6 +50,10 @@ They will still be returned in the traces if desired.}
 \item{pb_iter}{how many bootstrapped data sets to do for bootstrap correction using method PB.  Default
 is 100.}
 
+\item{prelim_reps}{for method "BR", the number of reps of conditional MCMC (as in method "MCMC")
+to perform prior to MCMC with baseline resampling. The posterior mean of mixing proportions
+from this conditional MCMC is then used as \code{pi_init} in the baseline resampling MCMC.}
+
 \item{sample_int_Pi}{how many iterations between storing the mixing proportions trace. Default is 1.
 Can't be 0. Can't be so large that fewer than 10 samples are taken from the burn in and the sweeps.}
 
@@ -76,7 +80,7 @@ Returns the output of the chosen estimation method
 probabilities of assignment through Markov-chain Monte Carlo
 conditional on the reference allele frequencies,
 while "PB" does the same with a parametric bootstrapping correction,
-and "BR" runs MCMC sweeps while updating reference allele frequencies
+and "BR" runs MCMC sweeps while simulating reference allele frequencies
 using the genotypes of mixture individuals and allocations from the previous sweep.
 All methods default to a uniform 1/(# collections or RUs) prior for the mixing proportions.
 }

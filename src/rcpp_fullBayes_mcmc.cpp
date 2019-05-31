@@ -2,7 +2,6 @@
 #include "utilities.h"
 #include "macros.h"
 #include "rcpp_sampling.h"
-#include "rcpp_update_dp.h"
 using namespace Rcpp;
 
 //' MCMC from the fully Bayesian GSI model for pi and the individual posterior probabilities
@@ -61,8 +60,9 @@ List gsi_mcmc_fb(List par_list, NumericVector Pi_init, NumericVector lambda,
   IntegerVector coll = as<IntegerVector>(par_list["coll"]);
   NumericVector DP = as<NumericVector>(par_list["DP"]);
   NumericVector sum_DP = as<NumericVector>(par_list["sum_DP"]);
+  NumericVector theta(DP.size());
   IntegerVector PLOID = as<IntegerVector>(par_list["ploidies"]);
-  double sum, gp, colmean, colsum;
+  double sum, y1, y2, gp, colmean, colsum;
   NumericMatrix logl(C, N);
   NumericMatrix sweep_logl(C, N);
 
@@ -97,14 +97,38 @@ List gsi_mcmc_fb(List par_list, NumericVector Pi_init, NumericVector lambda,
       pi_sums_sq += pi * pi;
     }
 
+    // simulate allele frequency values based on Dirichlet parameter vector
+    for(c = 0; c < C; c++) { // cycle over collections
+      for(l = 0; l < L; l++) { // cycle over loci
+      sum = 0.0;
+        for(a1 = 0; a1 < A[l]; a1++) { // cycle over alleles within the locus
+          tmp = rgammadouble(1L, DP_temp[D_dx(l, c, a1, L, C, A, CA)], 1.0);
+          theta[D_dx(l, c, a1, L, C, A, CA)] = tmp;
+          sum += tmp;
+        }
+        for(a1 = 0; a1 < A[l]; a1++) { // cycle again to normalize to 1
+          theta[D_dx(l, c, a1, L, C, A, CA)] /= sum;
+        }
+      }
+    }
+
     // genotype likelihood calculations
     for(i = 0; i < N; i++) { // cycle over individuals
       colsum = 0.0;
       for(c = 0; c < C; c++) { // cycle over collections
         sum = 0.0;
-        LOO = c == (coll[i] - 1);
         for(l = 0; l < L; l++) {  // cycle over loci
-          GPROB_FULLBAYES(i, l, c, gp);
+          int a1 = I[I_dx(l, i, 0, 2, N)] - 1;
+          int a2 = I[I_dx(l, i, 1, 2, N)] - 1;
+          if(PLOID[l] == 1) {
+            if(a1 < 0) {gp = 1.0;} else {gp = theta[D_dx(l, c, a1, L, C, A, CA)];}
+            }
+          else {
+            if(a1 < 0 || a2 < 0) {gp = 1.0;} else {
+              y1 = theta[D_dx(l, c, a1, L, C, A, CA)];
+              y2 = theta[D_dx(l, c, a2, L, C, A, CA)];
+              gp = y1 * y2 * (1 + (a1 == a2));
+            }}
           sum += log(gp);
         }
         logl(c, i) = sum;
