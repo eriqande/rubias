@@ -1,8 +1,11 @@
 #include <Rcpp.h>
+#include <RcppParallel.h>
 #include "utilities.h"
 #include "macros.h"
 #include "rcpp_sampling.h"
 using namespace Rcpp;
+using namespace RcppParallel;
+
 
 //' MCMC from the fully Bayesian GSI model for pi and the individual posterior probabilities
 //'
@@ -51,18 +54,17 @@ List gsi_mcmc_fb(List par_list, NumericVector Pi_init, NumericVector lambda,
   // Code from geno_logl, creating C X N loglikelihood matrix
   int r, i, c, l, a1, a2;
   IntegerVector I = as<IntegerVector>(par_list["I"]);
-  int N = as<int>(par_list["N"]);
-  int C = as<int>(par_list["C"]);
-  int L = as<int>(par_list["L"]);
-  int LOO;
-  IntegerVector A = as<IntegerVector>(par_list["A"]);
-  IntegerVector CA = as<IntegerVector>(par_list["CA"]);
-  IntegerVector coll = as<IntegerVector>(par_list["coll"]);
+  static int N = as<int>(par_list["N"]);
+  static int C = as<int>(par_list["C"]);
+  static int L = as<int>(par_list["L"]);
+  static IntegerVector A = as<IntegerVector>(par_list["A"]);
+  static IntegerVector CA = as<IntegerVector>(par_list["CA"]);
+  static IntegerVector coll = as<IntegerVector>(par_list["coll"]);
   NumericVector DP = as<NumericVector>(par_list["DP"]);
   NumericVector sum_DP = as<NumericVector>(par_list["sum_DP"]);
   NumericVector theta(DP.size());
-  IntegerVector PLOID = as<IntegerVector>(par_list["ploidies"]);
-  double sum, y1, y2, gp, colmean, colsum;
+  static IntegerVector PLOID = as<IntegerVector>(par_list["ploidies"]);
+  double sum;
   NumericMatrix logl(C, N);
   NumericMatrix sweep_logl(C, N);
 
@@ -83,6 +85,49 @@ List gsi_mcmc_fb(List par_list, NumericVector Pi_init, NumericVector lambda,
   double tmp;
   int num_samp = reps - burn_in;
   if(num_samp <= 1) stop("reps - burn_in <= 1");
+
+
+  // Creating Worker object for RcppParallel
+  struct GenoLike : public Worker
+  {
+    // source datasets
+    const RVector<double> DP_temp;
+    const RVector<double> sum_DP_temp;
+    const RVector<int> I;
+
+    // destination matrix
+    RMatrix<double> logl;
+    RMatrix<double> sweep_logl;
+
+
+    GenoLike(const NumericVector DP_temp, const NumericVector sum_DP_temp,
+             const IntegerVector I, NumericMatrix logl, NumericMatrix sweep_logl)
+      : DP_temp(DP_temp), sum_DP_temp(sum_DP_temp), I(I), logl(logl), sweep_logl(sweep_logl) {}
+
+    void operator()(std::size_t begin, std::size_t end) {
+      int c, l, LOO;
+      double sum, y1, y2, gp, colmean, colsum;
+      for (std::size_t i = begin; i < end; i++) {
+        colsum = 0.0;
+        for(c = 0; c < C; c++) { // cycle over collections
+          sum = 0.0;
+          LOO = c == (coll[i] - 1);
+          for(l = 0; l < L; l++) {  // cycle over loci
+            GPROB_FULLBAYES(i, l, c, gp);
+            sum += log(gp);
+          }
+          logl(c, i) = sum;    // Trim down to just a c-long vector?
+          colsum += sum; // sum across collections for column mean calculation
+        }
+
+        // take column means, then sweep out from each logl
+        colmean = colsum/C;
+        for(c = 0; c < C; c++) {
+          sweep_logl(c, i) = logl(c, i) - colmean;
+        }
+      }
+    }
+  };
 
   //begin MCMC cycling
   for(r = 0; r < reps; r++) {
@@ -113,7 +158,11 @@ List gsi_mcmc_fb(List par_list, NumericVector Pi_init, NumericVector lambda,
     }
 
     // genotype likelihood calculations
-    for(i = 0; i < N; i++) { // cycle over individuals
+
+    GenoLike genoLike(DP_temp, sum_DP_temp, I, logl, sweep_logl);
+    parallelFor(0, sweep_logl.ncol(), genoLike);
+
+    /*for(i = 0; i < N; i++) { // cycle over individuals
       colsum = 0.0;
       for(c = 0; c < C; c++) { // cycle over collections
         sum = 0.0;
@@ -131,7 +180,7 @@ List gsi_mcmc_fb(List par_list, NumericVector Pi_init, NumericVector lambda,
             }}
           sum += log(gp);
         }
-        logl(c, i) = sum;
+        logl(c, i) = sum;    // Trim down to just a c-long vector?
         colsum += sum; // sum across collections for column mean calculation
       }
 
@@ -140,7 +189,7 @@ List gsi_mcmc_fb(List par_list, NumericVector Pi_init, NumericVector lambda,
       for(c = 0; c < C; c++) {
         sweep_logl(c, i) = logl(c, i) - colmean;
       }
-    }
+    }*/
 
     // convert to likelihood and calculate the posterior in one go
     for(i = 0; i < N; i++) {

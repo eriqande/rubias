@@ -26,8 +26,11 @@ Imports:
     rlang,
     stringr,
     tibble,
-    tidyr
-LinkingTo: Rcpp
+    tidyr,
+    RcppParallel
+LinkingTo: Rcpp,
+    RcppParallel
+SystemRequirements: GNU make
 RoxygenNote: 6.1.1
 Suggests: knitr,
     rmarkdown
