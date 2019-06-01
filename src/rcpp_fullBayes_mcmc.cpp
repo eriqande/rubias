@@ -54,14 +54,14 @@ List gsi_mcmc_fb(List par_list, NumericVector Pi_init, NumericVector lambda,
   // Code from geno_logl, creating C X N loglikelihood matrix
   int r, i, c, l, a1, a2;
   double sum, tmp;
-  static int N = as<int>(par_list["N"]);
-  static int C = as<int>(par_list["C"]);
-  static int L = as<int>(par_list["L"]);
-  static IntegerVector A = as<IntegerVector>(par_list["A"]);
-  static IntegerVector CA = as<IntegerVector>(par_list["CA"]);
-  static IntegerVector coll = as<IntegerVector>(par_list["coll"]);
-  static IntegerVector PLOID = as<IntegerVector>(par_list["ploidies"]);
-  static IntegerVector I = as<IntegerVector>(par_list["I"]);
+  int N = as<int>(par_list["N"]);
+  int C = as<int>(par_list["C"]);
+  int L = as<int>(par_list["L"]);
+  IntegerVector A = as<IntegerVector>(par_list["A"]);
+  IntegerVector CA = as<IntegerVector>(par_list["CA"]);
+  IntegerVector coll = as<IntegerVector>(par_list["coll"]);
+  IntegerVector PLOID = as<IntegerVector>(par_list["ploidies"]);
+  IntegerVector I = as<IntegerVector>(par_list["I"]);
   NumericVector DP = as<NumericVector>(par_list["DP"]);
   NumericVector sum_DP = as<NumericVector>(par_list["sum_DP"]);
   NumericVector theta(DP.size());
@@ -89,14 +89,23 @@ List gsi_mcmc_fb(List par_list, NumericVector Pi_init, NumericVector lambda,
   struct GenoLike : public Worker
   {
     // source datasets
+    const int N;
+    const int C;
+    const int L;
+    const RVector<int> A;
+    const RVector<int> CA;
+    const RVector<int> coll;
+    const RVector<int> PLOID;
     const RVector<int> I;
     const RVector<double> theta;
 
     // destination matrix
     RMatrix<double> logl;
 
-    GenoLike(const IntegerVector I, const NumericVector theta, NumericMatrix logl)
-      : I(I), theta(theta), logl(logl) {}
+    GenoLike(const int N, const int C, const int L, const IntegerVector A, const IntegerVector CA,
+             const IntegerVector coll, const IntegerVector PLOID,
+             const IntegerVector I, const NumericVector theta, NumericMatrix logl)
+      : N(N), C(C), L(L), A(A), CA(CA), coll(coll), PLOID(PLOID), I(I), theta(theta), logl(logl) {}
 
     void operator()(std::size_t begin, std::size_t end) {
       int c, l;
@@ -162,7 +171,7 @@ List gsi_mcmc_fb(List par_list, NumericVector Pi_init, NumericVector lambda,
 
     // genotype likelihood calculations
 
-    GenoLike genoLike(I, theta, logl);
+    GenoLike genoLike(N, C, L, A, CA, coll, PLOID, I, theta, logl);
     parallelFor(0, logl.ncol(), genoLike);
 
 
