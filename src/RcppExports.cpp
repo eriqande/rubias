@@ -128,18 +128,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// update_dp
-NumericVector update_dp(List par_list, IntegerVector allocations);
-RcppExport SEXP _rubias_update_dp(SEXP par_listSEXP, SEXP allocationsSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< List >::type par_list(par_listSEXP);
-    Rcpp::traits::input_parameter< IntegerVector >::type allocations(allocationsSEXP);
-    rcpp_result_gen = Rcpp::wrap(update_dp(par_list, allocations));
-    return rcpp_result_gen;
-END_RCPP
-}
 // gsi_em_1
 List gsi_em_1(NumericMatrix SL, NumericVector Pi_init, int max_iterations, double tolerance, bool return_progression);
 RcppExport SEXP _rubias_gsi_em_1(SEXP SLSEXP, SEXP Pi_initSEXP, SEXP max_iterationsSEXP, SEXP toleranceSEXP, SEXP return_progressionSEXP) {
@@ -208,7 +196,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_rubias_gprob_sim_gc", (DL_FUNC) &_rubias_gprob_sim_gc, 2},
     {"_rubias_gprob_sim_ind", (DL_FUNC) &_rubias_gprob_sim_ind, 2},
     {"_rubias_gprob_sim_gc_missing", (DL_FUNC) &_rubias_gprob_sim_gc_missing, 3},
-    {"_rubias_update_dp", (DL_FUNC) &_rubias_update_dp, 2},
     {"_rubias_gsi_em_1", (DL_FUNC) &_rubias_gsi_em_1, 5},
     {"_rubias_gsi_mcmc_1", (DL_FUNC) &_rubias_gsi_mcmc_1, 7},
     {"_rubias_dirch_from_allocations", (DL_FUNC) &_rubias_dirch_from_allocations, 2},

@@ -280,28 +280,6 @@ gprob_sim_gc_missing <- function(par_list, sim_colls, sim_missing) {
     .Call('_rubias_gprob_sim_gc_missing', PACKAGE = 'rubias', par_list, sim_colls, sim_missing)
 }
 
-#' Update a matrix of Dirichlet parameters given a set of collection allocations
-#'
-#' Takes a list of key parameters from a genetic dataset, as well as a vector
-#' of collections to which individuals have been allocated, and updates the baseline
-#' allele frequencies as if the individuals were known to originate from said collections
-#'
-#' For each individual and locus, this identifies the alleles held by that individual,
-#' then adds 1 to these alleles' counts in the Dirichlet parameter vector
-#'
-#' @keywords internal
-#'
-#' @param par_list genetic data converted to the param_list format by \code{tcf2param_list}
-#' @param allocations an N-long vector of collection ID numbers from \code{samp_from_post}
-#'
-#' @return \code{geno_logL} returns a matrix with C rows and I columns. Each column
-#' represents an individual, and each row the log-likelihood of that individual's
-#' genotype, given the allele counts in that collection
-#' @export
-update_dp <- function(par_list, allocations) {
-    .Call('_rubias_update_dp', PACKAGE = 'rubias', par_list, allocations)
-}
-
 #' EM algorithm from the simplest GSI model for pi and the individual posterior probabilities
 #'
 #' Using a matrix of scaled likelihoods, this function does an EM algorithm to climb the
