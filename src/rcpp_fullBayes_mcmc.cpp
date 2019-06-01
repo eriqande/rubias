@@ -53,20 +53,19 @@ List gsi_mcmc_fb(List par_list, NumericVector Pi_init, NumericVector lambda,
 
   // Code from geno_logl, creating C X N loglikelihood matrix
   int r, i, c, l, a1, a2;
-  IntegerVector I = as<IntegerVector>(par_list["I"]);
+  double sum, tmp;
   static int N = as<int>(par_list["N"]);
   static int C = as<int>(par_list["C"]);
   static int L = as<int>(par_list["L"]);
   static IntegerVector A = as<IntegerVector>(par_list["A"]);
   static IntegerVector CA = as<IntegerVector>(par_list["CA"]);
   static IntegerVector coll = as<IntegerVector>(par_list["coll"]);
+  static IntegerVector PLOID = as<IntegerVector>(par_list["ploidies"]);
+  static IntegerVector I = as<IntegerVector>(par_list["I"]);
   NumericVector DP = as<NumericVector>(par_list["DP"]);
   NumericVector sum_DP = as<NumericVector>(par_list["sum_DP"]);
   NumericVector theta(DP.size());
-  static IntegerVector PLOID = as<IntegerVector>(par_list["ploidies"]);
-  double sum;
   NumericMatrix logl(C, N);
-  NumericMatrix sweep_logl(C, N);
 
   List pi_list;
   List PofZ_list;
@@ -82,7 +81,6 @@ List gsi_mcmc_fb(List par_list, NumericVector Pi_init, NumericVector lambda,
   NumericVector DP_temp = clone(DP);
   NumericVector sum_DP_temp = clone(sum_DP);
 
-  double tmp;
   int num_samp = reps - burn_in;
   if(num_samp <= 1) stop("reps - burn_in <= 1");
 
@@ -91,19 +89,14 @@ List gsi_mcmc_fb(List par_list, NumericVector Pi_init, NumericVector lambda,
   struct GenoLike : public Worker
   {
     // source datasets
-    const RVector<double> DP_temp;
-    const RVector<double> sum_DP_temp;
     const RVector<int> I;
     const RVector<double> theta;
 
     // destination matrix
     RMatrix<double> logl;
-    RMatrix<double> sweep_logl;
 
-
-    GenoLike(const NumericVector DP_temp, const NumericVector sum_DP_temp, const NumericVector theta,
-             const IntegerVector I, NumericMatrix logl, NumericMatrix sweep_logl)
-      : DP_temp(DP_temp), sum_DP_temp(sum_DP_temp), theta(theta), I(I), logl(logl), sweep_logl(sweep_logl) {}
+    GenoLike(const IntegerVector I, const NumericVector theta, NumericMatrix logl)
+      : I(I), theta(theta), logl(logl) {}
 
     void operator()(std::size_t begin, std::size_t end) {
       int c, l;
@@ -130,10 +123,10 @@ List gsi_mcmc_fb(List par_list, NumericVector Pi_init, NumericVector lambda,
           colsum += sum; // sum across collections for column mean calculation
         }
 
-        // take column means, then sweep out from each logl
+        // take column means, then sweep out from each logl to prevent underflow
         colmean = colsum/C;
         for(c = 0; c < C; c++) {
-          sweep_logl(c, i) = logl(c, i) - colmean;
+          logl(c, i) = logl(c, i) - colmean;
         }
       }
     }
@@ -169,43 +162,15 @@ List gsi_mcmc_fb(List par_list, NumericVector Pi_init, NumericVector lambda,
 
     // genotype likelihood calculations
 
-    GenoLike genoLike(DP_temp, sum_DP_temp, theta, I, logl, sweep_logl);
-    parallelFor(0, sweep_logl.ncol(), genoLike);
+    GenoLike genoLike(I, theta, logl);
+    parallelFor(0, logl.ncol(), genoLike);
 
-    /*for(i = 0; i < N; i++) { // cycle over individuals
-      colsum = 0.0;
-      for(c = 0; c < C; c++) { // cycle over collections
-        sum = 0.0;
-        for(l = 0; l < L; l++) {  // cycle over loci
-          int a1 = I[I_dx(l, i, 0, 2, N)] - 1;
-          int a2 = I[I_dx(l, i, 1, 2, N)] - 1;
-          if(PLOID[l] == 1) {
-            if(a1 < 0) {gp = 1.0;} else {gp = theta[D_dx(l, c, a1, L, C, A, CA)];}
-            }
-          else {
-            if(a1 < 0 || a2 < 0) {gp = 1.0;} else {
-              y1 = theta[D_dx(l, c, a1, L, C, A, CA)];
-              y2 = theta[D_dx(l, c, a2, L, C, A, CA)];
-              gp = y1 * y2 * (1 + (a1 == a2));
-            }}
-          sum += log(gp);
-        }
-        logl(c, i) = sum;    // Trim down to just a c-long vector?
-        colsum += sum; // sum across collections for column mean calculation
-      }
-
-      // take column means, then sweep out from each logl
-      colmean = colsum/C;
-      for(c = 0; c < C; c++) {
-        sweep_logl(c, i) = logl(c, i) - colmean;
-      }
-    }*/
 
     // convert to likelihood and calculate the posterior in one go
     for(i = 0; i < N; i++) {
       sum = 0.0;
       for(c = 0; c < C; c++) {
-        tmp = exp(sweep_logl(c,i)) * pi[c];
+        tmp = exp(logl(c,i)) * pi[c];
         posts(c, i) = tmp;
         sum += tmp;
       }
@@ -283,7 +248,5 @@ List gsi_mcmc_fb(List par_list, NumericVector Pi_init, NumericVector lambda,
   sd.names() = CharacterVector::create("pi", "PofZ");
 
   ret = List::create(mean, sd, trace);
-  ret.names() = CharacterVector::create("mean", "sd", "trace");
-
   return(ret);
 }
