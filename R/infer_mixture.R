@@ -409,6 +409,7 @@ infer_mixture <- function(reference,
                           burn_in = burn_in,
                           sample_int_Pi = sample_int_Pi,
                           sample_int_PofZ = sample_int_PofZ)
+        names(out) <- c("mean","sd","trace")
       })
       message("   time: ", sprintf("%.2f", time_mcmc2["elapsed"]), " seconds")
     }
