@@ -76,8 +76,18 @@ infer_mixture <- function(reference,
                           burn_in = 100,
                           pb_iter = 100,
                           prelim_reps = NULL,
+                          prelim_burn_in = NULL,
                           sample_int_Pi = 1,
                           pi_prior_sum = 1) {
+
+
+  # check that prelim_reps and prelim_burn_in are appropriately set
+  if(xor(is.null(prelim_reps), is.null(prelim_burn_in))) {
+    stop("Both prelim_reps and prelim_burn_in must be set.  Not just one of them.")
+  }
+  if(!is.null(prelim_reps) && !is.null(prelim_burn_in)) {
+    if(prelim_reps <= prelim_burn_in) stop("prelim_reps is total reps before discarding prelim_burn_in reps, and hence prelim_reps must be strictly larger than prelim_burn_in.")
+  }
 
   # check that reference and mixture are OK
   ploidies_ref <- check_refmix(reference, gen_start_col, "reference")
@@ -360,19 +370,19 @@ infer_mixture <- function(reference,
       }
 
       if(method == "BR") {
-        message("  performing ", burn_in, " burn-in and ", prelim_reps, " more sweeps of method \"MCMC\"", appendLF = FALSE)
+        message("    performing ", prelim_reps, " initial sweeps, ", prelim_burn_in, " of which are burn-in and will not be used in computing averages to initialize starting point for method \"BR\".", appendLF = FALSE)
 
         time_mcmc1 <- system.time({
           out <- gsi_mcmc_1(SL = SL,
                             Pi_init = pi_init_to_use,
                             lambda = lambda,
                             reps = prelim_reps,
-                            burn_in = burn_in,
+                            burn_in = prelim_burn_in,
                             sample_int_Pi = sample_int_Pi,
                             sample_int_PofZ = sample_int_PofZ)
         })
       } else {
-        message("  performing ", burn_in, " burn-in and ", reps, " more sweeps of method \"MCMC\"", appendLF = FALSE)
+        message("  performing ", reps, "total sweeps, ", burn_in, " of which are burn-in and will not be used in computing averages in method \"MCMC\"", appendLF = FALSE)
         time_mcmc1 <- system.time({
           out <- gsi_mcmc_1(SL = SL,
                             Pi_init = pi_init_to_use,
@@ -390,7 +400,7 @@ infer_mixture <- function(reference,
     ## If the method is BR, you are going to run the MCMC with baseline resampling
     if (method == "BR") {
 
-      message("  performing ", burn_in, " burn-in and ", reps, " more sweeps of method \"BR\"", appendLF = FALSE)
+      message("  performing ", reps, " sweeps of method \"BR\", ",  burn_in, " sweeps of which are burn-in.", appendLF = FALSE)
 
       # deal with initializing pi
       if(!is.null(prelim_reps)) {
