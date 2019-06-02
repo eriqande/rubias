@@ -7,7 +7,8 @@
 infer_mixture(reference, mixture, gen_start_col, method = "MCMC",
   alle_freq_prior = list(const_scaled = 1), pi_prior = NA,
   pi_init = NULL, reps = 2000, burn_in = 100, pb_iter = 100,
-  prelim_reps = NULL, sample_int_Pi = 1, pi_prior_sum = 1)
+  prelim_reps = NULL, prelim_burn_in = NULL, sample_int_Pi = 1,
+  pi_prior_sum = 1)
 }
 \arguments{
 \item{reference}{a dataframe of two-column genetic format data, proceeded by "repunit", "collection",
@@ -53,6 +54,10 @@ is 100.}
 \item{prelim_reps}{for method "BR", the number of reps of conditional MCMC (as in method "MCMC")
 to perform prior to MCMC with baseline resampling. The posterior mean of mixing proportions
 from this conditional MCMC is then used as \code{pi_init} in the baseline resampling MCMC.}
+
+\item{prelim_burn_in}{for method "BR", this sets the number of sweeps out of \code{prelim_reps}
+that should be discarded as burn in when preparing the posterior means of the mixing
+proportions to be sed as \code{pi_init} in the baseline resampling MCMC.}
 
 \item{sample_int_Pi}{how many iterations between storing the mixing proportions trace. Default is 1.
 Can't be 0. Can't be so large that fewer than 10 samples are taken from the burn in and the sweeps.}
