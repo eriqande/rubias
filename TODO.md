@@ -83,7 +83,7 @@ But, we need to
 
 - [x] Figure out what happens when the simulation breaks during the Monte Carlo cross validation.  __BEN__
 - [x] We need a Monte Carlo cross-validation function.  The inputs and outputs should be like `assess_reference`, so Eric still needs to clean that up a bit.  __Ben after  eric pulls together the loo version__
-- [ ] Prune the EM-stuff out of ``assess_reference`.   __ERIC__
+- [x] Prune the EM-stuff out of ``assess_reference`.   __ERIC__
 
 ## Paper
 
