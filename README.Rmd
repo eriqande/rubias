@@ -34,7 +34,8 @@ proportion estimates are desired for groups of populations (reporting units)
 and the number of populations within each reporting unit are uneven.
 
 In order to run C++ implementations of MCMC, rubias requires the package
-Rcpp, which in turn requires an Rtools installation (if you are on Windows)
+Rcpp (and now, also, RcppParallel for the baseline resampling option),
+which in turn requires an Rtools installation (if you are on Windows)
 or XCode (if you are on a Mac). After cloning into the
 repository with the above dependencies installed, build & reload the package 
 to view further documentation.
@@ -479,6 +480,28 @@ with_kc$mixing_proportions %>%
 
 The output from `infer_mixture()` in this case can be used just like it was before
 without known individuals in the baseline.
+
+## Fully Bayesian model (with updating of allele freqencies)
+
+The default model in `rubias` is a conditional model in which inference is done
+with the baseline allele counts fixed.  In a fully Bayesian version, fish from within
+the mixture that are allocated (on any particular step of the MCMC) to one of the reference
+samples have their alleles added to that reference sample, thus (one hopes) refining the
+estimate of allele frequencies in that sample.  This is more computationally intensive, and, is
+done using parallel computation, by default running one thread for every core on your machine.
+
+The basic way to invoke the fully Bayesian model is to use the `infer_mixture` function with
+the `method` option set to "BR". For example:
+```{r, eval=FALSE}
+full_model_results <- infer_mixture(
+  reference = chinook, 
+  mixture = chinook_mix, 
+  gen_start_col = 5, 
+  method = "BR"
+  )
+```
+More details about different options for working with the fully Bayesian model are
+available in the vignette about the fully Bayesian model.
 
 # Assessment of Genetic References
 
