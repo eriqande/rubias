@@ -47,7 +47,7 @@
 #' from this conditional MCMC is then used as \code{pi_init} in the baseline resampling MCMC.
 #' @param prelim_burn_in for method "BR", this sets the number of sweeps out of \code{prelim_reps}
 #' that should be discarded as burn in when preparing the posterior means of the mixing
-#' proportions to be sed as \code{pi_init} in the baseline resampling MCMC.
+#' proportions to be set as \code{pi_init} in the baseline resampling MCMC.
 #' @param sample_int_Pi how many iterations between storing the mixing proportions trace. Default is 1.
 #' Can't be 0. Can't be so large that fewer than 10 samples are taken from the burn in and the sweeps.
 #' @param pi_prior_sum For \code{pi_prior = NA}, the prior on the mixing proportions is set
@@ -385,7 +385,7 @@ infer_mixture <- function(reference,
                             sample_int_PofZ = sample_int_PofZ)
         })
       } else {
-        message("  performing ", reps, "total sweeps, ", burn_in, " of which are burn-in and will not be used in computing averages in method \"MCMC\"", appendLF = FALSE)
+        message("  performing ", reps, " total sweeps, ", burn_in, " of which are burn-in and will not be used in computing averages in method \"MCMC\"", appendLF = FALSE)
         time_mcmc1 <- system.time({
           out <- gsi_mcmc_1(SL = SL,
                             Pi_init = pi_init_to_use,
