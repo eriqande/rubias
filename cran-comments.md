@@ -19,11 +19,6 @@ Currently no known reverse dependencies
 
 ## User Notices
 
-<<<<<<< HEAD
-Added a number of features (see NEWS) and updated a few things for compatibility with
-dplyr 0.8.0.
-=======
 Added a "fully-Bayesian" option to the infer_mixture() function.
->>>>>>> baseline_resampling
 
 
