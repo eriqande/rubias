@@ -8,7 +8,7 @@ infer_mixture(reference, mixture, gen_start_col, method = "MCMC",
   alle_freq_prior = list(const_scaled = 1), pi_prior = NA,
   pi_init = NULL, reps = 2000, burn_in = 100, pb_iter = 100,
   prelim_reps = NULL, prelim_burn_in = NULL, sample_int_Pi = 1,
-  pi_prior_sum = 1)
+  sample_theta = TRUE, pi_prior_sum = 1)
 }
 \arguments{
 \item{reference}{a dataframe of two-column genetic format data, proceeded by "repunit", "collection",
@@ -61,6 +61,9 @@ proportions to be set as \code{pi_init} in the baseline resampling MCMC.}
 
 \item{sample_int_Pi}{how many iterations between storing the mixing proportions trace. Default is 1.
 Can't be 0. Can't be so large that fewer than 10 samples are taken from the burn in and the sweeps.}
+
+\item{sample_theta}{for method "BR", whether or not the function should store the posterior mean
+of the updated allele frequences. Default is TRUE}
 
 \item{pi_prior_sum}{For \code{pi_prior = NA}, the prior on the mixing proportions is set
 as a Dirichlet vector of length C, with each element being W/C, where W is the pi_prior_sum
