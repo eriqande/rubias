@@ -1,4 +1,14 @@
 
+# rubias 0.3.0
+
+## Changes
+
+* Added option to `infer_mixture()` for a fully-Bayesian version.
+In a fully Bayesian version, fish from within
+the mixture that are allocated (on any particular step of the MCMC) to one of the reference
+samples have their alleles added to that reference sample.
+
+
 # rubias 0.2.0
 
 ## Changes

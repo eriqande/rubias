@@ -85,7 +85,7 @@ the marker is haploid and it treats it appropriately.
 Note that if you have a diploid marker it typically does not make sense to mark one of the gene copies as
 missing and the other as non-missing.  Accordingly, if you have a diploid marker that records just one of the
 gene copies as missing in any individual, it is going to throw an error.  Likewise, if your haploid marker does
-not have every single individual with and NA at the second gene copy, then it's also going to throw an error.
+not have every single individual with an NA at the second gene copy, then it's also going to throw an error.
 
 
 ## An example reference data file
@@ -196,7 +196,7 @@ and the mixture data frame.  In the reference data frame, `known_collection` sho
 to be from any collection, it should be NA.  Note that the names of the collections in `known_collection` must match
 those found in the `collection` column in the reference data set.
 
-These modifications are not allowed for the parametric bootstrap (PB) method in `infer_mixture()`.
+These modifications are not allowed for the parametric bootstrap (PB) and baseline resampling (BR) methods in `infer_mixture()`.
 
 
 
@@ -385,7 +385,7 @@ from the fish's log-likelihood (by subtracting from it the expected log-likeliho
 dividing by the expected standard deviation).  `rubias`'s implementation of the z-score
 accounts for the pattern of missing data, but it does this without all the simulation that
 [`gsi_sim`](https://github.com/eriqande/gsi_sim) does.  This makes it much, much, faster---fast
-enough that we can compute it be default for every fish and every population.
+enough that we can compute it by default for every fish and every population.
 
 Here, we will look at the z-score computed for each fish to the population with the highest
 posterior.  (It is worth noting that you would **never** want to use the z-score to assign
@@ -470,7 +470,7 @@ with_kc <- infer_mixture(kc_ref, kc_mix, 6)
 ```
 
 And, when we look at the estimated proportions, we see that for rec1 they reflect
-the fact that 8 of those fish were singled out as known fish from Deer_Ck_sp:
+the fact that 8 of those fish were singled out as known fish from Deer_Cr_sp:
 ```{r}
 with_kc$mixing_proportions %>% 
   arrange(mixture_collection, desc(pi))
@@ -478,6 +478,29 @@ with_kc$mixing_proportions %>%
 
 The output from `infer_mixture()` in this case can be used just like it was before
 without known individuals in the baseline.
+
+
+## Fully Bayesian model (with updating of allele freqencies)
+
+The default model in `rubias` is a conditional model in which inference is done
+with the baseline allele counts fixed.  In a fully Bayesian version, fish from within
+the mixture that are allocated (on any particular step of the MCMC) to one of the reference
+samples have their alleles added to that reference sample, thus (one hopes) refining the
+estimate of allele frequencies in that sample.  This is more computationally intensive, and, is
+done using parallel computation, by default running one thread for every core on your machine.
+
+The basic way to invoke the fully Bayesian model is to use the `infer_mixture` function with
+the `method` option set to "BR". For example:
+```{r, eval=FALSE}
+full_model_results <- infer_mixture(
+  reference = chinook, 
+  mixture = chinook_mix, 
+  gen_start_col = 5, 
+  method = "BR"
+  )
+```
+More details about different options for working with the fully Bayesian model are
+available in the vignette about the fully Bayesian model.
 
 
 # Assessment of Genetic References
@@ -602,7 +625,7 @@ and then put them in a `cnts` column.
 
 However, in this case, we want to simulate mixtures that look similar to the one we 
 estimated, but have some variation.  For that we will want to supply Dirichlet random variable
-paramaters in a column named `dirichlet`.  If we make the values proportional to the mixing proportions,
+parameters in a column named `dirichlet`.  If we make the values proportional to the mixing proportions,
 then, on average that is what they will be.  If the values are large, then there will be little 
 variation between simulated mixtures.  And if the the values are small there will be lots of variation.
 We'll scale them so that they sum to 10---that should give some variation, but not too much.  Accordingly the

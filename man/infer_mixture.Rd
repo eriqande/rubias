@@ -7,7 +7,8 @@
 infer_mixture(reference, mixture, gen_start_col, method = "MCMC",
   alle_freq_prior = list(const_scaled = 1), pi_prior = NA,
   pi_init = NULL, reps = 2000, burn_in = 100, pb_iter = 100,
-  sample_int_Pi = 1, pi_prior_sum = 1)
+  prelim_reps = NULL, prelim_burn_in = NULL, sample_int_Pi = 1,
+  pi_prior_sum = 1)
 }
 \arguments{
 \item{reference}{a dataframe of two-column genetic format data, proceeded by "repunit", "collection",
@@ -19,7 +20,7 @@ Does not need "sample_type" column, and will be overwritten if provided}
 
 \item{gen_start_col}{the first column of genetic data in both data frames}
 
-\item{method}{a choice between "MCMC", "PB" methods for estimating mixture proportions}
+\item{method}{a choice between "MCMC", "PB", "BR" methods for estimating mixture proportions}
 
 \item{alle_freq_prior}{a one-element named list specifying the prior to be used when
 generating Dirichlet parameters for genotype likelihood calculations. Valid methods include
@@ -50,6 +51,14 @@ They will still be returned in the traces if desired.}
 \item{pb_iter}{how many bootstrapped data sets to do for bootstrap correction using method PB.  Default
 is 100.}
 
+\item{prelim_reps}{for method "BR", the number of reps of conditional MCMC (as in method "MCMC")
+to perform prior to MCMC with baseline resampling. The posterior mean of mixing proportions
+from this conditional MCMC is then used as \code{pi_init} in the baseline resampling MCMC.}
+
+\item{prelim_burn_in}{for method "BR", this sets the number of sweeps out of \code{prelim_reps}
+that should be discarded as burn in when preparing the posterior means of the mixing
+proportions to be set as \code{pi_init} in the baseline resampling MCMC.}
+
 \item{sample_int_Pi}{how many iterations between storing the mixing proportions trace. Default is 1.
 Can't be 0. Can't be so large that fewer than 10 samples are taken from the burn in and the sweeps.}
 
@@ -63,18 +72,21 @@ Tidy data frames in a list with the following components:
 mixing_proportions: the estimated mixing proportions of the different collections.
 indiv_posteriors: the posterior probs of fish being from each of the collections.
 mix_prop_traces: the traces of the mixing proportions.  Useful for computing credible intervals.
-bootstrapped_proportions: If using method "BH" this returns the bootstrap corrected
+bootstrapped_proportions: If using method "PB" this returns the bootstrap corrected
 reporting unit proportions.
 }
 \description{
 Takes a mixture and reference dataframe of two-column genetic data, and a
-desired method of estimation for the population mixture proportions (MCMC, PB)
+desired method of estimation for the population mixture proportions (MCMC, PB, BR).
 Returns the output of the chosen estimation method
 }
 \details{
 "MCMC" estimates mixing proportions and individual posterior
-probabilities of assignment through Markov-chain Monte Carlo,
-while "PB" does the same with a parametric bootstrapping correction
+probabilities of assignment through Markov-chain Monte Carlo
+conditional on the reference allele frequencies,
+while "PB" does the same with a parametric bootstrapping correction,
+and "BR" runs MCMC sweeps while simulating reference allele frequencies
+using the genotypes of mixture individuals and allocations from the previous sweep.
 All methods default to a uniform 1/(# collections or RUs) prior for the mixing proportions.
 }
 \examples{

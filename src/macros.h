@@ -42,7 +42,7 @@ else {if(a1 < 0 || a2 < 0) {result = 1.0;} else {                               
   double dsub = LOO * 2;                                                                              \
   result = (y1 - nsub) * (y2 - nsub + (a1 == a2)) * (1 + (a1 != a2)) / ((n - dsub) * (n + 1 - dsub)); \
 }}                                                                                                     \
-}
+}                                                              \
 
 
 #define GPROB_FROM_SIM(a1, a2, l, c, result) {                                                                  \
