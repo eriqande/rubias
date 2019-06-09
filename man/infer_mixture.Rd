@@ -57,7 +57,7 @@ from this conditional MCMC is then used as \code{pi_init} in the baseline resamp
 
 \item{prelim_burn_in}{for method "BR", this sets the number of sweeps out of \code{prelim_reps}
 that should be discarded as burn in when preparing the posterior means of the mixing
-proportions to be sed as \code{pi_init} in the baseline resampling MCMC.}
+proportions to be set as \code{pi_init} in the baseline resampling MCMC.}
 
 \item{sample_int_Pi}{how many iterations between storing the mixing proportions trace. Default is 1.
 Can't be 0. Can't be so large that fewer than 10 samples are taken from the burn in and the sweeps.}
