@@ -18,7 +18,6 @@ Depends:
     R (>= 3.3.0)
 Imports:
     dplyr,
-    ggplot2,
     gtools,
     magrittr,
     Rcpp (>= 0.12.5),
