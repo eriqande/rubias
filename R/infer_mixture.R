@@ -506,7 +506,7 @@ infer_mixture <- function(reference,
             locfreqs$allele <- rownames(ac[[x]])
             locfreqs <- dplyr::select(locfreqs, allele, dplyr::everything())
           }) %>%
-            bind_rows()
+            dplyr::bind_rows()
           theta_tidy$locus <- rep(names(ac), times = params$A)
           theta_tidy <- dplyr::select(theta_tidy, locus, dplyr::everything())
         } else {
