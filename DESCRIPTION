@@ -27,13 +27,12 @@ Imports:
     tibble,
     tidyr,
     RcppParallel
-Suggests:
-    ggplot2
 LinkingTo: Rcpp,
     RcppParallel
 SystemRequirements: GNU make
 RoxygenNote: 6.1.1
 Suggests: knitr,
-    rmarkdown
+    rmarkdown,
+    ggplot2
 VignetteBuilder: knitr
 Encoding: UTF-8
