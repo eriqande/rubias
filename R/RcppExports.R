@@ -36,9 +36,9 @@ rcpp_close_matchers <- function(par_list, non_miss_fract, match_fract) {
 #' no trace samples are taken.
 #'
 #' @return \code{gsi_mcmc_fb} returns a list of three. \code{$mean} lists the posterior
-#' means for collection proportions \code{pi} and for the individual posterior
-#' probabilities of assignment \code{PofZ}. \code{$sd} returns the posterior standard
-#' deviations for the same values.
+#' means for collection proportions \code{pi}, for the individual posterior
+#' probabilities of assignment \code{PofZ}, and for the allele frequencies \code{theta}.
+#' \code{$sd} returns the posterior standard deviations for the same values.
 #'
 #' If the corresponding \code{sample_int} variables are not 0, \code{$trace} contains
 #' samples taken from the Markov chain at intervals of \code{sample_int_}(variable) steps.

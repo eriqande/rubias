@@ -27,9 +27,9 @@ using namespace RcppParallel;
 //' no trace samples are taken.
 //'
 //' @return \code{gsi_mcmc_fb} returns a list of three. \code{$mean} lists the posterior
-//' means for collection proportions \code{pi} and for the individual posterior
-//' probabilities of assignment \code{PofZ}. \code{$sd} returns the posterior standard
-//' deviations for the same values.
+//' means for collection proportions \code{pi}, for the individual posterior
+//' probabilities of assignment \code{PofZ}, and for the allele frequencies \code{theta}.
+//' \code{$sd} returns the posterior standard deviations for the same values.
 //'
 //' If the corresponding \code{sample_int} variables are not 0, \code{$trace} contains
 //' samples taken from the Markov chain at intervals of \code{sample_int_}(variable) steps.
@@ -73,6 +73,8 @@ List gsi_mcmc_fb(List par_list, NumericVector Pi_init, NumericVector lambda,
   NumericVector pi = clone(Pi_init);
   NumericVector pi_sums(Pi_init.size());
   NumericVector pi_sums_sq(Pi_init.size());
+  NumericVector theta_sums(DP.size());
+  NumericVector theta_sums_sq(DP.size());
   NumericMatrix posts = clone(logl);
   NumericMatrix post_sums(logl.nrow(), logl.ncol());
   NumericMatrix post_sums_sq(logl.nrow(), logl.ncol());
@@ -169,6 +171,12 @@ List gsi_mcmc_fb(List par_list, NumericVector Pi_init, NumericVector lambda,
       }
     }
 
+    // store theta value
+    if(r >= burn_in) {
+      theta_sums += theta;
+      theta_sums_sq += theta * theta;
+    }
+
     // genotype likelihood calculations
 
     GenoLike genoLike(N, C, L, A, CA, coll, PLOID, I, theta, logl);
@@ -240,6 +248,7 @@ List gsi_mcmc_fb(List par_list, NumericVector Pi_init, NumericVector lambda,
   // put the means and standard devs and traces in the return variable
   post_sums = post_sums / num_samp;
   pi_sums  = pi_sums / num_samp;
+  theta_sums = theta_sums / num_samp;
 
   mean.push_back(pi_sums);
   sd.push_back(sqrt((pi_sums_sq - (num_samp * pi_sums * pi_sums)) / (num_samp - 1.0)));
@@ -253,8 +262,11 @@ List gsi_mcmc_fb(List par_list, NumericVector Pi_init, NumericVector lambda,
   }
   sd.push_back(sd_ret);
 
-  mean.names() = CharacterVector::create("pi", "PofZ");
-  sd.names() = CharacterVector::create("pi", "PofZ");
+  mean.push_back(theta_sums);
+  sd.push_back(sqrt((theta_sums_sq - (num_samp * theta_sums * theta_sums)) / (num_samp - 1.0)));
+
+  mean.names() = CharacterVector::create("pi", "PofZ", "theta");
+  sd.names() = CharacterVector::create("pi", "PofZ", "theta");
 
   ret = List::create(mean, sd, trace);
   return(ret);

@@ -50,6 +50,8 @@
 #' proportions to be set as \code{pi_init} in the baseline resampling MCMC.
 #' @param sample_int_Pi how many iterations between storing the mixing proportions trace. Default is 1.
 #' Can't be 0. Can't be so large that fewer than 10 samples are taken from the burn in and the sweeps.
+#' @param sample_theta for method "BR", whether or not the function should store the posterior mean
+#' of the updated allele frequences. Default is TRUE
 #' @param pi_prior_sum For \code{pi_prior = NA}, the prior on the mixing proportions is set
 #' as a Dirichlet vector of length C, with each element being W/C, where W is the pi_prior_sum
 #' and C is the number of collections. By default this is 1.  If it is made much smaller than 1, things
@@ -81,6 +83,7 @@ infer_mixture <- function(reference,
                           prelim_reps = NULL,
                           prelim_burn_in = NULL,
                           sample_int_Pi = 1,
+                          sample_theta = TRUE,
                           pi_prior_sum = 1) {
 
 
@@ -472,7 +475,7 @@ infer_mixture <- function(reference,
 
     message("  tidying output into a tibble.", appendLF = FALSE)
     time_tidy <- system.time({
-      ## Now for both PB and MCMC we tidy up the out variable ##
+      ## Now for all methods we tidy up the out variable ##
       # get a tidy pi data frame #
       pi_tidy <- tidy_mcmc_coll_rep_stuff(field = out$mean,
                                           p = "pi",
@@ -493,21 +496,47 @@ infer_mixture <- function(reference,
                                     car_tib = COLLS_AND_REPS_TIBBLE_CHAR,
                                     interval = sample_int_Pi)
 
-      ## and if it was PB, we have further tidying to do to add the bootstrap_rhos ##
+      ## if it was BR, we have further tidying to do to add the updated allele frequencies
+      if (method == "BR") {
+        if(sample_theta == TRUE) {
+          theta_tidy <- lapply(1:params$L, FUN = function(x) {
+            locfreqs <- tibble::as_tibble(matrix(out$mean$theta[(params$CA[x]*params$C+1):(params$CA[x+1]*params$C)],
+                                                 nrow = params$A[x], ncol = params$C))
+            names(locfreqs) <- colnames(ac[[x]])
+            locfreqs$allele <- rownames(ac[[x]])
+            locfreqs <- dplyr::select(locfreqs, allele, dplyr::everything())
+          }) %>%
+            bind_rows()
+          theta_tidy$locus <- rep(names(ac), times = params$A)
+          theta_tidy <- dplyr::select(theta_tidy, locus, dplyr::everything())
+        } else {
+          theta_tidy <- NULL
+        }
+      }
+
+      ## and if it was PB, we instead tidy up the bootstrap_rhos ##
       bootstrap_rhos <- NULL
       if (method == "PB") {
         bootstrap_rhos <- tibble::tibble(repunit = unique(COLLS_AND_REPS_TIBBLE_CHAR$repunit),
                                          bs_corrected_repunit_ppn = out$mean$bootstrap_rho)
       }
 
+
     })
     message("   time: ", sprintf("%.2f", time_tidy["elapsed"]), " seconds")
 
     # in the end, send back a list of these things
-    list(mixing_proportions = pi_tidy,
-         indiv_posteriors = pofz_tidy,
-         mix_prop_traces = traces_tidy,
-         bootstrapped_proportions = bootstrap_rhos)
+    if(method == "MCMC" || method == "PB") {
+      list(mixing_proportions = pi_tidy,
+           indiv_posteriors = pofz_tidy,
+           mix_prop_traces = traces_tidy,
+           bootstrapped_proportions = bootstrap_rhos)
+    } else {
+      list(mixing_proportions = pi_tidy,
+           indiv_posteriors = pofz_tidy,
+           mix_prop_traces = traces_tidy,
+           allele_frequencies = theta_tidy)
+    }
 
   })
 
@@ -527,11 +556,19 @@ infer_mixture <- function(reference,
 
     mix_prop_traces = lapply(big_output_list, function(x) x$mix_prop_traces) %>%
       dplyr::bind_rows(.id = "mixture_collection"),
-
-    bootstrapped_proportions = lapply(big_output_list, function(x) x$bootstrapped_proportions) %>%
-      dplyr::bind_rows(.id = "mixture_collection")
+    if(method == "MCMC" || method == "PB") {
+      bootstrapped_proportions = lapply(big_output_list, function(x) x$bootstrapped_proportions) %>%
+        dplyr::bind_rows(.id = "mixture_collection")
+    } else {
+      allele_frequencies = lapply(big_output_list, function(x) x$allele_frequencies) %>%
+        dplyr::bind_rows(.id = "mixture_collection")
+    }
   )
-
+  if(method == "MCMC" || method == "PB") {
+    names(ret)[4] <- "bootstrapped_proportions"
+  } else {
+    names(ret)[4] <- "allele_frequencies"
+  }
   ret
 }
 
