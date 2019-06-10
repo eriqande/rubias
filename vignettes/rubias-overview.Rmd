@@ -137,14 +137,14 @@ to be non-missing in both members of the pair.  The last parameter is the
 fraction of non-missing loci at which the pair has the same genotype.  We will set that to 0.94 first.
 Here we see it in action:
 ```{r}
-# combine chinook and chinook_mix into one big data frame,
+# combine small_chinook_ref and small_chinook_mix into one big data frame,
 # but drop the California_Coho collection because Coho all
 # have pretty much the same genotype at these loci!
-chinook_all <- bind_rows(chinook, chinook_mix) %>%
+small_chinook_all <- bind_rows(small_chinook_ref, small_chinook_mix) %>%
   filter(collection != "California_Coho")
 
-# then toss them into a function.  This takes half a minute or so...
-matchy_pairs <- close_matching_samples(D = chinook_all, 
+# then toss them into a function. 
+matchy_pairs <- close_matching_samples(D = small_chinook_all, 
                                        gen_start_col = 5, 
                                        min_frac_non_miss = 0.85, 
                                        min_frac_matching = 0.94
@@ -155,17 +155,17 @@ matchy_pairs %>%
   arrange(desc(num_non_miss), desc(num_match))
 ```
 
-Check that out.  This reveals 33 pairs in the data set that are likely duplicate
+Check that out.  This reveals 7 pairs in the data set that are likely duplicate
 samples.  
 
-If we reduce the min_frac_matching, we get more matches, but these are very unlikely
+If we reduce the `min_frac_matching`, we get more matches, but these are very unlikely
 to be the same individual, unless genotyping error rates are very high.  
 ```{r}
 # then toss them into a function.  This takes half a minute or so...
-matchy_pairs2 <- close_matching_samples(D = chinook_all, 
+matchy_pairs2 <- close_matching_samples(D = small_chinook_all, 
                                        gen_start_col = 5, 
                                        min_frac_non_miss = 0.85, 
-                                       min_frac_matching = 0.85
+                                       min_frac_matching = 0.80
                                        )
 
 # see that that looks like:
@@ -208,8 +208,8 @@ This is done with the `infer_mixture` function.  In the example data
 treated as a separate sample, getting its own mixing proportion estimate.  This is how
 it is run with the default options:
 ```{r infer_mixture1}
-mix_est <- infer_mixture(reference = chinook, 
-                         mixture = chinook_mix, 
+mix_est <- infer_mixture(reference = small_chinook_ref, 
+                         mixture = small_chinook_mix, 
                          gen_start_col = 5)
 ```
 
@@ -241,8 +241,8 @@ lapply(mix_est, head)
 In some cases there might be a reason to explicitly set the parameters of the
 Dirichlet prior on the mixing proportions of the collections.  For a contrived example,
 we could imagine that we wanted a Dirichlet prior with all parameters equal to 
-1/(# of collections), except for the parameters for all the Central Valley Fall Run
-populations, to which we would like to assign Dirichlet parameters of 2.  That can be 
+1/(# of collections), except for the parameters for all the Central Valley Spring Run
+populations, to which we would like to assign Dirichlet parameters of 4.  That can be 
 accomplished with the `pi_prior` argument to the `infer_mixture()` function,
 which will let you pass in a tibble in which 
 one column named "collection" gives the collection, and the other column, named "pi_param"
@@ -250,11 +250,11 @@ gives the desired parameter.
 
 Here we construct that kind of input:
 ```{r}
-prior_tibble <- chinook %>%
+prior_tibble <- small_chinook_ref %>%
   count(repunit, collection) %>%
-  filter(repunit == "CentralValleyfa") %>%
+  filter(repunit == "CentralValleysp") %>%
   select(collection) %>%
-  mutate(pi_param = 2)
+  mutate(pi_param = 4)
 
 # see what it looks like:
 prior_tibble
@@ -263,8 +263,8 @@ prior_tibble
 Then we can run that in infer_mixture():
 ```{r}
 set.seed(12)
-mix_est_with_prior <- infer_mixture(reference = chinook, 
-                         mixture = chinook_mix, 
+mix_est_with_prior <- infer_mixture(reference = small_chinook_ref, 
+                         mixture = small_chinook_mix, 
                          gen_start_col = 5,
                          pi_prior = prior_tibble)
 ```
@@ -280,7 +280,7 @@ comp_mix_ests <- list(
   filter(mixture_collection == "rec1") %>%
   select(prior_type, repunit, collection, pi) %>%
   spread(prior_type, pi) %>%
-  mutate(coll_group = ifelse(repunit == "CentralValleyfa", "CV_fall", "Not_CV_fall"))
+  mutate(coll_group = ifelse(repunit == "CentralValleysp", "CV_spring", "Not_CV_spring"))
 
 ggplot(comp_mix_ests, 
        aes(x = `pi (default prior)`, 
@@ -291,21 +291,23 @@ ggplot(comp_mix_ests,
   geom_abline(slope = 1, intercept = 0, linetype = "dashed")
 ```
 
-Yep, slightly different than before.  Let's look at the sums of everything:
+Yep,  different than before.  Let's look at results in text:
 ```{r}
-comp_mix_ests %>% 
-  group_by(coll_group) %>% 
-  summarise(with_explicit_prior = sum(`pi (cv fall gets 2s prior)`), 
-            with_default_prior = sum(`pi (default prior)`))
+comp_mix_ests
 ```
 
 We see that for the most part this change to the prior changed the distribution of
-fish into different collections within the Central Valley Fall reporting unit.  This 
-is not suprising---it is very hard to tell apart fish from those different collections.  However, it did not greatly change the estimated proportion of the whole reporting unit.  This also turns out to make sense if you consider the effect that the extra weight in the prior will have.  
+fish into the Central Valley Spring reporting unit (and out of the collections that
+are in reporting units that are somewhat genetically similar to Central Valley Spring).  This 
+is not suprising---it is very hard to tell apart fish from those different collections.  
 
 ## Aggregating collections into reporting units
 
-This is a simple operation in the [tidyverse](http://tidyverse.org/):
+This is a simple operation in the [tidyverse](http://tidyverse.org/).  (This example
+isn't super meaningful now, since each repunit has just a single collection, but that 
+is the way it goes since I had to cut down the examples in this vignette to
+adhere to CRAN package checking time allotments, but it still shows what you'd 
+do to aggregate collections into reporting units.)
 ```{r aggregating}
 # for mixing proportions
 rep_mix_ests <- mix_est$mixing_proportions %>%
@@ -409,8 +411,11 @@ ggplot(map_rows, aes(x = z_score)) +
   geom_density(data = normo, colour = "black")
 ```
 
-The normal density is in black and the distribution of our observed z_scores is in blue.  They fit reasonably
-well, suggesting that there is not too much weird stuff going on overall.  (That is good!)  
+The normal density is in black and the distribution of our observed z_scores is in blue.  They 
+fit reasonably
+well, suggesting that there is not too much weird stuff going on overall.  (That is good!) But 
+there is a bit of a thick tail on the left which may indicate individuals from colledction
+that are not perfectly represented in the baseline.
 
 The z_score statistic is most useful as a check for individuals. It
 is intended to be a quick way to identify aberrant individuals.  If you see a 
@@ -554,13 +559,14 @@ number of fish from each collection in the reference.
 Both of the functions take two required arguments: 1) a data frame of reference genetic data, and 2) the 
 number of the column in which the genetic data start.
 
-Here we use the `chinook` data to simulate 50 mixture samples of size 200 fish 
+Here we use the `chinook` data to simulate 5 mixture samples (note, you will typically
+want to do more than just 5, but we use low numbers here for illustration) of size 200 fish 
 using the default values (Dirichlet parameters of 1.5 for each reporting unit, and
 Dirichlet parameters of 1.5 for each collection within a reporting unit...)
 ```{r chin-sims, message=FALSE}
 chin_sims <- assess_reference_loo(reference = chinook, 
                      gen_start_col = 5, 
-                     reps = 50, 
+                     reps = 5, 
                      mixsize = 200)
 ```
 
@@ -609,9 +615,11 @@ values will be normalized to sum to one if they do not.  As such, they can be re
 3. the parameters of a Dirichlet distribution from which the proportion of individuals should be simulated.
 
 
-Let's say that we want to simulate data that roughly have proportions like what we saw in the
-Chinook `rec1` fishery.  We have those estimates in the variable `top6`:
+Let's say that we want to simulate data that in particular proportions.  The
+package has those saved in the data object `repunit_sim_ppns_for_vignette`.  
+We will assign that to the variable `top6`, and use it:
 ```{r top6list}
+top6 <- repunit_sim_ppns_for_vignette
 top6
 ```
 
@@ -645,7 +653,7 @@ specify anything extra for the _collections_, they get dirichlet parameters of 1
 ```{r chin-sim-top6, message=FALSE}
 chin_sims_repu_top6 <- assess_reference_loo(reference = chinook, 
                      gen_start_col = 5, 
-                     reps = 50, 
+                     reps = 5, 
                      mixsize = 200,
                      alpha_repunit = arep)
 ```
@@ -695,7 +703,7 @@ the simulated individuals.
 set.seed(100)
 chin_sims_with_indivs <- assess_reference_loo(reference = chinook, 
                      gen_start_col = 5, 
-                     reps = 50, 
+                     reps = 5, 
                      mixsize = 200,
                      alpha_repunit = arep,
                      return_indiv_posteriors = TRUE)
@@ -758,13 +766,15 @@ of the power for GSI.
 An alternative is to resample over gene copies---the 
 CV-GC method of Anderson et al. (2008).  
 
-Let us do that and see how the simulated PofZ results change. Here we do the simulations...
+Let us do that and see how the simulated PofZ results change. Here we do the simulations.
+Note, we do only 5 reps so that we don't take too long to generate this vignette.  But you
+should do more reps, typically.
 ```{r, message=FALSE}
 set.seed(101) # for reproducibility
 # do the simulation
 chin_sims_by_gc <- assess_reference_loo(reference = chinook, 
                      gen_start_col = 5, 
-                     reps = 50, 
+                     reps = 5, 
                      mixsize = 200,
                      alpha_repunit = arep,
                      return_indiv_posteriors = TRUE,
@@ -835,11 +845,11 @@ simulated proportion will be zero.  (Technically, it is not zero, but it is so s
 effectively 0...doing that made coding it up a lot easier...)
 
 Now, we can simulate with that and see what the resulting proportion
-of fish from each collection is:
+of fish from each collection is (once again with only 5 reps):
 ```{r, message=FALSE}
 chin_sims_sub_ppn <- assess_reference_loo(reference = chinook, 
                      gen_start_col = 5, 
-                     reps = 50, 
+                     reps = 5, 
                      mixsize = 200,
                      alpha_repunit = arep,
                      alpha_collection = arep_subs,
@@ -916,7 +926,7 @@ Then, do it:
 ```{r hundy-colls-do, message=FALSE}
 hundy_coll_results <- assess_reference_loo(reference = chinook, 
                      gen_start_col = 5, 
-                     reps = 6, 
+                     reps = 5, 
                      mixsize = 50,
                      alpha_collection = hundy_coll_list)
 hundy_coll_results
