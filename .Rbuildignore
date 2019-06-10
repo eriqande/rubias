@@ -16,3 +16,4 @@
 ^cran-comments\.md$
 ^hidden_vignettes$
 ^README-data-structures\.nb\.html$
+^CRAN-RELEASE$
