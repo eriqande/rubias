@@ -60,24 +60,16 @@ library(ggplot2)
 ```
 
 The basic way to invoke the fully Bayesian model is to use the `infer_mixture` function with
-the `method` option set to "BR" (for "baseline resampling"). For example:
-```{r test_cond, echo=FALSE}
-set.seed(15)
-suppressMessages(cond_model <- infer_mixture(
-  reference = small_chinook_ref, 
-  mixture = small_chinook_mix, 
-  gen_start_col = 5, 
-  method = "MCMC"
-  ))
-```
-
-
+the `method` option set to "BR" (for "baseline resampling"). **NOTE:** We use very few reps here
+to not take too much time when checking this package for CRAN.  You should use more...
 ```{r test_br}
 full_model <- infer_mixture(
   reference = small_chinook_ref, 
   mixture = small_chinook_mix, 
   gen_start_col = 5, 
-  method = "BR"
+  method = "BR",
+  reps = 100,
+  burn_in = 35
   )
 ```
 
@@ -137,9 +129,11 @@ prelim_full_model <- infer_mixture(
   reference = small_chinook_ref, 
   mixture = small_chinook_mix, 
   gen_start_col = 5, 
-  prelim_reps = 2000,
-  prelim_burn_in = 100,
-  method = "BR"
+  method = "BR",
+  reps = 100,
+  burn_in = 35,
+  prelim_reps = 100,
+  prelim_burn_in = 50,
   )
 
 prelimpi <-  prelim_full_model$mix_prop_traces %>%
@@ -170,17 +164,21 @@ threads should be manually set with `RcppParallel::setThreadOptions`. For exampl
 number of threads used to 1:
 ```{r setcores}
 RcppParallel::setThreadOptions(numThreads = 1)
+```
+Then you would run it just like before:
 
+```r
 full_model <- infer_mixture(
   reference = small_chinook_ref, 
   mixture = small_chinook_mix, 
   gen_start_col = 5, 
   method = "BR"
   )
-
 ```
 
-Note the slowdown even in this small dataset! To reset the threading options to utilize all 
+This will slow things down relatively to using multiple cores.
+
+To reset the threading options to utilize all 
 available cores, just use:
 
 ```{r resetcores}

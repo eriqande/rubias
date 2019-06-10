@@ -51,6 +51,8 @@ names(ploidies) <- locnames
 
 params <- tcf2param_list(alewife, 17, ploidies = ploidies)
 lambda <- rep(1/params$C, params$C)
-mcmc <- gsi_mcmc_fb(params, lambda, lambda, 200, 50, 5, 5)
+# use very short run and burn in so it doesn't take too long
+# when checking on CRAN
+mcmc <- gsi_mcmc_fb(params, lambda, lambda, 20, 5, 4, 4)
 }
 \keyword{internal}

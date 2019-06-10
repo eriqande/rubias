@@ -611,11 +611,9 @@ values will be normalized to sum to one if they do not.  As such, they can be re
 3. the parameters of a Dirichlet distribution from which the proportion of individuals should be simulated.
 
 
-Let's say that we want to simulate data that in particular proportions.  The
-package has those saved in the data object `repunit_sim_ppns_for_vignette`.  
-We will assign that to the variable `top6`, and use it:
+Let's say that we want to simulate data that roughly have proportions like what we saw in the
+Chinook `rec1` fishery.  We have those estimates in the variable `top6`:
 ```{r top6list}
-top6 <- repunit_sim_ppns_for_vignette
 top6
 ```
 

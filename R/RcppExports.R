@@ -54,7 +54,9 @@ rcpp_close_matchers <- function(par_list, non_miss_fract, match_fract) {
 #'
 #' params <- tcf2param_list(alewife, 17, ploidies = ploidies)
 #' lambda <- rep(1/params$C, params$C)
-#' mcmc <- gsi_mcmc_fb(params, lambda, lambda, 200, 50, 5, 5)
+#' # use very short run and burn in so it doesn't take too long
+#' # when checking on CRAN
+#' mcmc <- gsi_mcmc_fb(params, lambda, lambda, 20, 5, 4, 4)
 #' @export
 gsi_mcmc_fb <- function(par_list, Pi_init, lambda, reps, burn_in, sample_int_Pi, sample_int_PofZ) {
     .Call('_rubias_gsi_mcmc_fb', PACKAGE = 'rubias', par_list, Pi_init, lambda, reps, burn_in, sample_int_Pi, sample_int_PofZ)
