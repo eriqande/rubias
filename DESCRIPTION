@@ -27,6 +27,8 @@ Imports:
     tibble,
     tidyr,
     RcppParallel
+Suggests:
+    ggplot2
 LinkingTo: Rcpp,
     RcppParallel
 SystemRequirements: GNU make
