@@ -1,0 +1,57 @@
+---
+title: "Speed Testing mclapply"
+output: html_notebook
+---
+
+Ben is looking at parallelizing the genotype log likelihood calculation
+using Rcpp parallel, for a version of rubias that updates the allele frequencies
+and hence get bogged down recomputing those logls.  
+
+I looked over the Rcpp parallel documentation, and it looks like there is a lot
+of C++ templating to get right.  I was wondering if it would not be possible to
+actually do the parallelization within R using mclapply.  
+
+It actually won't be, because Ben is doing all the stuff internally to the mcmc 
+function in Rcpp.  But I am still curious The idea is to just
+chop a matrix up and then operate on each part. 
+
+I will do it simply with sqrt.
+
+
+Here is out matrix
+```{r}
+library(tidyverse)
+library(parallel)
+mat <- abs(rnorm(1e8)) %>%
+  matrix(nrow = 10000)
+```
+
+And here is our calculation
+```{r}
+system.time(ser <- log(sqrt(mat)))
+```
+
+So, it takes about 2 seconds.  Now, the question is, could we parallelize
+that in a way that was any more efficient?
+
+We will break it up into segments:
+
+```{r}
+starts <- seq(1, 10000, by = floor(10000/8))
+ends <- c(starts[-1] - 1, 10000) 
+se <- cbind(starts, ends)
+
+system.time({par <- mclapply(1:8, function(x) {
+  log(sqrt(mat[se[x,1]:se[x,2], ]))
+}) %>%
+  do.call(rbind, .)})
+```
+
+
+Check to see that we get the same thing:
+```{r}
+all.equal(ser, par)
+```
+
+All of which shows that there is a lot of overhead in breaking the problem up
+into parallelizable chunks.  OK.  
