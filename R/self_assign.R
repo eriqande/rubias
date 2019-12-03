@@ -86,10 +86,8 @@ self_assign <- function(reference, gen_start_col, preCompiledParams = NULL,
   ret <- result %>%
     dplyr::left_join(., repu_assoc, by = "inferred_collection") %>%
     dplyr::group_by(indiv) %>%
-    dplyr::mutate(normo_logl = log_likelihood - mean(log_likelihood)) %>%  # This is done to prevent underflow
-    dplyr::mutate(scaled_likelihood = exp(normo_logl) / sum(exp(normo_logl))) %>%
+    dplyr::mutate(scaled_likelihood = exp(log_likelihood) / sum(exp(log_likelihood))) %>%
     dplyr::ungroup() %>%
-    dplyr::select(-normo_logl) %>%
     dplyr::left_join(., count_missing_data(reference, gen_start_col), by = "indiv") %>%
     dplyr::select(indiv:inferred_collection, inferred_repunit, scaled_likelihood, dplyr::everything())
 
