@@ -326,9 +326,11 @@ infer_mixture <- function(reference,
       logl <- geno_logL(params)
 
       # we have to be a little careful about making the scaled likelihoods, because we can
-      # run into some underflow issues.  Here we deal with that by sweeping the mean logl out of each column
-      logl_col_means <- colMeans(logl)
-      logl_swept <- sweep(logl, 2, logl_col_means)
+      # run into some underflow issues.  Actually that isn't really true, I think.  What
+      # I was doing before was actually causing overflow.  Now I will just sweep the maxes
+      # out, rather than the means.
+      logl_col_maxes <- apply(logl, 2, max)
+      logl_swept <- sweep(logl, 2, logl_col_maxes)
 
       SL <- apply(exp(logl_swept), 2, function(x) x/sum(x))
 

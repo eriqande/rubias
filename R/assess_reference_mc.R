@@ -171,7 +171,10 @@ assess_reference_mc <- function(reference, gen_start_col, reps = 50, mixsize = 1
     mc_params$ploidies <- as.integer(unname(ploidies[mc_params$locus_names]))
 
     logl <- geno_logL(mc_params)
-    SL <- apply(exp(logl), 2, function(x) x/sum(x))
+    logl_col_maxes <- apply(logl, 2, max)
+    logl_swept <- sweep(logl, 2, logl_col_maxes)
+
+    SL <- apply(exp(logl_swept), 2, function(x) x/sum(x))
 
     # get the posterior mean estimates by MCMC
     pi_out <- gsi_mcmc_1(SL = SL,
