@@ -43,14 +43,16 @@ write_gsi_sim_reference <- function(ref, gen_start_col, baseout = "baseline.txt"
 
 
   # then write the full baseline
-  ref[is.na(ref)] <- 0
+  loccols <- names(ref)[gen_start_col:ncol(ref)]
+
+  ref[,loccols][is.na(ref[,loccols])] <- 0
   ref_list <- split(ref, ref$collection)
 
   cat(nrow(ref), (ncol(ref) - gen_start_col + 1) / 2, "\n", file = baseout)  # number of indivs and loci on top line
   locus_names <- names(ref)[seq(gen_start_col, ncol(ref), by = 2)]
   cat(locus_names, sep = "\n", file = baseout, append = TRUE)
 
-  loccols <- names(ref)[gen_start_col:ncol(ref)]
+
   dump <- lapply(names(ref_list), function(x) {
     cat("POP", x, "\n", file = baseout, append = TRUE)
     write.table(ref_list[[x]][, c("indiv", loccols)], sep = "  ", file = baseout, append = TRUE, quote = FALSE, row.names = FALSE, col.names = FALSE)
