@@ -33,7 +33,7 @@ write_gsi_sim_mixture <- function(mix, gen_start_col, mixprefix) {
   loccols <- names(mix)[gen_start_col:ncol(mix)]
 
   # then write the full mixture
-  mix[is.na(mix)] <- 0
+  mix[,loccols][is.na(mix[,loccols])] <- 0  # set missing alleles to 0 rather than NA
   mix_list <- split(mix, mix$collection)
 
   dump <- lapply(names(mix_list), function(x) {
