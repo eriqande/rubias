@@ -4,7 +4,9 @@
 \name{alewife}
 \alias{alewife}
 \title{Microsat data from alewife herring reference populations}
-\format{A tibble.}
+\format{
+A tibble.
+}
 \source{
 http://datadryad.org/resource/doi:10.5061/dryad.80f4f
 }

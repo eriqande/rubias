@@ -4,8 +4,14 @@
 \alias{tcf2param_list}
 \title{Generate MCMC parameter list from two-column genetic data & print summary}
 \usage{
-tcf2param_list(D, gen_start_col, samp_type = "both",
-  alle_freq_prior = list(const_scaled = 1), summ = T, ploidies)
+tcf2param_list(
+  D,
+  gen_start_col,
+  samp_type = "both",
+  alle_freq_prior = list(const_scaled = 1),
+  summ = T,
+  ploidies
+)
 }
 \arguments{
 \item{D}{A data frame containing two-column genetic data, preceded by metadata.

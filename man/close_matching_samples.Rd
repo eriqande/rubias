@@ -4,8 +4,12 @@
 \alias{close_matching_samples}
 \title{check for matching (or close to matching) genotypes in a data frame}
 \usage{
-close_matching_samples(D, gen_start_col, min_frac_non_miss = 0.7,
-  min_frac_matching = 0.9)
+close_matching_samples(
+  D,
+  gen_start_col,
+  min_frac_non_miss = 0.7,
+  min_frac_matching = 0.9
+)
 }
 \arguments{
 \item{D}{a two-column format genetic dataset, with "repunit", "collection", and "indiv"

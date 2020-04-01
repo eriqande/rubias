@@ -4,9 +4,14 @@
 \alias{assess_pb_bias_correction}
 \title{Test the effects of the parametric bootstrap bias correction on a reference dataset through cross-validation}
 \usage{
-assess_pb_bias_correction(reference, gen_start_col, seed = 5,
-  nreps = 50, mixsize = 100, alle_freq_prior = list(const_scaled =
-  1))
+assess_pb_bias_correction(
+  reference,
+  gen_start_col,
+  seed = 5,
+  nreps = 50,
+  mixsize = 100,
+  alle_freq_prior = list(const_scaled = 1)
+)
 }
 \arguments{
 \item{reference}{a two-column format genetic dataset, with a "repunit" column

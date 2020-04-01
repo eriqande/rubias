@@ -4,8 +4,15 @@
 \alias{gsi_mcmc_fb}
 \title{MCMC from the fully Bayesian GSI model for pi and the individual posterior probabilities}
 \usage{
-gsi_mcmc_fb(par_list, Pi_init, lambda, reps, burn_in, sample_int_Pi,
-  sample_int_PofZ)
+gsi_mcmc_fb(
+  par_list,
+  Pi_init,
+  lambda,
+  reps,
+  burn_in,
+  sample_int_Pi,
+  sample_int_PofZ
+)
 }
 \arguments{
 \item{par_list}{genetic data converted to the param_list format by \code{tcf2param_list}}

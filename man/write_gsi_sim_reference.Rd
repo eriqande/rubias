@@ -4,8 +4,12 @@
 \alias{write_gsi_sim_reference}
 \title{Write a reference data frame to gsi_sim format baseline and repunits file}
 \usage{
-write_gsi_sim_reference(ref, gen_start_col, baseout = "baseline.txt",
-  repout = "repunits.txt")
+write_gsi_sim_reference(
+  ref,
+  gen_start_col,
+  baseout = "baseline.txt",
+  repout = "repunits.txt"
+)
 }
 \arguments{
 \item{ref}{reference data frame}

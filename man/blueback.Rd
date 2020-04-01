@@ -4,7 +4,9 @@
 \name{blueback}
 \alias{blueback}
 \title{Microsat data from blueback herring reference populations}
-\format{A tibble.}
+\format{
+A tibble.
+}
 \source{
 http://datadryad.org/resource/doi:10.5061/dryad.80f4f
 }

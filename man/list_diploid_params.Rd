@@ -4,8 +4,15 @@
 \alias{list_diploid_params}
 \title{Collect essential data values before mixture proportion estimation}
 \usage{
-list_diploid_params(AC_list, I_list, PO, coll_N, RU_vec, RU_starts,
-  alle_freq_prior = list(const_scaled = 1))
+list_diploid_params(
+  AC_list,
+  I_list,
+  PO,
+  coll_N,
+  RU_vec,
+  RU_starts,
+  alle_freq_prior = list(const_scaled = 1)
+)
 }
 \arguments{
 \item{AC_list}{a list of allele count matrices; output from \code{a_freq_list}}

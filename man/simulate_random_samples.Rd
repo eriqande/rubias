@@ -4,9 +4,14 @@
 \alias{simulate_random_samples}
 \title{Generate a samples for a mixture.}
 \usage{
-simulate_random_samples(RU_starts, RU_vec, size = 100,
-  alpha_repunit = 1.5, alpha_collection = 1.5,
-  coll_sub_dirichlet_default = 1.5)
+simulate_random_samples(
+  RU_starts,
+  RU_vec,
+  size = 100,
+  alpha_repunit = 1.5,
+  alpha_collection = 1.5,
+  coll_sub_dirichlet_default = 1.5
+)
 }
 \arguments{
 \item{RU_starts}{a vector delineating the reporting units in \code{RU_vec};

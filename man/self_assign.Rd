@@ -4,8 +4,12 @@
 \alias{self_assign}
 \title{Do leave-one-out self-assignment of individuals in a reference baseline}
 \usage{
-self_assign(reference, gen_start_col, preCompiledParams = NULL,
-  alle_freq_prior = list(const_scaled = 1))
+self_assign(
+  reference,
+  gen_start_col,
+  preCompiledParams = NULL,
+  alle_freq_prior = list(const_scaled = 1)
+)
 }
 \arguments{
 \item{reference}{a two-column format genetic dataset, with "repunit", "collection", and "indiv"

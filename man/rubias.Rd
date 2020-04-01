@@ -3,7 +3,6 @@
 \docType{package}
 \name{rubias}
 \alias{rubias}
-\alias{rubias-package}
 \title{rubias: Bayesian inference from the conditional genetic stock identification model}
 \description{
 Read the "rubias-overview" vignette for information on data input formats
