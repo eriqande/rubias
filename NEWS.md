@@ -2,7 +2,7 @@
 
 ## Changes
 
-* Tiny tweak in one function to fix a breaking change coming in tibble 3.0.0.
+* Tiny tweak in one function to fix a breaking change in tibble 3.0.0.
 
 # rubias 0.3.0
 
