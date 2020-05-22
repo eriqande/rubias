@@ -1,0 +1,150 @@
+---
+title: "Speed Testing mclapply on assess_reference_loo()"
+output: html_notebook
+---
+
+Ben Sutherland wondered if assess_reference_loo() could be parallelized.  They
+have runs with 425 collections that take 35 hours to chug through 100% simulations on
+all of them.  They have a Linux box that might have 20 cores, so that could be done much
+more quickly.
+
+I want to see if just mclapply-ing over the reps will make faster.  We will use the 100% simulations
+example case from the README to test.
+
+Here is out matrix
+```{r}
+library(tidyverse)
+library(rubias)
+```
+
+```{r hundy-colls1}
+set.seed(10)
+hundy_colls <- sample(unique(chinook$collection), 4)
+hundy_colls
+```
+So, now make a list of those with 100% specifications in the tibbles:
+```{r hundy-colls2}
+hundy_coll_list <- lapply(hundy_colls, function(x) tibble(collection = x, ppn = 1.0)) %>%
+  setNames(paste("100%", hundy_colls, sep = "_"))
+```
+Then, do it.  Here it is with just 1 core
+```{r hundy-colls-do}
+system.time({hundy_coll_results <- assess_reference_loo(
+  reference = chinook,
+  gen_start_col = 5,
+  reps = 80,
+  mixsize = 50,
+  alpha_collection = hundy_coll_list,
+  mc.cores = 1
+)})
+
+hundy_coll_results
+```
+
+
+
+
+```{r hundy-colls-do-mc8}
+system.time({hundy_coll_results_mc8 <- assess_reference_loo(
+  reference = chinook,
+  gen_start_col = 5,
+  reps = 80,
+  mixsize = 50,
+  alpha_collection = hundy_coll_list,
+  mc.cores = 8
+)})
+
+hundy_coll_results_mc8
+```
+
+So, mclapplying over the reps just got me a 3x speed improvement when
+using 8 cores, so that is not great.
+
+## Parallelize over scenarios 
+
+Maybe we can do better by parallelizing over the scenarios.
+
+To do this easily I will have to replace the old-fashioned for loop with
+an mclapply.  Let's try that.
+
+
+```{r}
+system.time({hundy_coll_results_mc5_scenarios <- assess_reference_loo(
+  reference = chinook,
+  gen_start_col = 5,
+  reps = 80,
+  mixsize = 50,
+  alpha_collection = hundy_coll_list,
+  mc.cores = 5
+)})
+
+hundy_coll_results_mc5_scenarios
+```
+
+OK, that is a speedup of 3X when using 5 cores, but only with 4 scenarios.  So, that is probably better.
+
+
+Let's try a better test: with 16 scenarios:
+
+```{r}
+set.seed(10)
+hundy_colls <- sample(unique(chinook$collection), 16)
+hundy_colls
+```
+So, now make a list of those with 100% specifications in the tibbles:
+```{r}
+hundy_coll_list <- lapply(hundy_colls, function(x) tibble(collection = x, ppn = 1.0)) %>%
+  setNames(paste("100%", hundy_colls, sep = "_"))
+```
+
+Here it is with no parallelization (mc.cores = 1)  (Elapsed time =  122 seconds).
+```{r}
+system.time({one_core <- assess_reference_loo(
+  reference = chinook,
+  gen_start_col = 5,
+  reps = 80,
+  mixsize = 50,
+  alpha_collection = hundy_coll_list,
+  mc.cores = 1
+)})
+
+```
+
+Now we give it 8 cores. Elapsed time = 31 seconds.
+```{r}
+system.time({eight_cores <- assess_reference_loo(
+  reference = chinook,
+  gen_start_col = 5,
+  reps = 80,
+  mixsize = 50,
+  alpha_collection = hundy_coll_list,
+  mc.cores = 8
+)})
+
+```
+
+So, we are looking at about a 4 X speedup there.  
+
+Let's make sure we get the same thing:
+```{r}
+joined <- left_join(
+  one_core, 
+  eight_cores, 
+  by = c(
+    "repunit_scenario", 
+    "collection_scenario",
+    "iter",
+    "repunit",
+    "collection"
+    )
+  )
+
+ggplot(
+  joined,
+  aes(x = post_mean_pi.x, y = post_mean_pi.y)
+) +
+  geom_point() + 
+  geom_abline(intercept = 0, slope = 1)
+```
+
+And that might be pretty much what you expect.
