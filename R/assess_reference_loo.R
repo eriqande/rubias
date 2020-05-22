@@ -39,6 +39,7 @@
 #' generating Dirichlet parameters for genotype likelihood calculations. Valid methods include
 #' \code{"const"}, \code{"scaled_const"}, and \code{"empirical"}. See \code{?list_diploid_params}
 #' for method details.
+#' @param mc.cores The number of cores to use for mclapply-ing over the iterations.
 #' @examples
 #' # very small number of reps so it is quick enough for example
 #' ale_dev <- assess_reference_loo(alewife, 17, reps = 5)
@@ -47,7 +48,8 @@
 assess_reference_loo <- function(reference, gen_start_col, reps = 50, mixsize = 100, seed = 5,
                                  alpha_repunit = 1.5, alpha_collection = 1.5, resampling_unit = "individual",
                                  alle_freq_prior = list("const_scaled" = 1),
-                                 printSummary = FALSE, return_indiv_posteriors = FALSE) {
+                                 printSummary = FALSE, return_indiv_posteriors = FALSE,
+                                 mc.cores = 1) {
 
   if (!(resampling_unit %in% c("gene_copies", "individual"))) stop("Choice ", resampling_unit, " unknown for resampling unit.")
 
@@ -151,7 +153,7 @@ assess_reference_loo <- function(reference, gen_start_col, reps = 50, mixsize = 
       dplyr::ungroup()
 
     #### cycle over the reps data sets and get proportion estimates from each ####
-    estimates_raw <- lapply(1:reps, function(x) {
+    estimates_raw <- parallel::mclapply(1:reps, mc.cores = mc.cores, FUN = function(x) {
 
       message("Doing LOO simulations rep ", x, " of ", reps)
 
