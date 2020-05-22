@@ -107,10 +107,10 @@ assess_reference_loo <- function(reference, gen_start_col, reps = 50, mixsize = 
   rep_vec <- rep(reps, length.out = max_list_length)
 
   # now make a list for outputting all these results (though we will bind_rows them all together at the end...)
-  output_list <- list()
+  #output_list <- list()
 
   # and now a good ol' fashioned for loop:
-  for (scenario in 1:max_list_length) {
+  output_list <- parallel::mclapply(1:max_list_length, mc.cores = mc.cores, FUN = function(scenario)  {
     # get all the current values for this iteration:
     alpha_repunit <- alpha_repu_list[[scenario]]
     alpha_collection <- alpha_coll_list[[scenario]]
@@ -153,7 +153,7 @@ assess_reference_loo <- function(reference, gen_start_col, reps = 50, mixsize = 
       dplyr::ungroup()
 
     #### cycle over the reps data sets and get proportion estimates from each ####
-    estimates_raw <- parallel::mclapply(1:reps, mc.cores = mc.cores, FUN = function(x) {
+    estimates_raw <- lapply(1:reps, FUN = function(x) {
 
       message("Doing LOO simulations rep ", x, " of ", reps)
 
@@ -220,7 +220,7 @@ assess_reference_loo <- function(reference, gen_start_col, reps = 50, mixsize = 
     })
 
     #### Two formatting schemes for output, based on whether or not individual PofZs are desired ####
-    if(return_indiv_posteriors == TRUE){
+    if(return_indiv_posteriors == TRUE) {
 
       # Bind the mixing proportion estimates into one dataframe
       estimates <- lapply(estimates_raw, function(x) x$mixing_proportions)   %>%
@@ -261,10 +261,14 @@ assess_reference_loo <- function(reference, gen_start_col, reps = 50, mixsize = 
                       collection_scenario = coll_scenario)
 
       # output the processed dataframes as a list of two
-      output_list[[scenario]] <- list(mixing_proportions = mixing_proportions,
-                                      indiv_posteriors = indiv_posteriors)
+      return(
+        list(
+          mixing_proportions = mixing_proportions,
+          indiv_posteriors = indiv_posteriors
+          )
+      )
 
-    } else{
+    } else {
       # Bind the mixing proportion estimates into one dataframe
       estimates <- estimates_raw %>%
         dplyr::bind_rows(.id = "iter") %>%
@@ -280,17 +284,19 @@ assess_reference_loo <- function(reference, gen_start_col, reps = 50, mixsize = 
 
       # coerce repunit and collection back to character
       # and return that data frame after renaming the variables to their final form
-      output_list[[scenario]] <- ret %>%
-        dplyr::mutate(collection = as.character(collection),
-                      repunit = as.character(repunit)) %>%
-        dplyr::rename(true_pi = omega,
-                      post_mean_pi = post_mean,
-                      mle_pi = mle) %>%
-        dplyr::mutate(repunit_scenario = repu_scenario,
-                      collection_scenario = coll_scenario)
+      return(
+        ret %>%
+          dplyr::mutate(collection = as.character(collection),
+                        repunit = as.character(repunit)) %>%
+          dplyr::rename(true_pi = omega,
+                        post_mean_pi = post_mean,
+                        mle_pi = mle) %>%
+          dplyr::mutate(repunit_scenario = repu_scenario,
+                        collection_scenario = coll_scenario)
+      )
     }
 
-  }
+  })
 
   # in the end we bind those all together and put the scenario columns up front
 
