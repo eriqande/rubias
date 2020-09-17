@@ -15,7 +15,8 @@ assess_reference_loo(
   resampling_unit = "individual",
   alle_freq_prior = list(const_scaled = 1),
   printSummary = FALSE,
-  return_indiv_posteriors = FALSE
+  return_indiv_posteriors = FALSE,
+  mc.cores = 1
 )
 }
 \arguments{
@@ -60,6 +61,8 @@ for method details.}
 contains the true (simulated) and estimated mixture proportions for each scenario, iteration, and collection.
 The second, \code{indiv_posteriors}, contains the posterior probability of assignment to each collection
 for each scenario, iteration, and individual. If FALSE, output is a single data frame, \code{mixing_proportions}}
+
+\item{mc.cores}{The number of cores to use for mclapply-ing over the iterations.}
 }
 \description{
 From a reference dataset, this creates a genotype-logL matrix based on

@@ -1,6 +1,6 @@
 ---
 title: "Test mclapply assess_reference_loo() on cluster"
-output: html_notebook
+output: pdf_document
 ---
 
 This is just a quick thing to see how much faster it is with 20 cores.
@@ -61,7 +61,7 @@ hundy_coll_list <- lapply(hundy_colls, function(x) tibble(collection = x, ppn = 
   setNames(paste("100%", hundy_colls, sep = "_"))
 
 # ask for 20 cores (mc.cores = 20)
-system.time({one_core <- assess_reference_loo(
+system.time({twenty_core <- assess_reference_loo(
   reference = chinook,
   gen_start_col = 5,
   reps = 80,
