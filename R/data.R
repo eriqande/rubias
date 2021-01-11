@@ -44,7 +44,7 @@ NULL
 #' "Locus.1" and "Locus.2" for the first and second gene copies at that locus.  For example,
 #' "Ots_104569-86.1" and  "Ots_104569-86.2".  The locus columns are ints and missing data
 #' is denoted by NA.
-#' @source \url{http://datadryad.org/resource/doi:10.5061/dryad.574sv/1}
+#' @source \url{https://datadryad.org/stash/dataset/doi:10.5061/dryad.574sv}
 #' @docType data
 #' @name chinook
 NULL
