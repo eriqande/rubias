@@ -5,7 +5,7 @@
 #' Can be fed directly into rubias because it has at least the columns sample_type,
 #' collection, repunit and indiv.
 #' @format A tibble.
-#' @source http://datadryad.org/resource/doi:10.5061/dryad.80f4f
+#' @source \url{https://datadryad.org/stash/dataset/doi:10.5061/dryad.80f4f}
 #' @docType data
 #' @name alewife
 NULL
@@ -17,7 +17,7 @@ NULL
 #' Can be fed directly into rubias because it has at least the columns sample_type,
 #' collection, repunit and indiv.
 #' @format A tibble.
-#' @source http://datadryad.org/resource/doi:10.5061/dryad.80f4f
+#' @source \url{https://datadryad.org/stash/dataset/doi:10.5061/dryad.80f4f}
 #' @docType data
 #' @name blueback
 NULL
@@ -28,7 +28,7 @@ NULL
 #' SNP data from chinook reference populations
 #'
 #' Chinook salmon baseline data similar to that which can be
-#' downloaded from \url{http://datadryad.org/resource/doi:10.5061/dryad.574sv/1}.
+#' downloaded from \url{https://datadryad.org/stash/dataset/doi:10.5061/dryad.574sv}.
 #' This data set includes 91 SNPs and 7301 fish and is what the Dryad data became
 #' after we converted from TaqMan to SNPtype assays (being forced to toss some loci)
 #' and tossed out a bunch of lousy historical
@@ -54,7 +54,7 @@ NULL
 #'
 #' A small number of poulations from the
 #' Chinook salmon baseline data similar to that which can be
-#' downloaded from \url{http://datadryad.org/resource/doi:10.5061/dryad.574sv/1}.
+#' downloaded from \url{https://datadryad.org/stash/dataset/doi:10.5061/dryad.574sv}.
 #' This data set includes 91 SNPs and 909 fish.
 #' @format A tbl_df-ed (from dplyr) data frame with 909 rows and 185 variables. The first
 #' three columns are
@@ -67,7 +67,7 @@ NULL
 #' "Locus.1" and "Locus.2" for the first and second gene copies at that locus.  For example,
 #' "Ots_104569-86.1" and  "Ots_104569-86.2".  The locus columns are ints and missing data
 #' is denoted by NA.
-#' @source \url{http://datadryad.org/resource/doi:10.5061/dryad.574sv/1}
+#' @source \url{https://datadryad.org/stash/dataset/doi:10.5061/dryad.574sv}
 #' @docType data
 #' @name small_chinook_ref
 NULL
