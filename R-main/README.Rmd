@@ -45,6 +45,6 @@ independent of the original simulation scripts. `proportion_sig_test` includes t
 statistics and rough figures documenting the relationship between the residual for any 
 given simulation, $\tilde{\rho}_r - \rho^\mathrm{sim}_r$, and the structural metric 
 $\frac{N_C}{P} -  \rho^\mathrm{sim}_r$. `cjfas_graphs.R` contains the exact 
-scripts used to generate the [ggplot2](http://ggplot2.tidyverse.org/) figures found in 
+scripts used to generate the [ggplot2](https://ggplot2.tidyverse.org/) figures found in 
 __________. 
 

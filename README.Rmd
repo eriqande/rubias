@@ -307,7 +307,7 @@ is not suprising---it is very hard to tell apart fish from those different colle
 
 ## Aggregating collections into reporting units
 
-This is a simple operation in the [tidyverse](http://tidyverse.org/):
+This is a simple operation in the [tidyverse](https://tidyverse.org/):
 ```{r aggregating}
 
 # for mixing proportions

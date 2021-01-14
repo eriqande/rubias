@@ -1,6 +1,52 @@
 rubias — genetic stock identification (GSI) in the tidyverse
 ================
-09 June, 2019
+14 January, 2021
+
+  - [Input Data](#input-data)
+      - [How about haploid markers?](#how-about-haploid-markers)
+      - [An example reference data
+        file](#an-example-reference-data-file)
+      - [An example mixture data file](#an-example-mixture-data-file)
+      - [Preliminary good practice — check for duplicate
+        individuals](#preliminary-good-practice-check-for-duplicate-individuals)
+      - [How about known-origin individuals in the
+        mixture?](#how-about-known-origin-individuals-in-the-mixture)
+  - [Performing a Genetic Mixture
+    Analysis](#performing-a-genetic-mixture-analysis)
+      - [Setting the prior for the mixing
+        proportions](#setting-the-prior-for-the-mixing-proportions)
+      - [Aggregating collections into reporting
+        units](#aggregating-collections-into-reporting-units)
+      - [Creating posterior density curves from the
+        traces](#creating-posterior-density-curves-from-the-traces)
+      - [Computing Credible Intervals from the
+        Traces](#computing-credible-intervals-from-the-traces)
+      - [Assessing whether individuals are not from any of the reference
+        populations](#assessing-whether-individuals-are-not-from-any-of-the-reference-populations)
+      - [Individuals of known origin in the
+        mixture](#individuals-of-known-origin-in-the-mixture)
+      - [Fully Bayesian model (with updating of allele
+        freqencies)](#fully-bayesian-model-with-updating-of-allele-freqencies)
+  - [Assessment of Genetic
+    References](#assessment-of-genetic-references)
+      - [Self-assigning fish from the
+        reference](#self-assigning-fish-from-the-reference)
+      - [Simulated mixtures using a leave-one-out type of
+        approach](#simulated-mixtures-using-a-leave-one-out-type-of-approach)
+      - [Specifying mixture proportions in
+        `assess_reference_loo()`](#specifying-mixture-proportions-in-assess_reference_loo)
+      - [Retrieving the individual simulated fish
+        posteriors](#retrieving-the-individual-simulated-fish-posteriors)
+      - [Changing the resampling unit](#changing-the-resampling-unit)
+      - [“sub-specifying” collection proportions or dirichlet
+        parameters](#sub-specifying-collection-proportions-or-dirichlet-parameters)
+      - [Multiple simulation scenarios and “100%
+        Simulations”](#multiple-simulation-scenarios-and-100-simulations)
+          - [Do it again with 100%
+            collections](#do-it-again-with-100-collections)
+  - [Bootstrap-Corrected Reporting Unit
+    Proportions](#bootstrap-corrected-reporting-unit-proportions)
+  - [References](#references)
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
@@ -129,19 +175,14 @@ package:
 
 ``` r
 library(tidyverse)  # load up the tidyverse library, we will use it later...
-#> Registered S3 methods overwritten by 'ggplot2':
-#>   method         from 
-#>   [.quosures     rlang
-#>   c.quosures     rlang
-#>   print.quosures rlang
-#> ── Attaching packages ────────────────────────────────────────────────────────── tidyverse 1.2.1 ──
-#> ✔ ggplot2 3.1.1     ✔ purrr   0.3.2
-#> ✔ tibble  2.1.1     ✔ dplyr   0.8.1
-#> ✔ tidyr   0.8.3     ✔ stringr 1.4.0
-#> ✔ readr   1.3.1     ✔ forcats 0.4.0
-#> ── Conflicts ───────────────────────────────────────────────────────────── tidyverse_conflicts() ──
-#> ✖ dplyr::filter() masks stats::filter()
-#> ✖ dplyr::lag()    masks stats::lag()
+#> ── Attaching packages ─────────────────────────────────────── tidyverse 1.3.0 ──
+#> ✓ ggplot2 3.3.2     ✓ purrr   0.3.4
+#> ✓ tibble  3.0.4     ✓ dplyr   1.0.2
+#> ✓ tidyr   1.1.2     ✓ stringr 1.4.0
+#> ✓ readr   1.4.0     ✓ forcats 0.5.0
+#> ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+#> x dplyr::filter() masks stats::filter()
+#> x dplyr::lag()    masks stats::lag()
 library(rubias)
 head(chinook[, 1:8])
 #> # A tibble: 6 x 8
@@ -203,8 +244,6 @@ matchy_pairs <- close_matching_samples(D = chinook_all,
                                        min_frac_non_miss = 0.85, 
                                        min_frac_matching = 0.94
                                        )
-#> Warning: Factor `repunit` contains implicit NA, consider using
-#> `forcats::fct_explicit_na`
 #> Summary Statistics:
 #> 
 #> 9510 Individuals in Sample
@@ -251,8 +290,6 @@ matchy_pairs2 <- close_matching_samples(D = chinook_all,
                                        min_frac_non_miss = 0.85, 
                                        min_frac_matching = 0.85
                                        )
-#> Warning: Factor `repunit` contains implicit NA, consider using
-#> `forcats::fct_explicit_na`
 #> Summary Statistics:
 #> 
 #> 9510 Individuals in Sample
@@ -334,20 +371,20 @@ the default options:
 mix_est <- infer_mixture(reference = chinook, 
                          mixture = chinook_mix, 
                          gen_start_col = 5)
-#> Collating data; compiling reference allele frequencies, etc.   time: 1.57 seconds
-#> Computing reference locus specific means and variances for computing mixture z-scores   time: 0.29 seconds
+#> Collating data; compiling reference allele frequencies, etc.   time: 1.66 seconds
+#> Computing reference locus specific means and variances for computing mixture z-scores   time: 0.26 seconds
 #> Working on mixture collection: rec2 with 772 individuals
 #>   calculating log-likelihoods of the mixture individuals.   time: 0.13 seconds
-#>   performing 2000total sweeps, 100 of which are burn-in and will not be used in computing averages in method "MCMC"   time: 0.69 seconds
-#>   tidying output into a tibble.   time: 0.11 seconds
+#>   performing 2000 total sweeps, 100 of which are burn-in and will not be used in computing averages in method "MCMC"   time: 0.69 seconds
+#>   tidying output into a tibble.   time: 0.26 seconds
 #> Working on mixture collection: rec1 with 743 individuals
-#>   calculating log-likelihoods of the mixture individuals.   time: 0.12 seconds
-#>   performing 2000total sweeps, 100 of which are burn-in and will not be used in computing averages in method "MCMC"   time: 0.65 seconds
-#>   tidying output into a tibble.   time: 0.10 seconds
+#>   calculating log-likelihoods of the mixture individuals.   time: 0.11 seconds
+#>   performing 2000 total sweeps, 100 of which are burn-in and will not be used in computing averages in method "MCMC"   time: 0.61 seconds
+#>   tidying output into a tibble.   time: 0.26 seconds
 #> Working on mixture collection: rec3 with 741 individuals
-#>   calculating log-likelihoods of the mixture individuals.   time: 0.12 seconds
-#>   performing 2000total sweeps, 100 of which are burn-in and will not be used in computing averages in method "MCMC"   time: 0.66 seconds
-#>   tidying output into a tibble.   time: 0.09 seconds
+#>   calculating log-likelihoods of the mixture individuals.   time: 0.11 seconds
+#>   performing 2000 total sweeps, 100 of which are burn-in and will not be used in computing averages in method "MCMC"   time: 0.61 seconds
+#>   tidying output into a tibble.   time: 0.33 seconds
 ```
 
 The result comes back as a list of four tidy data frames:
@@ -381,23 +418,23 @@ lapply(mix_est, head)
 #> # A tibble: 6 x 4
 #>   mixture_collection repunit         collection                  pi
 #>   <chr>              <chr>           <chr>                    <dbl>
-#> 1 rec2               CentralValleyfa Feather_H_sp         0.0790   
-#> 2 rec2               CentralValleysp Butte_Cr_Sp          0.0000490
-#> 3 rec2               CentralValleysp Mill_Cr_sp           0.0000496
-#> 4 rec2               CentralValleysp Deer_Cr_sp           0.0000328
-#> 5 rec2               CentralValleysp UpperSacramento_R_sp 0.00103  
-#> 6 rec2               CentralValleyfa Feather_H_fa         0.152    
+#> 1 rec2               CentralValleyfa Feather_H_sp         0.0755   
+#> 2 rec2               CentralValleysp Butte_Cr_Sp          0.0000337
+#> 3 rec2               CentralValleysp Mill_Cr_sp           0.0000301
+#> 4 rec2               CentralValleysp Deer_Cr_sp           0.0000312
+#> 5 rec2               CentralValleysp UpperSacramento_R_sp 0.000393 
+#> 6 rec2               CentralValleyfa Feather_H_fa         0.158    
 #> 
 #> $indiv_posteriors
 #> # A tibble: 6 x 10
 #>   mixture_collect… indiv repunit collection     PofZ log_likelihood z_score
 #>   <chr>            <chr> <chr>   <chr>         <dbl>          <dbl>   <dbl>
-#> 1 rec2             T124… Centra… Feather_H… 1.80e-28          -137.   -13.1
-#> 2 rec2             T124… Centra… Feather_H… 9.93e-28          -136.   -12.6
-#> 3 rec2             T124… Centra… Butte_Cr_… 1.52e-24          -130.   -10.5
-#> 4 rec2             T124… Centra… Mill_Cr_fa 2.06e-29          -135.   -11.8
-#> 5 rec2             T124… Centra… Deer_Cr_fa 2.50e-28          -134.   -11.6
-#> 6 rec2             T124… Centra… Mokelumne… 1.93e-27          -134.   -12.3
+#> 1 rec2             T124… Centra… Feather_H… 1.75e-28          -137.   -13.1
+#> 2 rec2             T124… Centra… Feather_H… 1.05e-27          -136.   -12.6
+#> 3 rec2             T124… Centra… Butte_Cr_… 1.57e-24          -130.   -10.5
+#> 4 rec2             T124… Centra… Mill_Cr_fa 1.12e-30          -135.   -11.8
+#> 5 rec2             T124… Centra… Deer_Cr_fa 1.52e-28          -134.   -11.6
+#> 6 rec2             T124… Centra… Mokelumne… 1.90e-27          -134.   -12.3
 #> # … with 3 more variables: n_non_miss_loci <int>, n_miss_loci <int>,
 #> #   missing_loci <list>
 #> 
@@ -413,8 +450,7 @@ lapply(mix_est, head)
 #> 6 rec2                   0 CentralValleyfa Feather_H_fa         0.0145
 #> 
 #> $bootstrapped_proportions
-#> # A tibble: 0 x 1
-#> # … with 1 variable: mixture_collection <chr>
+#> # A tibble: 0 x 0
 ```
 
 ## Setting the prior for the mixing proportions
@@ -462,29 +498,23 @@ mix_est_with_prior <- infer_mixture(reference = chinook,
                          mixture = chinook_mix, 
                          gen_start_col = 5,
                          pi_prior = prior_tibble)
-#> Collating data; compiling reference allele frequencies, etc.   time: 1.34 seconds
-#> Computing reference locus specific means and variances for computing mixture z-scores   time: 0.27 seconds
+#> Collating data; compiling reference allele frequencies, etc.   time: 1.63 seconds
+#> Computing reference locus specific means and variances for computing mixture z-scores   time: 0.26 seconds
 #> Working on mixture collection: rec2 with 772 individuals
 #> Joining, by = "collection"
-#> Warning: Column `collection` joining factor and character vector, coercing
-#> into character vector
-#>   calculating log-likelihoods of the mixture individuals.   time: 0.13 seconds
-#>   performing 2000total sweeps, 100 of which are burn-in and will not be used in computing averages in method "MCMC"   time: 0.67 seconds
-#>   tidying output into a tibble.   time: 0.10 seconds
+#>   calculating log-likelihoods of the mixture individuals.   time: 0.12 seconds
+#>   performing 2000 total sweeps, 100 of which are burn-in and will not be used in computing averages in method "MCMC"   time: 0.62 seconds
+#>   tidying output into a tibble.   time: 0.26 seconds
 #> Working on mixture collection: rec1 with 743 individuals
 #> Joining, by = "collection"
-#> Warning: Column `collection` joining factor and character vector, coercing
-#> into character vector
-#>   calculating log-likelihoods of the mixture individuals.   time: 0.12 seconds
-#>   performing 2000total sweeps, 100 of which are burn-in and will not be used in computing averages in method "MCMC"   time: 0.66 seconds
-#>   tidying output into a tibble.   time: 0.09 seconds
+#>   calculating log-likelihoods of the mixture individuals.   time: 0.11 seconds
+#>   performing 2000 total sweeps, 100 of which are burn-in and will not be used in computing averages in method "MCMC"   time: 0.60 seconds
+#>   tidying output into a tibble.   time: 0.28 seconds
 #> Working on mixture collection: rec3 with 741 individuals
 #> Joining, by = "collection"
-#> Warning: Column `collection` joining factor and character vector, coercing
-#> into character vector
-#>   calculating log-likelihoods of the mixture individuals.   time: 0.12 seconds
-#>   performing 2000total sweeps, 100 of which are burn-in and will not be used in computing averages in method "MCMC"   time: 0.66 seconds
-#>   tidying output into a tibble.   time: 0.10 seconds
+#>   calculating log-likelihoods of the mixture individuals.   time: 0.11 seconds
+#>   performing 2000 total sweeps, 100 of which are burn-in and will not be used in computing averages in method "MCMC"   time: 0.61 seconds
+#>   tidying output into a tibble.   time: 0.28 seconds
 ```
 
 and now, for fun, we can compare the results for the mixing proportions
@@ -521,6 +551,7 @@ comp_mix_ests %>%
   group_by(coll_group) %>% 
   summarise(with_explicit_prior = sum(`pi (cv fall gets 2s prior)`), 
             with_default_prior = sum(`pi (default prior)`))
+#> `summarise()` ungrouping output (override with `.groups` argument)
 #> # A tibble: 2 x 3
 #>   coll_group  with_explicit_prior with_default_prior
 #>   <chr>                     <dbl>              <dbl>
@@ -538,7 +569,7 @@ extra weight in the prior will have.
 
 ## Aggregating collections into reporting units
 
-This is a simple operation in the [tidyverse](http://tidyverse.org/):
+This is a simple operation in the [tidyverse](https://tidyverse.org/):
 
 ``` r
 
@@ -546,11 +577,13 @@ This is a simple operation in the [tidyverse](http://tidyverse.org/):
 rep_mix_ests <- mix_est$mixing_proportions %>%
   group_by(mixture_collection, repunit) %>%
   summarise(repprop = sum(pi))  # adding mixing proportions over collections in the repunit
+#> `summarise()` regrouping output by 'mixture_collection' (override with `.groups` argument)
 
 # for individuals posteriors
 rep_indiv_ests <- mix_est$indiv_posteriors %>%
   group_by(mixture_collection, indiv, repunit) %>%
   summarise(rep_pofz = sum(PofZ))
+#> `summarise()` regrouping output by 'mixture_collection', 'indiv' (override with `.groups` argument)
 ```
 
 ## Creating posterior density curves from the traces
@@ -580,6 +613,7 @@ trace_subset <- mix_est$mix_prop_traces %>%
   group_by(sweep, repunit) %>%
   summarise(repprop = sum(pi)) %>% 
   filter(repunit %in% top6$repunit)
+#> `summarise()` regrouping output by 'sweep' (override with `.groups` argument)
 
 
 # now we can plot those:
@@ -600,17 +634,18 @@ top6_cis <- trace_subset %>%
   group_by(repunit) %>%
   summarise(loCI = quantile(repprop, probs = 0.025),
             hiCI = quantile(repprop, probs = 0.975))
+#> `summarise()` ungrouping output (override with `.groups` argument)
 
 top6_cis
 #> # A tibble: 6 x 3
 #>   repunit                     loCI   hiCI
 #>   <chr>                      <dbl>  <dbl>
-#> 1 CaliforniaCoast         1.88e- 2 0.0426
+#> 1 CaliforniaCoast         1.86e- 2 0.0426
 #> 2 CentralValleyfa         7.91e- 1 0.847 
-#> 3 KlamathR                4.89e- 2 0.0868
-#> 4 NCaliforniaSOregonCoast 3.12e- 3 0.0181
-#> 5 RogueR                  4.18e- 2 0.0802
-#> 6 UColumbiaRsufa          8.81e-23 0.0115
+#> 3 KlamathR                5.02e- 2 0.0857
+#> 4 NCaliforniaSOregonCoast 3.18e- 3 0.0184
+#> 5 RogueR                  4.40e- 2 0.0812
+#> 6 SnakeRfa                5.20e-81 0.0120
 ```
 
 ## Assessing whether individuals are not from any of the reference populations
@@ -684,20 +719,20 @@ collection
 
 ``` r
 no_kc <- infer_mixture(small_chinook_ref, small_chinook_mix, gen_start_col = 5)
-#> Collating data; compiling reference allele frequencies, etc.   time: 0.17 seconds
+#> Collating data; compiling reference allele frequencies, etc.   time: 0.21 seconds
 #> Computing reference locus specific means and variances for computing mixture z-scores   time: 0.02 seconds
 #> Working on mixture collection: rec3 with 29 individuals
-#>   calculating log-likelihoods of the mixture individuals.   time: 0.00 seconds
-#>   performing 2000total sweeps, 100 of which are burn-in and will not be used in computing averages in method "MCMC"   time: 0.03 seconds
-#>   tidying output into a tibble.   time: 0.01 seconds
+#>   calculating log-likelihoods of the mixture individuals.   time: 0.01 seconds
+#>   performing 2000 total sweeps, 100 of which are burn-in and will not be used in computing averages in method "MCMC"   time: 0.03 seconds
+#>   tidying output into a tibble.   time: 0.03 seconds
 #> Working on mixture collection: rec1 with 36 individuals
-#>   calculating log-likelihoods of the mixture individuals.   time: 0.00 seconds
-#>   performing 2000total sweeps, 100 of which are burn-in and will not be used in computing averages in method "MCMC"   time: 0.02 seconds
-#>   tidying output into a tibble.   time: 0.01 seconds
+#>   calculating log-likelihoods of the mixture individuals.   time: 0.01 seconds
+#>   performing 2000 total sweeps, 100 of which are burn-in and will not be used in computing averages in method "MCMC"   time: 0.03 seconds
+#>   tidying output into a tibble.   time: 0.03 seconds
 #> Working on mixture collection: rec2 with 35 individuals
-#>   calculating log-likelihoods of the mixture individuals.   time: 0.00 seconds
-#>   performing 2000total sweeps, 100 of which are burn-in and will not be used in computing averages in method "MCMC"   time: 0.03 seconds
-#>   tidying output into a tibble.   time: 0.01 seconds
+#>   calculating log-likelihoods of the mixture individuals.   time: 0.01 seconds
+#>   performing 2000 total sweeps, 100 of which are burn-in and will not be used in computing averages in method "MCMC"   time: 0.03 seconds
+#>   tidying output into a tibble.   time: 0.03 seconds
 ```
 
 And look at the results for the mixing proportions:
@@ -802,20 +837,20 @@ And now we can do the mixture analysis:
 ``` r
 # note that the genetic data start in column 6 now
 with_kc <- infer_mixture(kc_ref, kc_mix, 6)
-#> Collating data; compiling reference allele frequencies, etc.   time: 0.17 seconds
+#> Collating data; compiling reference allele frequencies, etc.   time: 0.20 seconds
 #> Computing reference locus specific means and variances for computing mixture z-scores   time: 0.02 seconds
 #> Working on mixture collection: rec3 with 29 individuals
-#>   calculating log-likelihoods of the mixture individuals.   time: 0.00 seconds
-#>   performing 2000total sweeps, 100 of which are burn-in and will not be used in computing averages in method "MCMC"   time: 0.02 seconds
-#>   tidying output into a tibble.   time: 0.01 seconds
+#>   calculating log-likelihoods of the mixture individuals.   time: 0.01 seconds
+#>   performing 2000 total sweeps, 100 of which are burn-in and will not be used in computing averages in method "MCMC"   time: 0.03 seconds
+#>   tidying output into a tibble.   time: 0.03 seconds
 #> Working on mixture collection: rec1 with 36 individuals
-#>   calculating log-likelihoods of the mixture individuals.   time: 0.00 seconds
-#>   performing 2000total sweeps, 100 of which are burn-in and will not be used in computing averages in method "MCMC"   time: 0.02 seconds
-#>   tidying output into a tibble.   time: 0.01 seconds
+#>   calculating log-likelihoods of the mixture individuals.   time: 0.01 seconds
+#>   performing 2000 total sweeps, 100 of which are burn-in and will not be used in computing averages in method "MCMC"   time: 0.03 seconds
+#>   tidying output into a tibble.   time: 0.03 seconds
 #> Working on mixture collection: rec2 with 35 individuals
-#>   calculating log-likelihoods of the mixture individuals.   time: 0.00 seconds
-#>   performing 2000total sweeps, 100 of which are burn-in and will not be used in computing averages in method "MCMC"   time: 0.02 seconds
-#>   tidying output into a tibble.   time: 0.01 seconds
+#>   calculating log-likelihoods of the mixture individuals.   time: 0.01 seconds
+#>   performing 2000 total sweeps, 100 of which are burn-in and will not be used in computing averages in method "MCMC"   time: 0.03 seconds
+#>   tidying output into a tibble.   time: 0.03 seconds
 ```
 
 And, when we look at the estimated proportions, we see that for rec1
@@ -907,21 +942,21 @@ Now, you can look at the self assignment results:
 ``` r
 head(sa_chinook, n = 100)
 #> # A tibble: 100 x 11
-#>    indiv collection repunit inferred_collec… inferred_repunit
-#>    <chr> <chr>      <chr>   <chr>            <chr>           
-#>  1 Feat… Feather_H… Centra… Feather_H_sp     CentralValleyfa 
-#>  2 Feat… Feather_H… Centra… Feather_H_fa     CentralValleyfa 
-#>  3 Feat… Feather_H… Centra… Butte_Cr_fa      CentralValleyfa 
-#>  4 Feat… Feather_H… Centra… Mill_Cr_sp       CentralValleysp 
-#>  5 Feat… Feather_H… Centra… Mill_Cr_fa       CentralValleyfa 
-#>  6 Feat… Feather_H… Centra… UpperSacramento… CentralValleysp 
-#>  7 Feat… Feather_H… Centra… Deer_Cr_sp       CentralValleysp 
-#>  8 Feat… Feather_H… Centra… Butte_Cr_Sp      CentralValleysp 
-#>  9 Feat… Feather_H… Centra… Battle_Cr        CentralValleyfa 
-#> 10 Feat… Feather_H… Centra… Mokelumne_R_fa   CentralValleyfa 
-#> # … with 90 more rows, and 6 more variables: scaled_likelihood <dbl>,
-#> #   log_likelihood <dbl>, z_score <dbl>, n_non_miss_loci <int>,
-#> #   n_miss_loci <int>, missing_loci <list>
+#>    indiv collection repunit inferred_collec… inferred_repunit scaled_likeliho…
+#>    <chr> <chr>      <chr>   <chr>            <chr>                       <dbl>
+#>  1 Feat… Feather_H… Centra… Feather_H_sp     CentralValleyfa           0.629  
+#>  2 Feat… Feather_H… Centra… Feather_H_fa     CentralValleyfa           0.161  
+#>  3 Feat… Feather_H… Centra… Butte_Cr_fa      CentralValleyfa           0.0612 
+#>  4 Feat… Feather_H… Centra… Mill_Cr_sp       CentralValleysp           0.0400 
+#>  5 Feat… Feather_H… Centra… Mill_Cr_fa       CentralValleyfa           0.0288 
+#>  6 Feat… Feather_H… Centra… UpperSacramento… CentralValleysp           0.0285 
+#>  7 Feat… Feather_H… Centra… Deer_Cr_sp       CentralValleysp           0.0236 
+#>  8 Feat… Feather_H… Centra… Butte_Cr_Sp      CentralValleysp           0.00852
+#>  9 Feat… Feather_H… Centra… Battle_Cr        CentralValleyfa           0.00779
+#> 10 Feat… Feather_H… Centra… Mokelumne_R_fa   CentralValleyfa           0.00592
+#> # … with 90 more rows, and 5 more variables: log_likelihood <dbl>,
+#> #   z_score <dbl>, n_non_miss_loci <int>, n_miss_loci <int>,
+#> #   missing_loci <list>
 ```
 
 The `log_likelihood` is the log probability of the fish’s genotype given
@@ -940,6 +975,7 @@ The output can be summarized by repunit as was done above:
 sa_to_repu <- sa_chinook %>%
   group_by(indiv, collection, repunit, inferred_repunit) %>%
   summarise(repu_scaled_like = sum(scaled_likelihood))
+#> `summarise()` regrouping output by 'indiv', 'collection', 'repunit' (override with `.groups` argument)
 
 head(sa_to_repu, n = 200)
 #> # A tibble: 200 x 5
@@ -1078,21 +1114,21 @@ top6
 #>   mixture_collection repunit                 repprop
 #>   <chr>              <chr>                     <dbl>
 #> 1 rec1               CentralValleyfa         0.820  
-#> 2 rec1               KlamathR                0.0669 
-#> 3 rec1               RogueR                  0.0602 
-#> 4 rec1               CaliforniaCoast         0.0296 
-#> 5 rec1               NCaliforniaSOregonCoast 0.00920
-#> 6 rec1               UColumbiaRsufa          0.00354
+#> 2 rec1               KlamathR                0.0671 
+#> 3 rec1               RogueR                  0.0615 
+#> 4 rec1               CaliforniaCoast         0.0298 
+#> 5 rec1               NCaliforniaSOregonCoast 0.00925
+#> 6 rec1               SnakeRfa                0.00365
 ```
 
 We could, if we put those `repprop` values into a `ppn` column, simulate
 mixtures with exactly those proportions. Or if we wanted to simulate
-exact numbers of fish in a sample of 345 fish, we could get those values
+exact numbers of fish in a sample of 347 fish, we could get those values
 like this:
 
 ``` r
 round(top6$repprop * 350)
-#> [1] 287  23  21  10   3   1
+#> [1] 287  24  22  10   3   1
 ```
 
 and then put them in a `cnts` column.
@@ -1121,11 +1157,11 @@ arep
 #>   repunit                 dirichlet
 #>   <chr>                       <dbl>
 #> 1 CentralValleyfa            8.20  
-#> 2 KlamathR                   0.669 
-#> 3 RogueR                     0.602 
-#> 4 CaliforniaCoast            0.296 
-#> 5 NCaliforniaSOregonCoast    0.0920
-#> 6 UColumbiaRsufa             0.0354
+#> 2 KlamathR                   0.671 
+#> 3 RogueR                     0.615 
+#> 4 CaliforniaCoast            0.298 
+#> 5 NCaliforniaSOregonCoast    0.0925
+#> 6 SnakeRfa                   0.0365
 ```
 
 Let’s do some simulations with those repunit parameters. By default, if
@@ -1152,7 +1188,7 @@ tmp <- chin_sims_repu_top6 %>%
             reprop_posterior_mean = sum(post_mean_pi),
             repu_n = sum(n)) %>%
   mutate(repu_n_prop = repu_n / sum(repu_n))
-  
+#> `summarise()` regrouping output by 'iter' (override with `.groups` argument)
 ```
 
 …and then plot it for the values we are interested in:
@@ -1168,8 +1204,7 @@ ggplot(tmp, aes(x = true_repprop, y = reprop_posterior_mean, colour = repunit)) 
 ![](tools/plot-top6-1.png)<!-- -->
 
 Or plot comparing to their “n” value, which is the actual number of fish
-from each reporting unit in the
-sample.
+from each reporting unit in the sample.
 
 ``` r
 ggplot(tmp, aes(x = repu_n_prop, y = reprop_posterior_mean, colour = repunit)) +
@@ -1199,6 +1234,11 @@ chin_sims_with_indivs <- assess_reference_loo(reference = chinook,
                      mixsize = 200,
                      alpha_repunit = arep,
                      return_indiv_posteriors = TRUE)
+#> Warning: `as.tibble()` is deprecated as of tibble 2.0.0.
+#> Please use `as_tibble()` instead.
+#> The signature and semantics have changed, see `?as_tibble`.
+#> This warning is displayed once every 8 hours.
+#> Call `lifecycle::last_warnings()` to see where this warning was generated.
 
 # print out the indiv posteriors
 chin_sims_with_indivs$indiv_posteriors
@@ -1215,9 +1255,8 @@ chin_sims_with_indivs$indiv_posteriors
 #>  8 1                1                    1     1 CentralValleyfa 
 #>  9 1                1                    1     1 CentralValleyfa 
 #> 10 1                1                    1     1 CentralValleyfa 
-#> # … with 689,990 more rows, and 4 more variables:
-#> #   simulated_collection <chr>, repunit <chr>, collection <chr>,
-#> #   PofZ <dbl>
+#> # … with 689,990 more rows, and 4 more variables: simulated_collection <chr>,
+#> #   repunit <chr>, collection <chr>, PofZ <dbl>
 ```
 
 In this tibble: - `indiv` is an integer specifier of the simulated
@@ -1241,6 +1280,7 @@ repu_pofzs <- chin_sims_with_indivs$indiv_posteriors %>%
   ungroup() %>%
   arrange(repunit, simulated_collection) %>%
   mutate(simulated_collection = factor(simulated_collection, levels = unique(simulated_collection)))
+#> `summarise()` regrouping output by 'iter', 'indiv', 'simulated_collection' (override with `.groups` argument)
 
 # also get the number of simulated individuals from each collection
 num_simmed <- chin_sims_with_indivs$indiv_posteriors %>%
@@ -1304,6 +1344,7 @@ repu_pofzs_gc <- chin_sims_by_gc$indiv_posteriors %>%
   ungroup() %>%
   arrange(repunit, simulated_collection) %>%
   mutate(simulated_collection = factor(simulated_collection, levels = unique(simulated_collection)))
+#> `summarise()` regrouping output by 'iter', 'indiv', 'simulated_collection' (override with `.groups` argument)
 
 # also get the number of simulated individuals from each collection
 num_simmed_gc <- chin_sims_by_gc$indiv_posteriors %>%
@@ -1347,11 +1388,11 @@ arep
 #>   repunit                 dirichlet
 #>   <chr>                       <dbl>
 #> 1 CentralValleyfa            8.20  
-#> 2 KlamathR                   0.669 
-#> 3 RogueR                     0.602 
-#> 4 CaliforniaCoast            0.296 
-#> 5 NCaliforniaSOregonCoast    0.0920
-#> 6 UColumbiaRsufa             0.0354
+#> 2 KlamathR                   0.671 
+#> 3 RogueR                     0.615 
+#> 4 CaliforniaCoast            0.298 
+#> 5 NCaliforniaSOregonCoast    0.0925
+#> 6 SnakeRfa                   0.0365
 ```
 
 But, now, let’s say that within reporting unit we want specific weights
@@ -1401,30 +1442,28 @@ chin_sims_sub_ppn %>%
          fract_within = mean_pi / repunit_mean_pi) %>%
   mutate(fract_within = ifelse(fract_within < 1e-06, 0, fract_within))  %>% # anything less than 1 in a million gets called 0
   filter(repunit_mean_pi > 0.0)
-#> # A tibble: 20 x 5
+#> `summarise()` regrouping output by 'repunit' (override with `.groups` argument)
+#> # A tibble: 17 x 5
 #> # Groups:   repunit [6]
-#>    repunit            collection       mean_pi repunit_mean_pi fract_within
-#>    <chr>              <chr>              <dbl>           <dbl>        <dbl>
-#>  1 CaliforniaCoast    Eel_R            3.58e-3          0.0358        0.1  
-#>  2 CaliforniaCoast    Russian_R        3.23e-2          0.0358        0.9  
-#>  3 CentralValleyfa    Battle_Cr        8.29e-8          0.829         0    
-#>  4 CentralValleyfa    Butte_Cr_fa      5.80e-1          0.829         0.700
-#>  5 CentralValleyfa    Deer_Cr_fa       8.29e-8          0.829         0    
-#>  6 CentralValleyfa    Feather_H_fa     8.29e-8          0.829         0    
-#>  7 CentralValleyfa    Feather_H_sp     2.49e-1          0.829         0.300
-#>  8 CentralValleyfa    Mill_Cr_fa       8.29e-8          0.829         0    
-#>  9 CentralValleyfa    Mokelumne_R_…    8.29e-8          0.829         0    
-#> 10 CentralValleyfa    Sacramento_R…    8.29e-8          0.829         0    
-#> 11 KlamathR           Klamath_IGH_…    3.04e-2          0.0608        0.5  
-#> 12 KlamathR           Trinity_H_sp     3.04e-2          0.0608        0.5  
-#> 13 NCaliforniaSOrego… Chetco_R         5.45e-3          0.0109        0.5  
-#> 14 NCaliforniaSOrego… Smith_R          5.45e-3          0.0109        0.5  
-#> 15 RogueR             Applegate_Cr     2.67e-2          0.0534        0.5  
-#> 16 RogueR             Cole_Rivers_H    2.67e-2          0.0534        0.5  
-#> 17 UColumbiaRsufa     Hanford_Reach    2.55e-3          0.0102        0.25 
-#> 18 UColumbiaRsufa     PriestRapids…    2.55e-3          0.0102        0.25 
-#> 19 UColumbiaRsufa     Wells_H          2.55e-3          0.0102        0.25 
-#> 20 UColumbiaRsufa     Wenatchee_R      2.55e-3          0.0102        0.25
+#>    repunit               collection         mean_pi repunit_mean_pi fract_within
+#>    <chr>                 <chr>                <dbl>           <dbl>        <dbl>
+#>  1 CaliforniaCoast       Eel_R              3.51e-3          0.0351        0.10 
+#>  2 CaliforniaCoast       Russian_R          3.16e-2          0.0351        0.900
+#>  3 CentralValleyfa       Battle_Cr          8.27e-8          0.827         0    
+#>  4 CentralValleyfa       Butte_Cr_fa        5.79e-1          0.827         0.700
+#>  5 CentralValleyfa       Deer_Cr_fa         8.27e-8          0.827         0    
+#>  6 CentralValleyfa       Feather_H_fa       8.27e-8          0.827         0    
+#>  7 CentralValleyfa       Feather_H_sp       2.48e-1          0.827         0.300
+#>  8 CentralValleyfa       Mill_Cr_fa         8.27e-8          0.827         0    
+#>  9 CentralValleyfa       Mokelumne_R_fa     8.27e-8          0.827         0    
+#> 10 CentralValleyfa       Sacramento_R_…     8.27e-8          0.827         0    
+#> 11 KlamathR              Klamath_IGH_fa     3.09e-2          0.0618        0.5  
+#> 12 KlamathR              Trinity_H_sp       3.09e-2          0.0618        0.5  
+#> 13 NCaliforniaSOregonCo… Chetco_R           5.49e-3          0.0110        0.5  
+#> 14 NCaliforniaSOregonCo… Smith_R            5.49e-3          0.0110        0.5  
+#> 15 RogueR                Applegate_Cr       2.74e-2          0.0548        0.5  
+#> 16 RogueR                Cole_Rivers_H      2.74e-2          0.0548        0.5  
+#> 17 SnakeRfa              Lyons_Ferry_H      1.03e-2          0.0103        1
 ```
 
 ## Multiple simulation scenarios and “100% Simulations”
@@ -1448,15 +1487,14 @@ each of the repunits in `arep`:
 arep$repunit
 #> [1] "CentralValleyfa"         "KlamathR"               
 #> [3] "RogueR"                  "CaliforniaCoast"        
-#> [5] "NCaliforniaSOregonCoast" "UColumbiaRsufa"
+#> [5] "NCaliforniaSOregonCoast" "SnakeRfa"
 ```
 
 We will let the collections within them just be drawn from a dirichlet
 distribution with parameter 10 (so, pretty close to equal proportions).
 
 So, to do this, we make a list of data frames with the proportions.
-We’ll give it some names
-too:
+We’ll give it some names too:
 
 ``` r
 six_hundy_scenarios <- lapply(arep$repunit, function(x) tibble(repunit = x, ppn = 1.0))
@@ -1502,7 +1540,7 @@ repu_hundy_results <- assess_reference_loo(reference = chinook,
 #> Doing LOO simulations rep 3 of 5
 #> Doing LOO simulations rep 4 of 5
 #> Doing LOO simulations rep 5 of 5
-#> ++++ Starting in on repunit_scenario All-UColumbiaRsufa with collection scenario 1 ++++
+#> ++++ Starting in on repunit_scenario All-SnakeRfa with collection scenario 1 ++++
 #> Doing LOO simulations rep 1 of 5
 #> Doing LOO simulations rep 2 of 5
 #> Doing LOO simulations rep 3 of 5
@@ -1540,8 +1578,7 @@ hundy_colls
 #> [1] "Deer_Cr_fa"  "Kitwanga_R"  "Morice_R"    "Wenatchee_R" "Russian_R"
 ```
 
-So, now make a list of those with 100% specifications in the
-tibbles:
+So, now make a list of those with 100% specifications in the tibbles:
 
 ``` r
 hundy_coll_list <- lapply(hundy_colls, function(x) tibble(collection = x, ppn = 1.0)) %>%
