@@ -99,11 +99,42 @@ infer_mixture <- function(reference,
   ploidies_ref <- check_refmix(reference, gen_start_col, "reference")
   ploidies_mix <- check_refmix(mixture, gen_start_col, "mixture")
 
-  ploidy_mismatch <- ploidies_ref != ploidies_mix
+  # now, deal with the problem if ploidy is indetemrinate in both ref and mix
+  both_indet <- ploidies_ref == 0 & ploidies_mix == 0
+  if(any(both_indet == TRUE)) {
+    stop(
+      "All allelic data missing for the following loci in both the reference and the mixture. Bailing out. ",
+      paste(names(both_indet)[both_indet], collapse = ", ")
+    )
+  }
+
+  # also give a warning if everything is missing from the reference.
+  ref_indet <- ploidies_ref == 0
+  if(any(ref_indet == TRUE)) {
+    message(
+      "All allelic data missing for the following loci in the reference. Ploidy inferred from mixture. ",
+      paste(names(ref_indet)[ref_indet], collapse = ", ")
+    )
+  }
+
+  # also give a warning if everything is missing from the mixture
+  mix_indet <- ploidies_mix == 0
+  if(any(mix_indet == TRUE)) {
+    message(
+      "All allelic data missing for the following loci in the mixture. Ploidy inferred from reference. ",
+      paste(names(mix_indet)[mix_indet], collapse = ", ")
+    )
+  }
+
+  # now get the ploidies as 1 or 2, even if it is a 0 in either ref or mix
+  ploidies <- ploidies_ref
+  ploidies[ploidies == 0] <- ploidies_mix[ploidies == 0]
+
+
+  ploidy_mismatch <- (ploidies_ref != ploidies_mix)[(ploidies_mix != 0) & (ploidies_ref != 0)]
   if (any(ploidy_mismatch)) {
     stop("Ploidy mismatch in reference and mixture data sets at loci ", which(ploidy_mismatch))
   }
-  ploidies <- ploidies_ref
 
   # check that known_collections are OK if they exist
   has_kc <- check_known_collections(reference, mixture)

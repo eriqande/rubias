@@ -4,7 +4,7 @@
 #' This is strictly internal
 #' @param tmp a data frame with 2 * L columns (two for each locus)
 #' @keywords internal
-get_ploidy_from_frame <- function(tmp) {
+get_ploidy_from_frame <- function(tmp, type) {
   ploidy <- rep(2, ncol(tmp) / 2)  # initialize to diploid
   locus_names <- names(tmp)[c(TRUE, FALSE)]
   gc_mism_error <- FALSE
@@ -18,8 +18,15 @@ get_ploidy_from_frame <- function(tmp) {
     gc_mism <- any(xor(is.na(a), is.na(b)))  # returns true if one gene copy is missing and not the other for any locus
 
     if (looksHaploid == TRUE) {
-      ploidy[j] <- 1
-      message("Scoring locus ", names(tmp)[i], " as haploid")
+      if(any(!is.na(a))) {
+        ploidy[j] <- 1
+        message("Scoring locus ", names(tmp)[i], " as haploid")
+      } else {
+        if(all(is.na(a))) {
+          ploidy[j] <- 0
+          message("All gene copies missing at locus ", names(tmp)[i], " in ", type, " data. Ploidy indeterminate in that data frame.")
+        }
+      }
     } else {
       if(gc_mism == TRUE) {
         message("Error in input.  At diploid loci, either both or neither gene copies must be missing. Offending locus = ", names(tmp)[i], "\n\tNote! This might indicate that the gen_start_col is incorrect.")
@@ -90,7 +97,7 @@ check_refmix <- function(D, gen_start_col, type = "reference") {
   # now cycle over the loci and check the pattern of missing data.  Any individual
   # with missing data must be missing at both gene copies, unless it is a haploid
   # marker, in which case it must be missing at the second gene copy in everyone.
-  ploidy <- get_ploidy_from_frame(tmp)
+  ploidy <- get_ploidy_from_frame(tmp, type = type)
 
 
   # check also to make sure that indiv IDs are unique

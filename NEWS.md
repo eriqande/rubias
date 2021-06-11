@@ -1,3 +1,12 @@
+# rubias 0.3.3
+
+## Changes
+
+* Overhauled haploid vs diploid ploidy determination to deal gracefully with mixture samples that
+are missing data at all individuals in a locus.
+
+
+
 # rubias 0.3.2
 
 ## Changes

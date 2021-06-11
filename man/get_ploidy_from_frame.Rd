@@ -4,7 +4,7 @@
 \alias{get_ploidy_from_frame}
 \title{infer the ploidy from the pattern of NAs in the columns of data}
 \usage{
-get_ploidy_from_frame(tmp)
+get_ploidy_from_frame(tmp, type)
 }
 \arguments{
 \item{tmp}{a data frame with 2 * L columns (two for each locus)}
