@@ -45,7 +45,7 @@ mixture_draw <- function(D, rhos = NULL, omegas = NULL, N, min_remaining = 0) {
     samp_sizes <- as.vector(round2(rhos * N, 0))
     names(samp_sizes) <- names(rhos)
     draw <- lapply(names(rhos), function(repunit) {
-      samp <- dplyr::sample_n(D[D$repunit == repunit, ], samp_sizes[repunit], replace = FALSE)
+      samp <- dplyr::slice_sample(D[D$repunit == repunit, ], n = samp_sizes[repunit])
     }) %>%
       do.call("rbind", .)
     new_D <- dplyr::setdiff(D, draw)
@@ -64,7 +64,7 @@ mixture_draw <- function(D, rhos = NULL, omegas = NULL, N, min_remaining = 0) {
     if(is.null(names(omegas))) names(omegas) <- levels(D$collection)
     samp_sizes <- round2(omegas * N, 0)
     draw <- lapply(levels(repidxs$collection), function(collection) {
-      samp <- dplyr::sample_n(D[D$collection == collection, ], samp_sizes[collection], replace = FALSE)
+      samp <- dplyr::slice_sample(D[D$collection == collection, ], n = samp_sizes[collection])
     }) %>%
       do.call("rbind", .)
     new_D <- dplyr::setdiff(D, draw)
