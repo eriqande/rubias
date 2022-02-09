@@ -5,6 +5,11 @@
 
 using namespace Rcpp;
 
+#ifdef RCPP_USE_GLOBAL_ROSTREAM
+Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
+Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
+#endif
+
 // rcpp_close_matchers
 List rcpp_close_matchers(List par_list, double non_miss_fract, double match_fract);
 RcppExport SEXP _rubias_rcpp_close_matchers(SEXP par_listSEXP, SEXP non_miss_fractSEXP, SEXP match_fractSEXP) {

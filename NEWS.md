@@ -4,6 +4,8 @@
 
 * Overhauled haploid vs diploid ploidy determination to deal gracefully with mixture samples that
 are missing data at all individuals in a locus.
+* Using `dplyr::slice_sample()` instead of `dplyr::sample_n()`, as the latter is superseded
+by the former, and the latter was also causing an error on the new sample.int() sanity check.
 
 
 

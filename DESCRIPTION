@@ -1,7 +1,7 @@
 Package: rubias
 Type: Package
 Title: Bayesian Inference from the Conditional Genetic Stock Identification Model
-Version: 0.3.2
+Version: 0.3.3
 Authors@R: c(
     person(given = c("Eric", "C."), family = "Anderson", email = "eric.anderson@noaa.gov", role = c("aut", "cre")),
     person(given = "Ben", family = "Moran", email = "moran.ben@husky.neu.edu", role = c("aut"))
@@ -30,7 +30,7 @@ Imports:
 LinkingTo: Rcpp,
     RcppParallel
 SystemRequirements: GNU make
-RoxygenNote: 7.1.1
+RoxygenNote: 7.1.2
 Suggests: knitr,
     rmarkdown,
     ggplot2
