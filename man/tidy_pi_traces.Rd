@@ -14,8 +14,6 @@ tidy_pi_traces(input, pname, car_tib, interval)
 \item{car_tib}{a tibble with repunit and collection in the order they appear in the output}
 
 \item{interval}{the thinning interval that was used}
-
-\item{mix_indiv_tib}{a tibble with the individuals in the order they appear in the output}
 }
 \description{
 This makes a tidy data frame of stuff, and also changes things back to

@@ -193,7 +193,6 @@ tidy_mcmc_pofz <- function(input, pname, car_tib, mix_indiv_tib) {
 #' @param input  The output to tidy (i.e.. out$trace$pi)
 #' @param pname the name that you want the parameter to be called in the output
 #' @param car_tib  a tibble with repunit and collection in the order they appear in the output
-#' @param mix_indiv_tib  a tibble with the individuals in the order they appear in the output
 #' @param interval the thinning interval that was used
 #' @keywords internal
 #' @export
