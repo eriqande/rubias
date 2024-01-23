@@ -1,29 +1,31 @@
 ## Test environments
 
-* local OS X install, R 4.1.1
+* local OS X install, R 4.3.1
 * win-builder (devel and release)
-* Linux on Rhub
+* Linux and Windows on RHub with `rhub::check_for_cran()`
 
 ## R CMD check results
 
 MAC, local: 0 errors | 0 warnings | 1 notes
   - 1 note =  GNU make is a SystemRequirements (this is for RcppParallel)
-LINUX, Ubuntu 20.04: 0 errors | 0 warnings | 3 notes
+LINUX, Ubuntu Linux 20.04.1 LTS, R-release, GCC: 0 errors | 0 warnings | 3 notes
   - 1 note = checking CRAN incoming feasibility, X-CRAN-Comment: Archived on
     2022-02-06 as check problems were not
     corrected in time.
   - 1 note = libs > 1 Mb due to Rcpp apparently
   - 1 note =  GNU extensions in Makefiles (this is for RcppParallel)
-LINUX, Fedora:  0 errors | 0 warnings | 3 notes
+LINUX, Fedora Linux, R-devel, clang, gfortran:  0 errors | 0 warnings | 3 notes
   - 1 note = checking CRAN incoming feasibility, X-CRAN-Comment: Archived on
     2022-02-06 as check problems were not
     corrected in time.
   - 1 note = libs > 1 Mb due to Rcpp apparently
   - 1 note =  GNU extensions in Makefiles (this is for RcppParallel)
-WINDOWS RELEASE, 4.1.2, win-builder: 0 errors | 0 warnings | 1 notes
+LINUX, Debian Linux, R-devel, GCC ASAN/UBSAN: 
+WINDOWS RHUB, Windows Server 2022, R-devel, 64 bit: 
+WINDOWS check_win RELEASE, 4.1.2, win-builder: 0 errors | 0 warnings | 1 notes
   - note = checking incoming cran feasibility: X-CRAN-Comment: Archived on 
     2022-02-06 as check problems were not corrected in time.
-WINDOWS DEVEL, (2022-02-07 r81667 ucrt), win-builder: 0 errors | 1 warnings | 0 notes
+WINDOWS check_win DEVEL, (2022-02-07 r81667 ucrt), win-builder: 0 errors | 1 warnings | 0 notes
   - 1 warning = checking incoming cran feasibility: X-CRAN-Comment: Archived on 
     2022-02-06 as check problems were not corrected in time.
 

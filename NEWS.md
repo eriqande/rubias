@@ -1,3 +1,11 @@
+# rubias 0.3.4
+
+Small patch update to deal with some CRAN check NOTES:
+
+* removed documented parameter that was not used in a function
+* removed explicit dependence on C++11 in the Makevars
+* updated CITATION format to bibentry
+
 # rubias 0.3.3
 
 ## Changes
