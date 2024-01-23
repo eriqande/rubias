@@ -35,6 +35,10 @@ WINDOWS check_win DEVEL, (2022-02-07 r81667 ucrt), win-builder: 0 errors | 0 war
 
 Currently no known reverse dependencies
 
+## revdepcheck results
+
+* 0 reverse dependencies
+
 ## User Notices
 
 * This release fixes a few NOTES that Kurt Hornik emailed me about.
