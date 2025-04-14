@@ -2,6 +2,7 @@
 % Please edit documentation in R/rubias.R
 \docType{package}
 \name{rubias}
+\alias{rubias-package}
 \alias{rubias}
 \title{rubias: Bayesian inference from the conditional genetic stock identification model}
 \description{
@@ -44,3 +45,12 @@ genetic data sets that are useful for playing around with rubias and testing it
 out.
 }
 
+\author{
+\strong{Maintainer}: Eric C. Anderson \email{eric.anderson@noaa.gov}
+
+Authors:
+\itemize{
+  \item Ben Moran \email{moran.ben@husky.neu.edu}
+}
+
+}
