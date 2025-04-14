@@ -6,8 +6,8 @@
 #' of the genotypes not missing in either fish, and which were matching at a fraction >= min_frac_matching
 #' of those non-missing pairs of genotypes.
 #' @param D a two-column format genetic dataset, with "repunit", "collection", and "indiv"
-#' columns, as well as a "sample_type" column that has entried either of "reference" or "mixture"
-#' or both.
+#' columns, as well as a "sample_type" column that has entries either of "reference" or of
+#' both "reference" and "mixture."
 #' @param min_frac_non_miss the fraction of loci that the pair must share non missing in order to be reported
 #' @param min_frac_matching the fraction of shared non-missing loci that must be shared between the indivdiuals
 #' to be reported as a matching pair.

@@ -13,8 +13,8 @@ close_matching_samples(
 }
 \arguments{
 \item{D}{a two-column format genetic dataset, with "repunit", "collection", and "indiv"
-columns, as well as a "sample_type" column that has entried either of "reference" or "mixture"
-or both.}
+columns, as well as a "sample_type" column that has entries either of "reference" or of
+both "reference" and "mixture."}
 
 \item{gen_start_col}{the first column of genetic data in \code{reference}}
 
