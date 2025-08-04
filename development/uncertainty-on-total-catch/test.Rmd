@@ -1,0 +1,118 @@
+---
+title: "Summarizing Uncertainty on Stock-Specific Total Catch"
+author: "Eric C. Anderson"
+date: "`r Sys.Date()`"
+output:
+  pdf_document: 
+    fig_caption: true
+---
+
+
+```{r setup, include=FALSE}
+library(tidyverse)
+```
+
+\newcommand{\bpi}{\boldsymbol{\pi}}
+\newcommand{\btheta}{\boldsymbol{\theta}}
+\newcommand{\balpha}{\boldsymbol{\alpha}}
+\newcommand{\bomega}{\boldsymbol{\omega}}
+\newcommand{\blambda}{\boldsymbol{\lambda}}
+\newcommand{\bgamma}{\boldsymbol{\gamma}}
+\newcommand{\brho}{\boldsymbol{\rho}}
+\newcommand{\bphi}{\boldsymbol{\phi}}
+\newcommand{\bpsi}{\boldsymbol{\psi}}
+\newcommand{\bmu}{\boldsymbol{\mu}}
+\newcommand{\bF}{\boldsymbol{F}}
+\newcommand{\bW}{\boldsymbol{W}}
+\newcommand{\bZ}{\boldsymbol{Z}}
+\newcommand{\bY}{\boldsymbol{Y}}
+\newcommand{\bV}{\boldsymbol{V}}
+\newcommand{\bQ}{\boldsymbol{Q}}
+\newcommand{\bR}{\boldsymbol{R}}
+
+\newcommand{\thh}{^\mathrm{th}}
+
+
+
+The R package 'rubias,' like most other mixed-stock analysis programs, implements
+a typical finite mixture model.  In such a model, a key parameter is the proportion
+of different components present in the population from which the samples are being
+taken.  We call this parameter $\bpi = (\pi_1,\ldots,\pi_K)$ which includes a proportion
+for each of the $K$ components in the mixture.  In the mixed-stock fisheries context,
+$\bpi$ holds the stock-specific proportions that are present _in the ocean_ at the
+time and location of sampling.  
+
+While $\bpi$ is clearly a necessary variable in a mixture model---it is essential
+to model the population proportions---it might not always be the ultimate target
+of interest.  A germane example of this occurs when directly managing fisheries using
+genetic stock identification (GSI).  In these cases, managers may be particularly
+interested in the numbers of fish from different populations or reporting units
+that occur in the total catch from a particular fishery (or across multiple fisheries).
+
+Because fisheries might be managed so as to limit the impacts on a particular weak stock
+to below a certain threshold, it is important to be able to evaluate the
+uncertainty in these estimates of stock-specific total catch.  This
+vignette describes how to do that with the newly updated version of 'rubias' that
+provides such functionality.  Before describing the details, however, we explain
+why propagating the uncertainty found in the Monte
+Carlo sample of $\bpi$ does not accurately reflect uncertainty in stock-specific
+total catch, and we describe the newly implemented approach in 'rubias' for evaluating
+uncertainty in stock-specific total catch in a rigorous way within the
+Bayesian framework used by 'rubias.'
+
+## Uncertainty in $\bpi$ is not uncertainty in stock-specific total catch
+
+Although the uncertainty in $\bpi$ can affect the amount of uncertainty
+in stock-specific total catch, the two cannot be directly equated because uncertainty
+in $\bpi$ always reflects the variability due to having drawn a random sample. By
+contrast, the sample itself is a fixed part of the total catch. The implications of
+this are easiest to understand when the entire catch has been sampled for GSI.  For,
+example, imagine that the total catch was 300 fish, and fish from stock $x$ can be identified
+with no error using genetics.  If 20 fish originated from stock
+$x$, then the total catch from stock $x$ is 20, with no error.  However, the 90%
+credible interval on the proportion of fish from stock $x$ in the ocean would
+be, from the binomial distribution, (0.043, 0.09).
+If this variation were applied to the total catch, it would erroneously suggest
+that between 13 and 27 fish from stock $x$ were in the catch, when it is clear that
+exactly 20 fish from $x$ were in the catch!
+
+```{r, include=FALSE}
+CI <-  qbinom(
+  p = c(0.05, 0.95),
+  size = 300,
+  prob = 20/300
+) / 300
+```
+
+The above example is simple and contrived.  It serves well to illustrate that
+the uncertainty around $\bpi$ cannot be directly used to quantify the uncertainty
+in stock-specific total catch.  However, unlike our simple example, stock-specific
+total catch will typically be affected by other sources of variation such as
+uncertainty in genetic assignment, subsampling of the total catch for genetic
+analysis, as well as simply uncertainty in the estimates of the actual total catch.
+Fortunately, all of these sources of uncertainty can now be accounted for in a rigorous
+way within the Markov Chain Monte Carlo (MCMC) sampling framework of 'rubias,' providing users with an MCMC
+sample of the stock-specific total catch for each stock.  This MCMC sample can then
+be summarized however desired, or it can be fed into further analyses. The next
+section describes the statistical background on how 'rubias' provides an MCMC
+sample of the stock-specific total catch.  
+
+
+## MCMC for stock-specific total catch
+
+Figure 1 shows the acyclic directed graph (DAG) used in the conditional
+GSI model implemented in 'rubias.'
+
+```{r pressure-plot, echo=FALSE, fig.cap="The base R pressure plot. Acyclic directed graph showing the standard conditional GSI model. Diamond nodes are deterministic values used for priors. Circular nodes are variables. The shaded, circular nodes denote variables that are observed and the unshaded circular nodes are variables whose values are updated and sampled during the MCMC process."}
+if (knitr::is_latex_output()) {
+  knitr::include_graphics("images/standard-model-crop.pdf")
+} else {
+  knitr::include_graphics("images/standard-model-crop.png")
+}
+```
+
+The variable $\bpi$ we have referenced above is visible just below $\blambda^{(\pi)}$, which
+is a parameter vector for the prior on $\bpi$.  There are $M$ fish in the baseline, and
+$\bZ^*_j$ is the known origin of fish $j$ in the baseline, while $Y^*_j$ is the
+observed genotype of fish $j$ in the baseline. 
+

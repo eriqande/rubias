@@ -1,0 +1,113 @@
+
+
+\documentclass{article}
+\usepackage{graphicx}
+\usepackage[figuresright]{rotating}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{bm}
+\usepackage{cite}
+\usepackage{multirow}
+\usepackage{tabularx}
+\usepackage{tikz}
+\usetikzlibrary{bayesnet}
+\usetikzlibrary{arrows}
+\usepackage{color}
+\usepackage[sort]{natbib}
+\usepackage{xspace}
+\usepackage{mathrsfs}
+\usepackage{mathtools}
+\usepackage{flushend}
+
+
+%% some newcommands
+\newcommand{\bpi}{\bm{\pi}}
+\newcommand{\btheta}{\bm{\theta}}
+\newcommand{\balpha}{\bm{\alpha}}
+\newcommand{\bomega}{\bm{\omega}}
+\newcommand{\blambda}{\bm{\lambda}}
+\newcommand{\bgamma}{\bm{\gamma}}
+\newcommand{\brho}{\bm{\rho}}
+\newcommand{\bphi}{\bm{\phi}}
+\newcommand{\bpsi}{\bm{\psi}}
+\newcommand{\bmu}{\bm{\mu}}
+\newcommand{\bF}{\bm{F}}
+\newcommand{\bW}{\bm{W}}
+\newcommand{\bZ}{\bm{Z}}
+\newcommand{\bY}{\bm{Y}}
+\newcommand{\bV}{\bm{V}}
+\newcommand{\bQ}{\bm{Q}}
+\newcommand{\bR}{\bm{R}}
+
+\newcommand{\thh}{^\mathrm{th}}
+
+
+% i.e. like newcomms
+\newcommand{\cf}{{\em cf.}\xspace }
+\newcommand{\eg}{{\em e.g.},\xspace }
+\newcommand{\ie}{{\em i.e.},\xspace }
+\newcommand{\etal}{{\em et al.}\ }
+\newcommand{\etc}{{\em etc.}\@\xspace}
+
+% BBB
+\newcommand{\Exp}{\mathbb{E}}
+\newcommand{\Var}{\mathbb{V}}
+\newcommand{\Cov}{\mathrm{Cov}}
+
+\begin{document}
+
+\thispagestyle{empty}
+
+\begin{figure*}
+  \begin{center}
+  
+   \tikz{
+    % nodes
+     \node[obs, det] (lam) {$\blambda^{(\pi)}$};%
+     \node[latent,below=of lam,xshift=0cm] (pi) {$\bpi$}; %
+     \node[latent,below=of pi] (zi) {$\bZ_i$}; %
+     \node[obs,below=of zi, yshift=-1cm, obs] (yil) {$\bY_{i,\ell}$}; %
+     \node[latent,right=of zi, yshift=-1.2cm] (tl) {$\btheta_{\ell}$}; %
+     \node[obs,below=of tl, det] (gm) {$\bgamma_\ell$}; %
+     \node[obs,right=of tl, yshift=1.2cm] (zj) {$\bZ^*_j$}; %
+     \node[obs,below=of zj, yshift=-1cm, obs] (yjl) {$\bY^*_{j,\ell}$}; %
+    % plate
+     \plate {iplate}     {(zi)(yil)}     {{\footnotesize $1\leq i \leq N$}} ; %
+     \plate {jplate}     {(zj)(yjl)}     {{\footnotesize $1\leq j \leq M$}} ; %
+     \plate {lplate}     {(tl)(yil)(yjl)(jplate.south east)(iplate.south west)(gm)}     {{\footnotesize $1\leq \ell \leq L$}} ; %
+     
+     %\plate [inner sep=.3cm,xshift=.02cm,yshift=.2cm] {iplate} {(zi)} {$i$ data}; %
+  
+  
+  
+    % edges
+     \edge {lam} {pi};
+     \edge {pi} {zi};
+     \edge {zi,tl} {yil};
+     \edge {gm} {tl};
+     \edge {zj,tl} {yjl};
+     }
+
+  \end{center}
+\end{figure*}
+
+\end{document}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
