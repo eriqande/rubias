@@ -68,12 +68,14 @@
      \node[latent,below=of pi] (zi) {$\bZ_i$}; %
      \node[obs,below=of zi, yshift=-1cm, obs] (yil) {$\bY_{i,\ell}$}; %
      \node[latent,right=of zi, yshift=-1.2cm] (tl) {$\btheta_{\ell}$}; %
+     \node[latent,left=of zi, yshift=0cm] (zk) {$\bZ^r_k$}; 
      \node[obs,below=of tl, det] (gm) {$\bgamma_\ell$}; %
      \node[obs,right=of tl, yshift=1.2cm] (zj) {$\bZ^*_j$}; %
      \node[obs,below=of zj, yshift=-1cm, obs] (yjl) {$\bY^*_{j,\ell}$}; %
     % plate
      \plate {iplate}     {(zi)(yil)}     {{\footnotesize $1\leq i \leq N$}} ; %
      \plate {jplate}     {(zj)(yjl)}     {{\footnotesize $1\leq j \leq M$}} ; %
+     \plate {kplate}     {(zk)}     {{\footnotesize $1\leq k \leq R$}} ; %
      \plate {lplate}     {(tl)(yil)(yjl)(jplate.south east)(iplate.south west)(gm)}     {{\footnotesize $1\leq \ell \leq L$}} ; %
      
      %\plate [inner sep=.3cm,xshift=.02cm,yshift=.2cm] {iplate} {(zi)} {$i$ data}; %
@@ -83,6 +85,7 @@
     % edges
      \edge {lam} {pi};
      \edge {pi} {zi};
+     \edge {pi} {zk};
      \edge {zi,tl} {yil};
      \edge {gm} {tl};
      \edge {zj,tl} {yjl};

@@ -1,5 +1,5 @@
 
-FIGS="standard-model"
+FIGS="standard-model stock-spec-catch-model"
 
 for i in $FIGS; do
   pdflatex $i.tex
