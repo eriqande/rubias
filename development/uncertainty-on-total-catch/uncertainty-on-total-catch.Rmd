@@ -3,8 +3,11 @@ title: "Summarizing Uncertainty on Stock-Specific Total Catch"
 author: "Eric C. Anderson"
 date: "`r Sys.Date()`"
 output:
-  pdf_document: 
+  pdf_document:
     fig_caption: true
+  word_document: default
+  html_document:
+    df_print: paged
 ---
 
 
@@ -101,7 +104,7 @@ sample of the stock-specific total catch.
 
 ## MCMC for stock-specific total catch
 
-```{r standard, echo=FALSE, fig.cap="Acyclic directed graph showing the standard conditional GSI model. Diamond nodes are deterministic values used for priors. Circular nodes are variables. The shaded, circular nodes denote variables that are observed and the unshaded circular nodes are variables whose values are updated and sampled during the MCMC process."}
+```{r standard, echo=FALSE, out.width="30%", fig.align='center', fig.cap="Acyclic directed graph showing the standard conditional GSI model. Diamond nodes are deterministic values used for priors. Circular nodes are variables. The shaded, circular nodes denote variables that are observed and the unshaded circular nodes are variables whose values are updated and sampled during the MCMC process."}
 if (knitr::is_latex_output()) {
   knitr::include_graphics("images/standard-model-crop.pdf")
 } else {
@@ -123,7 +126,7 @@ sampling in this model proceeds using Gibbs sampling, with $\bpi$, $\bZ_i$, and
 $\btheta_\ell$ being updated during each sweep of the algorithm by drawing each
 new value from its full conditional distribution.
 
-```{r stock-spec, echo=FALSE, fig.cap="Acyclic directed graph showing the augemented standard conditional GSI model to include additional fish in the catch that were not inlcluded in the GSI analysis."}
+```{r stock-spec, echo=FALSE, out.width="42%", fig.align='center', fig.cap="Acyclic directed graph showing the augemented standard conditional GSI model to include additional fish in the catch that were not inlcluded in the GSI analysis."}
 if (knitr::is_latex_output()) {
   knitr::include_graphics("images/stock-spec-catch-model-crop.pdf")
 } else {
