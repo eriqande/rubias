@@ -161,9 +161,18 @@ In fact, to make things even easier, by definition $\sum_{k=1}^R \bZ^r_k$ is sim
 a multinomial random variable of R trials with cell probabilities of $\bpi$.
 
 
-### A Wrinkle Due to Non-Mortality
+### Additional Complications
 
-Sometimes, the mixed fishery includes commercial or recreational landings, which
+Sometimes, the size of the total catch, $R$, might itself be
+estimated with some uncertainty.  So long as the true size of the total catch can be
+safely assumed to be conditionally independent of the stock composition given the
+estimated total catch, the uncertainty in $R$
+can be propagated into the stock-specific total catch by supplying a sample of $R$
+from its posterior disribution.  Different values from that posterior sample can be
+used for $R$ in each sweep that 'rubias' performs.  This presents no problems, and
+the method for doing so is illustrated in the examples below.
+
+Often, the mixed fishery includes commercial or recreational landings, which
 are certainly part of the lethal catch or take.  However, in some mixed
 stock fisheries, some of the fish sampled and genotyped might be from a test
 fishery which is not necessarily lethal, as fish might be returned alive to the
@@ -171,17 +180,10 @@ water after being sampled for genetic analysis.  In these cases, fish from the t
 fishery might not be considered part of the total catch, and therefore, they
 should not contribute to the estimated impacts on any particular stock that they
 are assigned to.  In other cases, managers might have an independent estimate
-that 
+of post-sampling mortality that is not 0.  This can be accommodated, as shown
+in the examples in the "Some Genotypes Samples Might not be Considered Part of the Catch/Mortality" section below.
 
-It is worth pointing out that the size of the total catch, $R$, might itself be
-estimated with some uncertainty.  So long as the true size of the total catch can be
-safely assumed to be conditionally independent of the stock composition given the
-estimated total catch, the uncertainty in $R$
-can be propagated into the stock specific total catch by supplying a sample of $R$
-from its posterior disribution.  Different values from that posterior sample can be
-used for $R$ in each sweep that 'rubias' performs.  This presents no problems, so long
-as no samples from the posterior for total catch are less than $N$, the number of fish
-genotyped and used for GSI, which should clearly not occur.  
+
 
 ## Examples
 
@@ -396,7 +398,9 @@ some $772 \times 3 = 2316$ fish.  There will of course be a lot more variation t
 - In the "rec3" fishery, the variability is even greater because there is uncertainty
 in the actual fraction of the fishery that was sampled.
 
+### Some Genotypes Samples Might not be Considered Part of the Catch/Mortality
 
+Still to be implemented and described.  
 
 ## Notes:
 
