@@ -4,7 +4,17 @@
 \alias{gsi_mcmc_1}
 \title{MCMC from the simplest GSI model for pi and the individual posterior probabilities}
 \usage{
-gsi_mcmc_1(SL, Pi_init, lambda, reps, burn_in, sample_int_Pi, sample_int_PofZ)
+gsi_mcmc_1(
+  SL,
+  Pi_init,
+  lambda,
+  reps,
+  burn_in,
+  sample_int_Pi,
+  sample_int_PofZ,
+  sample_total_catch = 0L,
+  total_catch_vals = as.integer(c(-1))
+)
 }
 \arguments{
 \item{SL}{matrix of the scaled likelihoods.  This is should have values for each individual in a column
@@ -24,6 +34,12 @@ returned in the traces if desired}
 
 \item{sample_int_PofZ}{the number of reps between samples being taken for the traces of posterior of each individual's origin. If 0
 no trace samples are taken.}
+
+\item{sample_total_catch}{integer. Set it to 1 if you want to sample the total-stock specific catch. If so,
+then you have to set `total_catch_vals` appropriately.}
+
+\item{total_catch_vals}{an integer vector of length reps that holds the total catch.  It is a vector to allow
+for this to be a sample from the posterior for the total catch.}
 }
 \value{
 \code{gsi_mcmc_1} returns a list of three. \code{$mean} lists the posterior

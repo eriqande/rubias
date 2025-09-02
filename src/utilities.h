@@ -6,3 +6,4 @@ NumericVector dirch_from_allocations(IntegerVector C, NumericVector lambda);
 NumericVector dirch_from_counts(IntegerVector C, NumericVector lambda);
 
 int randint(int n);
+IntegerVector tabulate_allocations(IntegerVector C, int n);

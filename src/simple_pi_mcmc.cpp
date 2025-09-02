@@ -19,6 +19,10 @@ using namespace Rcpp;
 //' @param sample_int_Pi the number of reps between samples being taken for Pi traces.  If 0 no trace samples are taken
 //' @param sample_int_PofZ the number of reps between samples being taken for the traces of posterior of each individual's origin. If 0
 //' no trace samples are taken.
+//' @param sample_total_catch integer. Set it to 1 if you want to sample the total-stock specific catch. If so,
+//' then you have to set `total_catch_vals` appropriately.
+//' @param total_catch_vals an integer vector of length reps that holds the total catch.  It is a vector to allow
+//' for this to be a sample from the posterior for the total catch.
 //'
 //' @return \code{gsi_mcmc_1} returns a list of three. \code{$mean} lists the posterior
 //' means for collection proportions \code{pi} and for the individual posterior
@@ -44,9 +48,20 @@ using namespace Rcpp;
 //' mcmc <- gsi_mcmc_1(SL, lambda, lambda, 200, 50, 5, 5)
 //' @export
 // [[Rcpp::export]]
-List gsi_mcmc_1(NumericMatrix SL, NumericVector Pi_init, NumericVector lambda, int reps, int burn_in, int sample_int_Pi, int sample_int_PofZ) {
+List gsi_mcmc_1(
+    NumericMatrix SL,
+    NumericVector Pi_init,
+    NumericVector lambda,
+    int reps,
+    int burn_in,
+    int sample_int_Pi,
+    int sample_int_PofZ,
+    int sample_total_catch = 0,
+    IntegerVector total_catch_vals = IntegerVector::create(-1)  // this makes the default a vector of length 1, holding -1.  Hopefully this will work when the user does not give a value for this...
+) {
   List pi_list;
   List PofZ_list;
+  List SSC_list;   // For gathering tock-specific catch over the iterations
   List trace, mean, sd, ret;
   NumericVector pi = clone(Pi_init);
   NumericVector pi_sums(Pi_init.size());
@@ -55,6 +70,7 @@ List gsi_mcmc_1(NumericMatrix SL, NumericVector Pi_init, NumericVector lambda, i
   NumericMatrix post_sums(SL.nrow(), SL.ncol());
   NumericMatrix post_sums_sq(SL.nrow(), SL.ncol());
   NumericMatrix sd_ret(SL.nrow(), SL.ncol());
+
 
   int R = SL.nrow();
   int C = SL.ncol();
@@ -95,15 +111,51 @@ List gsi_mcmc_1(NumericMatrix SL, NumericVector Pi_init, NumericVector lambda, i
       PofZ_list.push_back(posts);
     }
 
-    // allocate individuals to populations and simulate a new pi
-    pi = dirch_from_allocations(samp_from_mat(posts), lambda);
+    // allocate individuals to populations and simulate a new pi.
+    // This was updated in August 2025 to store the allocations (the Z's are Zeds)
+    // of the fish in the mixture.  Doing so gives us access to them, which
+    // allows us to sample from the posterior predictive of the total catch.
+    IntegerVector Zeds = samp_from_mat(posts);
+    //if(i % 500 == 0)  Rcpp::Rcout << "i= " << i << "  Zeds= " << Zeds << std::endl;
+
+    // finally, here we update pi
+    pi = dirch_from_allocations(Zeds, lambda);
+
+
+    // If we are sampling from the posterior predictive of remaining catch
+    // we do it here
+    if(sample_total_catch != 0) {
+      int remaining_catch = total_catch_vals(i) - C;
+      if(remaining_catch < 0) remaining_catch = 0;
+
+      unsigned int ncell = pi.length();
+      unsigned int rem_catch_uns = remaining_catch;
+
+      // simulate the posterior predictive of the "remaining catch", PPRC
+      IntegerVector PPRC = rmultinom_1(rem_catch_uns, pi, ncell);
+
+      //if(i % 500 == 0) Rcpp::Rcout << "i= " << i << "  PPRC= " << PPRC << std::endl;
+
+      // count up the current allocations (the catch contribution of the actual samples)
+      IntegerVector CurrentAllocations = tabulate_allocations(Zeds, R);
+
+      //if(i % 500 == 0) Rcpp::Rcout << "i= " << i << "  CUAL= " << CurrentAllocations << std::endl;
+      SSC_list.push_back(PPRC + CurrentAllocations);
+
+
+    }
+
 
   }
 
   // put the traces in there if there are any
-  trace = List::create(pi_list, PofZ_list);
-  trace.names() = CharacterVector::create("pi", "PofZ");
-
+  if(sample_total_catch == 0) {
+    trace = List::create(pi_list, PofZ_list);
+    trace.names() = CharacterVector::create("pi", "PofZ");
+  } else {
+    trace = List::create(pi_list, PofZ_list, SSC_list);
+    trace.names() = CharacterVector::create("pi", "PofZ", "SSTC");
+  }
   // put the means and standard devs and traces in the return variable'
   post_sums = post_sums / num_samp;
   pi_sums  = pi_sums / num_samp;

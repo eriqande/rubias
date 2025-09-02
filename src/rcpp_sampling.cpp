@@ -39,3 +39,21 @@ IntegerVector samp_from_mat(NumericMatrix M) {
   }
   return(out);
 }
+
+
+//' Simulate a single multinomial vector from within Rcpp
+//'
+//' From: https://gallery.rcpp.org/articles/recreating-rmultinom-and-rpois-with-rcpp/
+//'
+//' @keywords internal
+//' @param size the number of trials
+//' @param probs  the cell probabilities
+//' @param N the number of cells
+//' @return An IntegerVector of length N
+ //' @export
+ // [[Rcpp::export]]
+IntegerVector rmultinom_1(unsigned int &size, NumericVector &probs, unsigned int &N) {
+  IntegerVector outcome(N);
+  rmultinom(size, probs.begin(), N, outcome.begin());
+  return outcome;
+}

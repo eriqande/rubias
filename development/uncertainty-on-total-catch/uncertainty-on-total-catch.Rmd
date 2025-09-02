@@ -3,11 +3,11 @@ title: "Summarizing Uncertainty on Stock-Specific Total Catch"
 author: "Eric C. Anderson"
 date: "`r Sys.Date()`"
 output:
-  pdf_document:
-    fig_caption: true
-  word_document: default
   html_document:
     df_print: paged
+  word_document: default
+  pdf_document:
+    fig_caption: true
 ---
 
 
@@ -153,6 +153,21 @@ $\bZ_i$ vectors,
 $$
 C_\mathrm{ss} = \sum_{k=1}^R \bZ^r_k + \sum_{i=1}^N \bZ_i.
 $$
+In fact, to make things even easier, by definition $\sum_{k=1}^R \bZ^r_k$ is simply
+a multinomial random variable of R trials with cell probabilities of $\bpi$.
+
+
+### A Wrinkle Due to Non-Mortality
+
+Sometimes, the mixed fishery includes commercial or recreational landings, which
+are certainly part of the lethal catch or take.  However, in some mixed
+stock fisheries, some of the fish sampled and genotyped might be from a test
+fishery which is not necessarily lethal, as fish might be returned alive to the
+water after being sampled for genetic analysis.  In these cases, fish from the test
+fishery might not be considered part of the total catch, and therefore, they
+should not contribute to the estimated impacts on any particular stock that they
+are assigned to.  In other cases, managers might have an independent estimate
+that 
 
 It is worth pointing out that the size of the total catch, $R$, might itself be
 estimated with some uncertainty.  So long as the true size of the total catch can be
@@ -163,6 +178,222 @@ from its posterior disribution.  Different values from that posterior sample can
 used for $R$ in each sweep that 'rubias' performs.  This presents no problems, so long
 as no samples from the posterior for total catch are less than $N$, the number of fish
 genotyped and used for GSI, which should clearly not occur.  
+
+## Examples
+
+In this section we walk through some simple, hands-on examples.  We will be using
+some of the example data that comes with the rubias package. Namely, we are using the
+`chinook` reference data set that comprises 91 SNP markers typed on 7,301 fish from
+69 collections belonging to 39 different reporting units.  
+
+The samples from the
+mixed stock fisheries we will analyze are in the data object `chinook_mix`.  This
+data set contains genotypes from 2,256 fish grouped into three different
+fisheries ("rec1", "rec2", and "rec3").  (These were not really different
+fisheries, but for our purposes, here, we are going to pretend that they
+are different fisheries featuring different levels of management information.)
+For the most part, the mix of fish found in these fisheries are typical of what
+you see of the coast of central and northern California. Most of the fish are
+from the Central Valley fall-run stock, and for the purposes today we will
+assume that we are particularly interested in impacts on one of the reporting units
+less common in these mixtures: "CaliforniaCoast", which are fish from the 
+Eel and Russian rivers,listed as Threatened under the U.S. Endanged Species
+Act.  
+
+
+For the purposes of illustration, we will imagine that "rec1" is a recreational
+fishery in which every single landed fish is sampled, "rec2" is a fishery in which
+an exact 25% of the total catch is sampled and genotyped, and "rec3" is a fishery
+from which the managers try to sample 25% of the fish; however the true fraction
+sampled varies quite a bit.  Let's imagine that the managers of "rec3" have a
+Bayesian method to estimate the true fraction sampled, and that the posterior
+for that fraction is a beta distribution with parameters 2 and 6, such that a sample
+of that posterior can be obtained like this
+```{r, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(rubias)
+set.seed(3)
+rec3_tot_catch_sample <- rbeta(5000, 16, 48)
+```
+And that posterior sample is distributed like this:
+```{r}
+hist(rec3_tot_catch_sample, breaks = 50)
+```
+
+In other words, there is a lot of uncertainty about what the sampling fraction
+is, which means there is a lot of uncertainty about what the total catch is
+from that "rec3" fishery.
+
+### Using Variability in $\bpi$ 
+
+We will start off with a simple look at how things can go wrong if you use the
+variability in $\bpi$ to try to estimate the variability on total catch.  We will
+focus on the "rec1" fishery here, in which we are assuming that every single fish
+in the catch has been sampled and genotyped.  
+
+First, we analyze just that fishery, and summarise by reporting units.
+```{r}
+rec1_ests <- chinook_mix %>%
+  filter(collection == "rec1") %>%
+  infer_mixture(chinook, ., gen_start_col = 5)
+
+# get the mixing proportions trace by repunit
+rec1_pi_trace_repu <- rec1_ests$mix_prop_traces %>%
+  filter(sweep > 100) %>%
+  group_by(sweep, repunit) %>%
+  summarise(repunit_pi = sum(pi))
+
+# get the maximum-a-posteriori assignment to repunit
+rec1_MAP_repu <- rec1_ests$indiv_posteriors %>%
+  group_by(indiv, repunit) %>%
+  summarise(repunit_PofZ = sum(PofZ)) %>%
+  group_by(indiv) %>%
+  filter(repunit_PofZ == max(repunit_PofZ))
+```
+
+When we look at the _maximum-a-posteriori_ (MAP) assignments of individuals to
+reporting unit, we find 22 fish assigned to the CaliforniaCoast, most of them
+with a posterior near 1.0.  Here is the histogram of their posteriors:
+```{r}
+rec1_MAP_repu %>%
+  filter(repunit == "CaliforniaCoast") %>%
+  ggplot(aes(x = repunit_PofZ)) +
+  geom_histogram(bins = 50) +
+  theme_bw()
+```
+
+
+So, it looks like 15 fish are almost certainly from CaliforniaCoast, with another 5 being
+very likely from there, and then two of them somewhat likely from there.  In other words,
+we are pretty confident that 20 to 22 fish from the CaliforniaCoast are included
+in the total catch.  
+
+Let us see what happens if we naively use the estimated proportion of fish from
+CaliforniaCoast to try to estimate the number of such fish in the total catch.  Here
+is a histogram of the posterior sample of the fraction of fish from CaliforniaCoast in the ocean
+from which the catch was taken:
+```{r}
+rec1_pi_trace_repu %>%
+  filter(repunit == "CaliforniaCoast") %>%
+  ggplot(aes(x = repunit_pi)) +
+  geom_histogram(binwidth = 0.001)
+```
+
+And, if we used that fraction to try to estimate the uncertainty around the total
+catch of CaliforniaCoast we would greatly overestimate that uncertainty.  By multiplying
+the fraction of catch by the total number of fish (which happens to be 743 fish), we
+get the posterior for the total catch of CaliforniaCoast:
+```{r}
+rec1_pi_trace_repu %>%
+  filter(repunit == "CaliforniaCoast") %>%
+  mutate(Catch_of_CaliforniaCoast = 743 * repunit_pi) %>%
+  ggplot(aes(x = Catch_of_CaliforniaCoast)) +
+  geom_histogram(binwidth = 1)
+```
+
+This is absurd!  On the basis of individual assignments, we are pretty sure that
+between 20 and 22 CaliforniaCoast fish were caught, certainly not 14 or 30! This
+is why it is important to use the new functionality in 'rubias' to estimate
+total stock-specific catch.  We illustrate that in the next two sections.  
+
+
+### All Fishery Samples are Part of the Catch
+
+We start off with what will likely be the most standard case: the samples have come
+from the fishery and all the samples are considered to be part of the impact of the
+fishery.  In other words, every fish in the sample of genotypes is considered to be
+part of the total catch.  (The next section discusses how to handle departures from
+this standard case).
+
+The first thing we must do to estimate the total stock specific catch is to provide
+rubias with information about the size of the total catch.  We provide this information
+in a tibble with one column `collection` which gives the mixture collection 
+("rec1", "rec2", and "rec3" in the current case), and another column, `tot_catch`, 
+_which must be a list-column_,
+that gives the information about the total catch.  This second column has to be a list
+column because we want it to be able to hold a sample from the posterior distribution
+for total, aggregate catch.  
+
+In order to make this tibble, we will need to know the
+sample sizes from our three fisheries.  They are:
+```{r}
+chinook_mix %>%
+  count(collection)
+```
+
+So, given what we described earlier about how the sample size relates to the total
+catch, we form the necessary tibble like this:
+```{r}
+total_catches <- tibble(
+  collection = c("rec1", "rec2", "rec3"),
+  tot_catch = list(
+    743,
+    772 / 0.25,
+    743 / rec3_tot_catch_sample
+  )
+)
+```
+
+It looks like this:
+```{r}
+total_catches
+```
+
+Then, to get these standard-case total catch estimates from 'rubias' we just need
+to pass this tibble into `infer_mixture()` as the `total_catch_tib` parameter.
+```{r}
+mix_ests_with_catch <- infer_mixture(
+  reference = chinook,
+  mixture = chinook_mix,
+  gen_start_col = 5, 
+  total_catch_tib = total_catches
+)
+```
+After that has run, the tibble in `mix_ests_with_catch$stock_specific_total_catch_traces`
+holds the posterior sample of the total catch.  It is structured much like the mixing
+proportions trace output.  The first few lines look like:
+```{r}
+mix_ests_with_catch$stock_specific_total_catch_traces
+```
+
+The column `SSTC` holds the stock-specific total catch.  
+
+Thus, if we want to see what the posterior distribution for the total catch from the
+CaliforniaCoast repunit looks like in each of the three fisheries ("rec1", "rec2", and "rec3")
+we just have to:
+
+1. Summarize by reporting unit
+2. Filter down to just CaliforniaCoast
+3. Discard the burn-in (which we take to be 200 sweeps, here)
+4. Plot it
+
+Those steps look like this:
+```{r}
+CC_sstc <- mix_ests_with_catch$stock_specific_total_catch_traces %>%
+  group_by(mixture_collection, sweep, repunit) %>%
+  summarise(repunit_sstc = sum(SSTC)) %>%
+  filter(sweep > 200, repunit == "CaliforniaCoast")
+
+
+ggplot(CC_sstc, aes(x = repunit_sstc)) +
+  geom_histogram(binwidth = 1) +
+  facet_wrap(~mixture_collection, scales = "free")
+```
+
+That is just how we expect things to look:
+
+- If we have genotyped the entire catch (as in the "rec1" fishery) then there is
+very little variation around the stock specific total catch, especially for a repunit
+like CaliforniaCoast that is fairly easily distinguished from the others.
+- If we have only genotyped 25% of the catch, there is considerably more variation
+in the posterior for stock-specific total catch.  This makes sense---in this case
+we are extrapolating the repunit from the mixture proportion ($\bpi$) estimates to
+some $772 \times 3 = 2316$ fish.  There will of course be a lot more variation there.
+- In the "rec3" fishery, the variability is even greater because there is uncertainty
+in the actual fraction of the fishery that was sampled.
+
+
+
 
 ## Implementation
 
@@ -184,3 +415,10 @@ The `total_catch` option will only be available with `method = "MCMC"`.
 When the `total_catch` option is given, the output list from `infer_mixture()` will
 include a component called `total_catch_posterior_sample` that will include the
 sampled values of $C_\mathrm{ss}$ over all sweeps of the MCMC algorithm.  
+
+## Notes:
+
+We don't need to do it for the preliminary steps in the BR method.  We can add
+it in after that.
+
+We might as well do it for the burn-in period, I think. 

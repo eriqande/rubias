@@ -56,6 +56,13 @@
 #' as a Dirichlet vector of length C, with each element being W/C, where W is the pi_prior_sum
 #' and C is the number of collections. By default this is 1.  If it is made much smaller than 1, things
 #' could start to mix more poorly.
+#' @param total_catch_tib  A tibble with two columns: `collection` and `tot_catch`. The entries to `collection`
+#' must correspond to different fisheries or mixture collections as listed in the `collections` column in
+#' `mixture`.  The `tot_catch` must be a list column which contains an estimate of the total
+#' catch from the fishery.  That could be a single number, or it could be a sample from a posterior
+#' distribution of the total catch.  Providing a value for this parameter will make the function
+#' return a sample from the posterior for stock-specific total catch. Note that if you use this option
+#' then every single mixture collection in `mixture` must be represented in `total_catch_tib`.
 #' @return Tidy data frames in a list with the following components:
 #' mixing_proportions: the estimated mixing proportions of the different collections.
 #' indiv_posteriors: the posterior probs of fish being from each of the collections.
@@ -84,7 +91,9 @@ infer_mixture <- function(reference,
                           prelim_burn_in = NULL,
                           sample_int_Pi = 1,
                           sample_theta = TRUE,
-                          pi_prior_sum = 1) {
+                          pi_prior_sum = 1,
+                          total_catch_tib = NULL
+                        ) {
 
 
   # check that prelim_reps and prelim_burn_in are appropriately set
@@ -99,7 +108,23 @@ infer_mixture <- function(reference,
   ploidies_ref <- check_refmix(reference, gen_start_col, "reference")
   ploidies_mix <- check_refmix(mixture, gen_start_col, "mixture")
 
-  # now, deal with the problem if ploidy is indetemrinate in both ref and mix
+
+  # check that total_catch_tib is valid, if it exists
+  if(!is.null(total_catch_tib)) {
+    # ensure collection and tot_catch columns exist
+    tcm <- setdiff(c("collection", "tot_catch"), names(total_catch_tib))
+    if(length(tcm) > 0) stop("total_catch_tib missing necessary column(s): ", paste(tcm, collapse = ", "))
+    # ensure tot_catch is a list-column
+    if(class(total_catch_tib$tot_catch) != "list") stop("Column tot_catch of total_catch_tib must be a list-column")
+    # ensure that a total catch is listed for every collection in mixture
+    tc_missing_colls <- setdiff(unique(mixture$collection), unique(total_catch_tib$collection))
+    if(length(tc_missing_colls) > 0) stop("total_catch_tib missing entries for collection(s) ", paste(tc_missing_colls, collapse = ", "))
+    # finally, ensure that total_catch_tib does not have additional collections not found in mixture
+    novel_coll <- setdiff(unique(total_catch_tib$collection), unique(mixture$collection))
+    if(length(novel_coll) > 0) stop("total_catch_tib collection(s) not included in mixture: ", paste(novel_coll, collapse = ", "))
+  }
+
+  # now, deal with the problem if ploidy is indeterminate in both ref and mix
   both_indet <- ploidies_ref == 0 & ploidies_mix == 0
   if(any(both_indet == TRUE)) {
     stop(
@@ -310,7 +335,7 @@ infer_mixture <- function(reference,
   message("   time: ", sprintf("%.2f", time_sa["elapsed"]), " seconds")
 
 
-
+  #### Starting to do things to the mixture samples, now ####
 
   # now, we are going to break the mixture samples up into a list of data frames, each
   # named by the collection of the mixture sample, and then we are going to spew all of
@@ -321,10 +346,35 @@ infer_mixture <- function(reference,
     split(., .$collection)
 
 
+
+  # now, if total_catch_tib is not NULL, we break it into a named list of integer vectors
+  if(!is.null(total_catch_tib)) {
+
+    # turn total_catch_tib into a list named by collection which has recycled each
+    # value up to the number of MCMC reps we are doing, and taken the ceiling of those values
+    # to ensure they are integers
+    tmp_list <- total_catch_tib$tot_catch
+    names(tmp_list) <- total_catch_tib$collection
+    tot_catch_list <- lapply(tmp_list, function(x) ceiling(rep(x, length.out = reps)))
+
+    # then get the elements of that list in the same order as in mixture_colls_list
+    tot_catch_list <- tot_catch_list[names(mixture_colls_list)]
+  } else { # If total_catch_tib is NULL, then we make a tot_catch_list that has -1 for each.  This let's us test what to do once it is passed into Rcpp
+    tot_catch_list <- lapply(mixture_colls_list, function(x) -1L)
+  }
+
+
+
   # cycle over the different mixture collections and deal with each, in turn...
-  big_output_list <- lapply(mixture_colls_list, function(little_mix) {
+  big_output_list <- lapply(names(mixture_colls_list), function(name) {
+
+    little_mix <- mixture_colls_list[[name]]
+    tot_catch_vec <- tot_catch_list[[name]]
+
+
 
     message("Working on mixture collection: ", little_mix$collection[1], " with ", nrow(little_mix), " individuals")
+    message("tot_catch_vec: ", paste(tot_catch_vec[1:8], collapse = " "), "...")
 
     mix_I <- allelic_list(little_mix, ac, samp_type = "mixture")$int
     coll <- rep(0,length(mix_I[[1]]$a))  # populations of each individual in mix_I; not applicable for mixture samples
@@ -341,7 +391,7 @@ infer_mixture <- function(reference,
     params$ploidies <- as.integer(unname(ploidies[params$locus_names]))
 
     ## create priors on pi, if no non-default priors are submitted
-    if(identical(pi_prior, NA)) {
+    if(is.na(pi_prior)) {
       lambda <- rep(pi_prior_sum / params$C, params$C)
     } else {
       if(is.numeric(pi_prior)) {
@@ -429,7 +479,10 @@ infer_mixture <- function(reference,
                             reps = reps,
                             burn_in = burn_in,
                             sample_int_Pi = sample_int_Pi,
-                            sample_int_PofZ = sample_int_PofZ)
+                            sample_int_PofZ = sample_int_PofZ,
+                            sample_total_catch = as.integer(!is.null(total_catch_tib)),
+                            total_catch_vals = tot_catch_vec
+                            )
         })
       }
 
@@ -529,6 +582,16 @@ infer_mixture <- function(reference,
                                     car_tib = COLLS_AND_REPS_TIBBLE_CHAR,
                                     interval = sample_int_Pi)
 
+      # and, if we did sampling of stock-specific total catch we get that here too
+      if(!is.null(total_catch_tib)) {
+        sstc_traces <- tidy_pi_traces(
+          input = out$trace$SSTC,
+          pname = "SSTC",
+          car_tib = COLLS_AND_REPS_TIBBLE_CHAR,
+          interval = 1
+        )
+      }
+
       ## if it was BR, we have further tidying to do to add the updated allele frequencies
       if (method == "BR") {
         if(sample_theta == TRUE) {
@@ -560,18 +623,26 @@ infer_mixture <- function(reference,
 
     # in the end, send back a list of these things
     if(method == "MCMC" || method == "PB") {
-      list(mixing_proportions = pi_tidy,
+      ret <- list(mixing_proportions = pi_tidy,
            indiv_posteriors = pofz_tidy,
            mix_prop_traces = traces_tidy,
            bootstrapped_proportions = bootstrap_rhos)
     } else {
-      list(mixing_proportions = pi_tidy,
+      ret <- list(mixing_proportions = pi_tidy,
            indiv_posteriors = pofz_tidy,
            mix_prop_traces = traces_tidy,
            allele_frequencies = theta_tidy)
     }
 
+    # and, if we did stock-specific total catch sampling, send that back too
+    if(!is.null(total_catch_tib)) {
+      ret$stock_specific_total_catch_traces <- sstc_traces
+    }
+    ret   # return the list
   })
+  # be sure to get some names onto that list
+  names(big_output_list) <- names(mixture_colls_list)
+
 
 
   # phew.  At the end of that, we are going to bind_rows so everything is tidy, and we
@@ -588,20 +659,25 @@ infer_mixture <- function(reference,
       dplyr::left_join(., mix_num_loci, by = "indiv"),
 
     mix_prop_traces = lapply(big_output_list, function(x) x$mix_prop_traces) %>%
-      dplyr::bind_rows(.id = "mixture_collection"),
-    if(method == "MCMC" || method == "PB") {
-      bootstrapped_proportions = lapply(big_output_list, function(x) x$bootstrapped_proportions) %>%
-        dplyr::bind_rows(.id = "mixture_collection")
-    } else {
-      allele_frequencies = lapply(big_output_list, function(x) x$allele_frequencies) %>%
-        dplyr::bind_rows(.id = "mixture_collection")
-    }
+      dplyr::bind_rows(.id = "mixture_collection")
   )
+
   if(method == "MCMC" || method == "PB") {
-    names(ret)[4] <- "bootstrapped_proportions"
+    ret$bootstrapped_proportions <- lapply(big_output_list, function(x) x$bootstrapped_proportions) %>%
+      dplyr::bind_rows(.id = "mixture_collection")
   } else {
-    names(ret)[4] <- "allele_frequencies"
+    ret$allele_frequencies = lapply(big_output_list, function(x) x$allele_frequencies) %>%
+      dplyr::bind_rows(.id = "mixture_collection")
   }
+
+
+  # finally, here we bung together the stock-specific total catch
+  if(!is.null(total_catch_tib)) {
+    ret$stock_specific_total_catch_traces <- lapply(big_output_list, function(x) x$stock_specific_total_catch_traces) %>%
+      dplyr::bind_rows(.id = "mixture_collection")
+  }
+
+
   ret
 }
 

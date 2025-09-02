@@ -86,3 +86,26 @@ NumericVector dirch_from_counts(IntegerVector C, NumericVector lambda) {
 
   return(out / sum(out));
 }
+
+
+
+//' Given a vector of n different categories in 1...n, count up their occurrences and return in a vector of length n
+//'
+//' I should have written this for the other functions above, but I am just getting to it now
+//' to sum up the Zeds of the fish for the total catch sampling stuff.
+//' @keywords internal
+//' @param C a vector of categories taking values of 1,...,n
+//' @param n the number of categories
+//' @export
+// [[Rcpp::export]]
+IntegerVector tabulate_allocations(IntegerVector C, int n) {
+  int i;
+  int N = C.size();  // number of zeds
+  IntegerVector out(n);
+
+  for(i = 0; i < N; i++) {
+    out[C[i] - 1] += 1;
+  }
+
+  return(out);
+}

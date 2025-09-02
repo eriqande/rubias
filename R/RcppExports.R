@@ -157,6 +157,17 @@ rcpp_per_locus_logls <- function(par_list) {
     .Call('_rubias_rcpp_per_locus_logls', PACKAGE = 'rubias', par_list)
 }
 
+#' Simulate a single multinomial vector from within Rcpp
+#'
+#' From: https://gallery.rcpp.org/articles/recreating-rmultinom-and-rpois-with-rcpp/
+#'
+#' @keywords internal
+#' @param size the number of trials
+#' @param probs  the cell probabilities
+#' @param N the number of cells
+#' @return An IntegerVector of length N
+NULL
+
 #' Sample 1 observation from cell probabilities that are columns of a matrix
 #'
 #' Takes a matrix in which columns sum to one. For each column, performs a
@@ -171,6 +182,10 @@ rcpp_per_locus_logls <- function(par_list) {
 #' @export
 samp_from_mat <- function(M) {
     .Call('_rubias_samp_from_mat', PACKAGE = 'rubias', M)
+}
+
+rmultinom_1 <- function(size, probs, N) {
+    .Call('_rubias_rmultinom_1', PACKAGE = 'rubias', size, probs, N)
 }
 
 #' Simulate genotype log-likelihoods from a population by gene copy
@@ -337,6 +352,10 @@ gsi_em_1 <- function(SL, Pi_init, max_iterations, tolerance, return_progression)
 #' @param sample_int_Pi the number of reps between samples being taken for Pi traces.  If 0 no trace samples are taken
 #' @param sample_int_PofZ the number of reps between samples being taken for the traces of posterior of each individual's origin. If 0
 #' no trace samples are taken.
+#' @param sample_total_catch integer. Set it to 1 if you want to sample the total-stock specific catch. If so,
+#' then you have to set `total_catch_vals` appropriately.
+#' @param total_catch_vals an integer vector of length reps that holds the total catch.  It is a vector to allow
+#' for this to be a sample from the posterior for the total catch.
 #'
 #' @return \code{gsi_mcmc_1} returns a list of three. \code{$mean} lists the posterior
 #' means for collection proportions \code{pi} and for the individual posterior
@@ -361,8 +380,8 @@ gsi_em_1 <- function(SL, Pi_init, max_iterations, tolerance, return_progression)
 #' lambda <- rep(1/params$C, params$C)
 #' mcmc <- gsi_mcmc_1(SL, lambda, lambda, 200, 50, 5, 5)
 #' @export
-gsi_mcmc_1 <- function(SL, Pi_init, lambda, reps, burn_in, sample_int_Pi, sample_int_PofZ) {
-    .Call('_rubias_gsi_mcmc_1', PACKAGE = 'rubias', SL, Pi_init, lambda, reps, burn_in, sample_int_Pi, sample_int_PofZ)
+gsi_mcmc_1 <- function(SL, Pi_init, lambda, reps, burn_in, sample_int_Pi, sample_int_PofZ, sample_total_catch = 0L, total_catch_vals = as.integer( c(-1))) {
+    .Call('_rubias_gsi_mcmc_1', PACKAGE = 'rubias', SL, Pi_init, lambda, reps, burn_in, sample_int_Pi, sample_int_PofZ, sample_total_catch, total_catch_vals)
 }
 
 #' Given a vector of different categories in 1...n and a prior,
@@ -404,5 +423,17 @@ dirch_from_allocations <- function(C, lambda) {
 #' @export
 dirch_from_counts <- function(C, lambda) {
     .Call('_rubias_dirch_from_counts', PACKAGE = 'rubias', C, lambda)
+}
+
+#' Given a vector of n different categories in 1...n, count up their occurrences and return in a vector of length n
+#'
+#' I should have written this for the other functions above, but I am just getting to it now
+#' to sum up the Zeds of the fish for the total catch sampling stuff.
+#' @keywords internal
+#' @param C a vector of categories taking values of 1,...,n
+#' @param n the number of categories
+#' @export
+tabulate_allocations <- function(C, n) {
+    .Call('_rubias_tabulate_allocations', PACKAGE = 'rubias', C, n)
 }
 

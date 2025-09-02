@@ -19,7 +19,8 @@ infer_mixture(
   prelim_burn_in = NULL,
   sample_int_Pi = 1,
   sample_theta = TRUE,
-  pi_prior_sum = 1
+  pi_prior_sum = 1,
+  total_catch_tib = NULL
 )
 }
 \arguments{
@@ -81,6 +82,14 @@ of the updated allele frequences. Default is TRUE}
 as a Dirichlet vector of length C, with each element being W/C, where W is the pi_prior_sum
 and C is the number of collections. By default this is 1.  If it is made much smaller than 1, things
 could start to mix more poorly.}
+
+\item{total_catch_tib}{A tibble with two columns: `collection` and `tot_catch`. The entries to `collection`
+must correspond to different fisheries or mixture collections as listed in the `collections` column in
+`mixture`.  The `tot_catch` must be a list column which contains an estimate of the total
+catch from the fishery.  That could be a single number, or it could be a sample from a posterior
+distribution of the total catch.  Providing a value for this parameter will make the function
+return a sample from the posterior for stock-specific total catch. Note that if you use this option
+then every single mixture collection in `mixture` must be represented in `total_catch_tib`.}
 }
 \value{
 Tidy data frames in a list with the following components:

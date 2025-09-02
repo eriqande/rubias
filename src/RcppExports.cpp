@@ -96,6 +96,19 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// rmultinom_1
+IntegerVector rmultinom_1(unsigned int& size, NumericVector& probs, unsigned int& N);
+RcppExport SEXP _rubias_rmultinom_1(SEXP sizeSEXP, SEXP probsSEXP, SEXP NSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< unsigned int& >::type size(sizeSEXP);
+    Rcpp::traits::input_parameter< NumericVector& >::type probs(probsSEXP);
+    Rcpp::traits::input_parameter< unsigned int& >::type N(NSEXP);
+    rcpp_result_gen = Rcpp::wrap(rmultinom_1(size, probs, N));
+    return rcpp_result_gen;
+END_RCPP
+}
 // gprob_sim_gc
 NumericMatrix gprob_sim_gc(List par_list, IntegerVector sim_colls);
 RcppExport SEXP _rubias_gprob_sim_gc(SEXP par_listSEXP, SEXP sim_collsSEXP) {
@@ -149,8 +162,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // gsi_mcmc_1
-List gsi_mcmc_1(NumericMatrix SL, NumericVector Pi_init, NumericVector lambda, int reps, int burn_in, int sample_int_Pi, int sample_int_PofZ);
-RcppExport SEXP _rubias_gsi_mcmc_1(SEXP SLSEXP, SEXP Pi_initSEXP, SEXP lambdaSEXP, SEXP repsSEXP, SEXP burn_inSEXP, SEXP sample_int_PiSEXP, SEXP sample_int_PofZSEXP) {
+List gsi_mcmc_1(NumericMatrix SL, NumericVector Pi_init, NumericVector lambda, int reps, int burn_in, int sample_int_Pi, int sample_int_PofZ, int sample_total_catch, IntegerVector total_catch_vals);
+RcppExport SEXP _rubias_gsi_mcmc_1(SEXP SLSEXP, SEXP Pi_initSEXP, SEXP lambdaSEXP, SEXP repsSEXP, SEXP burn_inSEXP, SEXP sample_int_PiSEXP, SEXP sample_int_PofZSEXP, SEXP sample_total_catchSEXP, SEXP total_catch_valsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -161,7 +174,9 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type burn_in(burn_inSEXP);
     Rcpp::traits::input_parameter< int >::type sample_int_Pi(sample_int_PiSEXP);
     Rcpp::traits::input_parameter< int >::type sample_int_PofZ(sample_int_PofZSEXP);
-    rcpp_result_gen = Rcpp::wrap(gsi_mcmc_1(SL, Pi_init, lambda, reps, burn_in, sample_int_Pi, sample_int_PofZ));
+    Rcpp::traits::input_parameter< int >::type sample_total_catch(sample_total_catchSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type total_catch_vals(total_catch_valsSEXP);
+    rcpp_result_gen = Rcpp::wrap(gsi_mcmc_1(SL, Pi_init, lambda, reps, burn_in, sample_int_Pi, sample_int_PofZ, sample_total_catch, total_catch_vals));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -189,6 +204,18 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// tabulate_allocations
+IntegerVector tabulate_allocations(IntegerVector C, int n);
+RcppExport SEXP _rubias_tabulate_allocations(SEXP CSEXP, SEXP nSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< IntegerVector >::type C(CSEXP);
+    Rcpp::traits::input_parameter< int >::type n(nSEXP);
+    rcpp_result_gen = Rcpp::wrap(tabulate_allocations(C, n));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_rubias_rcpp_close_matchers", (DL_FUNC) &_rubias_rcpp_close_matchers, 3},
@@ -198,13 +225,15 @@ static const R_CallMethodDef CallEntries[] = {
     {"_rubias_rcpp_indiv_specific_logl_means_and_vars", (DL_FUNC) &_rubias_rcpp_indiv_specific_logl_means_and_vars, 2},
     {"_rubias_rcpp_per_locus_logls", (DL_FUNC) &_rubias_rcpp_per_locus_logls, 1},
     {"_rubias_samp_from_mat", (DL_FUNC) &_rubias_samp_from_mat, 1},
+    {"_rubias_rmultinom_1", (DL_FUNC) &_rubias_rmultinom_1, 3},
     {"_rubias_gprob_sim_gc", (DL_FUNC) &_rubias_gprob_sim_gc, 2},
     {"_rubias_gprob_sim_ind", (DL_FUNC) &_rubias_gprob_sim_ind, 2},
     {"_rubias_gprob_sim_gc_missing", (DL_FUNC) &_rubias_gprob_sim_gc_missing, 3},
     {"_rubias_gsi_em_1", (DL_FUNC) &_rubias_gsi_em_1, 5},
-    {"_rubias_gsi_mcmc_1", (DL_FUNC) &_rubias_gsi_mcmc_1, 7},
+    {"_rubias_gsi_mcmc_1", (DL_FUNC) &_rubias_gsi_mcmc_1, 9},
     {"_rubias_dirch_from_allocations", (DL_FUNC) &_rubias_dirch_from_allocations, 2},
     {"_rubias_dirch_from_counts", (DL_FUNC) &_rubias_dirch_from_counts, 2},
+    {"_rubias_tabulate_allocations", (DL_FUNC) &_rubias_tabulate_allocations, 2},
     {NULL, NULL, 0}
 };
 
