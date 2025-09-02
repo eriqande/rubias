@@ -374,7 +374,9 @@ infer_mixture <- function(reference,
 
 
     message("Working on mixture collection: ", little_mix$collection[1], " with ", nrow(little_mix), " individuals")
-    message("tot_catch_vec: ", paste(tot_catch_vec[1:8], collapse = " "), "...")
+    if(!is.null(total_catch_tib)) {
+      message("tot_catch_vec: ", paste(tot_catch_vec[1:12], collapse = " "), "...")
+    }
 
     mix_I <- allelic_list(little_mix, ac, samp_type = "mixture")$int
     coll <- rep(0,length(mix_I[[1]]$a))  # populations of each individual in mix_I; not applicable for mixture samples
