@@ -10,7 +10,7 @@ infer_mixture(
   gen_start_col,
   method = "MCMC",
   alle_freq_prior = list(const_scaled = 1),
-  pi_prior = NA,
+  pi_prior = NULL,
   pi_init = NULL,
   reps = 2000,
   burn_in = 100,

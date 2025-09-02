@@ -157,17 +157,6 @@ rcpp_per_locus_logls <- function(par_list) {
     .Call('_rubias_rcpp_per_locus_logls', PACKAGE = 'rubias', par_list)
 }
 
-#' Simulate a single multinomial vector from within Rcpp
-#'
-#' From: https://gallery.rcpp.org/articles/recreating-rmultinom-and-rpois-with-rcpp/
-#'
-#' @keywords internal
-#' @param size the number of trials
-#' @param probs  the cell probabilities
-#' @param N the number of cells
-#' @return An IntegerVector of length N
-NULL
-
 #' Sample 1 observation from cell probabilities that are columns of a matrix
 #'
 #' Takes a matrix in which columns sum to one. For each column, performs a
@@ -184,6 +173,16 @@ samp_from_mat <- function(M) {
     .Call('_rubias_samp_from_mat', PACKAGE = 'rubias', M)
 }
 
+#' Simulate a single multinomial vector from within Rcpp
+#'
+#' From: https://gallery.rcpp.org/articles/recreating-rmultinom-and-rpois-with-rcpp/
+#'
+#' @keywords internal
+#' @param size the number of trials
+#' @param probs  the cell probabilities
+#' @param N the number of cells
+#' @return An IntegerVector of length N
+#' @export
 rmultinom_1 <- function(size, probs, N) {
     .Call('_rubias_rmultinom_1', PACKAGE = 'rubias', size, probs, N)
 }

@@ -35,14 +35,13 @@
 #' genetic data sets that are useful for playing around with rubias and testing it
 #' out.
 #'
-#' @docType package
 #' @name rubias
 #' @importFrom stats rbeta rmultinom var
 #' @importFrom utils write.table
 #' @importFrom Rcpp evalCpp
 #' @importFrom RcppParallel RcppParallelLibs
 #' @useDynLib rubias
-NULL
+"_PACKAGE"
 
 
 # quiets concerns of R CMD check re: the . and other column names

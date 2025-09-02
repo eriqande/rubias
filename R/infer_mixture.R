@@ -82,7 +82,7 @@ infer_mixture <- function(reference,
                           gen_start_col,
                           method = "MCMC",
                           alle_freq_prior = list("const_scaled" = 1),
-                          pi_prior = NA,
+                          pi_prior = NULL,
                           pi_init = NULL,
                           reps = 2000,
                           burn_in = 100,
@@ -209,7 +209,7 @@ infer_mixture <- function(reference,
   mix_num_loci <- count_missing_data(mixture, orig_gen_start_col)
 
   # Check for valid prior on pi
-  if(!(identical(pi_prior, NA))) {
+  if(!is.null(pi_prior)) {
     if(any(is.na(pi_prior))) stop("Custom pi_prior vectors may not contain NA values")
 
     if(is.numeric(pi_prior)) {
@@ -222,7 +222,7 @@ infer_mixture <- function(reference,
       valid_colls <- c(as.character(unique(reference$collection)), "DEFAULT_PI")
       if(!(setequal(pi_prior$collection, intersect(pi_prior$collection, valid_colls)))) stop("Invalid collection name \"", setdiff(pi_prior$collection, intersect(pi_prior$collection, valid_colls)), "\" in pi_prior")
 
-    } else stop("pi_prior must be NA, a numeric vector, or a data frame")
+    } else stop("pi_prior must be NULL, a numeric vector, or a data frame")
   }
 
 
@@ -391,7 +391,7 @@ infer_mixture <- function(reference,
     params$ploidies <- as.integer(unname(ploidies[params$locus_names]))
 
     ## create priors on pi, if no non-default priors are submitted
-    if(is.na(pi_prior)) {
+    if(is.null(pi_prior)) {
       lambda <- rep(pi_prior_sum / params$C, params$C)
     } else {
       if(is.numeric(pi_prior)) {

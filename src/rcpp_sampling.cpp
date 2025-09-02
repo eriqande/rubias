@@ -50,8 +50,8 @@ IntegerVector samp_from_mat(NumericMatrix M) {
 //' @param probs  the cell probabilities
 //' @param N the number of cells
 //' @return An IntegerVector of length N
- //' @export
- // [[Rcpp::export]]
+//' @export
+// [[Rcpp::export]]
 IntegerVector rmultinom_1(unsigned int &size, NumericVector &probs, unsigned int &N) {
   IntegerVector outcome(N);
   rmultinom(size, probs.begin(), N, outcome.begin());

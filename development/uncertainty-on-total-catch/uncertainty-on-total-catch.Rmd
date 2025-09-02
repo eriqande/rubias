@@ -5,9 +5,11 @@ date: "`r Sys.Date()`"
 output:
   html_document:
     df_print: paged
+    toc: true
   word_document: default
   pdf_document:
     fig_caption: true
+    toc: true
 ---
 
 
@@ -124,7 +126,9 @@ $\btheta_\ell$ are the unknown population allele freqeunces at locus $\ell$, and
 $\bgamma_\ell$ are the priors on those frequencies.  MCMC
 sampling in this model proceeds using Gibbs sampling, with $\bpi$, $\bZ_i$, and
 $\btheta_\ell$ being updated during each sweep of the algorithm by drawing each
-new value from its full conditional distribution.
+new value from its full conditional distribution.  (A "sweep" in this context is
+a cycle of the MCMC algorithm during which values have been updated for
+all the variables in the model.)
 
 ```{r stock-spec, echo=FALSE, out.width="42%", fig.align='center', fig.cap="Acyclic directed graph showing the augemented standard conditional GSI model to include additional fish in the catch that were not inlcluded in the GSI analysis."}
 if (knitr::is_latex_output()) {
@@ -394,31 +398,16 @@ in the actual fraction of the fishery that was sampled.
 
 
 
-
-## Implementation
-
-Here is how I am planning to implement this, from the user's perspective.
-
-The plan is to implement this by allowing users to supply another variable called
-`total_catch` to the `infer_mixture()` function in rubias.  The variable `total_catch`
-must be a tibble with the two columns: `mixture_collection` and `catch`.  This is necessary
-because 'rubias' can analyze mixtures from multiple locations separately from a
-single tibble of genotypes.  In each row, the `catch` column can contain either a
-single integer, in which case that value is assumed to be $R$ for every sweep for that
-particular mixture.  Or the entry in `catch` can be vector of integers.  If so, that
-vector, is assumed to be a sample from the posterior distibution for the
-total catch and each value will be used for $R$, successively, and recycled as
-needed.
-
-The `total_catch` option will only be available with `method = "MCMC"`.  
-
-When the `total_catch` option is given, the output list from `infer_mixture()` will
-include a component called `total_catch_posterior_sample` that will include the
-sampled values of $C_\mathrm{ss}$ over all sweeps of the MCMC algorithm.  
-
 ## Notes:
 
-We don't need to do it for the preliminary steps in the BR method.  We can add
-it in after that.
-
-We might as well do it for the burn-in period, I think. 
+1. I still need to implement this for the BR (Bayesian Resampling) method.
+That should be relatively straigtforward. The difficult book-keeping parts have
+been done and now it is a matter of adding a few pieces of code around line
+213 in rcpp_fullBayes_mcmc.cpp.
+     * We don't need to do SSTC sampling for the preliminary steps in the BR method.
+2. The variable mortality rates (the probability with which individuals in the
+sample are included in the total catch or not---to accommodate test fishery fish, etc.)
+is not yet implemented, but will be pretty quick. I've done everything else with
+a mind to implementing that easily.  
+3. This is currently passing all CRAN checks so that it should be pretty quick to
+get it up on CRAN.  
