@@ -125,7 +125,8 @@ List gsi_mcmc_1(
     // of the fish in the mixture.  Doing so gives us access to them, which
     // allows us to sample from the posterior predictive of the total catch.
     IntegerVector Zeds = samp_from_mat(posts);
-    if(i % 500 == 0)  Rcpp::Rcout << "i= " << i << "     Zeds= " << Zeds << std::endl;
+
+    //if(i % 500 == 0)  Rcpp::Rcout << "i= " << i << "     Zeds= " << Zeds << std::endl;
 
     // finally, here we update pi
     pi = dirch_from_allocations(Zeds, lambda);
@@ -145,7 +146,7 @@ List gsi_mcmc_1(
       }
 
 
-      if(i % 500 == 0)  Rcpp::Rcout << "i= " << i << "  NewZeds= " << Zeds << std::endl;
+      //if(i % 500 == 0)  Rcpp::Rcout << "i= " << i << "  NewZeds= " << Zeds << std::endl;
 
 
       // count up the current allocations (the catch contribution of the actual samples)
@@ -159,15 +160,16 @@ List gsi_mcmc_1(
       unsigned int ncell = pi.length();
       unsigned int rem_catch_uns = remaining_catch;
 
-      if(i % 500 == 0)  Rcpp::Rcout << "i= " << i << "  NumThatAreCatch= " << NumThatAreCatch << "   rem_catch_uns= " << rem_catch_uns << std::endl;
+      //if(i % 500 == 0)  Rcpp::Rcout << "i= " << i << "  NumThatAreCatch= " << NumThatAreCatch << "   rem_catch_uns= " << rem_catch_uns << std::endl;
 
       // simulate the posterior predictive of the "remaining catch", PPRC
       IntegerVector PPRC = rmultinom_1(rem_catch_uns, pi, ncell);
 
-      if(i % 500 == 0) Rcpp::Rcout << "i= " << i << "  PPRC= " << PPRC << std::endl;
+      //if(i % 500 == 0) Rcpp::Rcout << "i= " << i << "  PPRC= " << PPRC << std::endl;
 
 
-      if(i % 500 == 0) Rcpp::Rcout << "i= " << i << "  CUAL= " << CurrentAllocations << std::endl;
+      //if(i % 500 == 0) Rcpp::Rcout << "i= " << i << "  CUAL= " << CurrentAllocations << std::endl;
+
       SSC_list.push_back(PPRC + CurrentAllocations);
 
       // Hey Eric!  Return the SSC_list as done here, but also you are going to
