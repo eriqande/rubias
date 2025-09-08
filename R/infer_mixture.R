@@ -508,7 +508,11 @@ infer_mixture <- function(reference,
                             reps = prelim_reps,
                             burn_in = prelim_burn_in,
                             sample_int_Pi = sample_int_Pi,
-                            sample_int_PofZ = sample_int_PofZ)
+                            sample_int_PofZ = sample_int_PofZ,
+                            sample_total_catch = as.integer(!is.null(total_catch_tib)),
+                            total_catch_vals = tot_catch_vec,
+                            variable_prob_is_catch = doin_variable_prob_is_catch,
+                            prob_is_catch_vec = prob_is_catch_vec)
         })
       } else {
         message("  performing ", reps, " total sweeps, ", burn_in, " of which are burn-in and will not be used in computing averages in method \"MCMC\"", appendLF = FALSE)
@@ -552,7 +556,11 @@ infer_mixture <- function(reference,
                           reps = reps,
                           burn_in = burn_in,
                           sample_int_Pi = sample_int_Pi,
-                          sample_int_PofZ = sample_int_PofZ)
+                          sample_int_PofZ = sample_int_PofZ,
+                          sample_total_catch = as.integer(!is.null(total_catch_tib)),
+                          total_catch_vals = tot_catch_vec,
+                          variable_prob_is_catch = doin_variable_prob_is_catch,
+                          prob_is_catch_vec = prob_is_catch_vec)
         names(out) <- c("mean","sd","trace")
       })
       message("   time: ", sprintf("%.2f", time_mcmc2["elapsed"]), " seconds")

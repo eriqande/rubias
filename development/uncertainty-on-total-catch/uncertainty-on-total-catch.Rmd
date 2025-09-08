@@ -243,6 +243,10 @@ of that posterior can be obtained like this
 ```{r, warning=FALSE, message=FALSE}
 library(tidyverse)
 library(rubias)
+rubi_method <-  "MCMC"  # set this to BR if you want to run everything using Ben's
+                       # "Bayesian Resampling" approach in which the allele frequencies
+                       # are updated according to the allocations of the fish in the
+                       # mixture.
 set.seed(3)
 rec3_tot_catch_sample <- rbeta(5000, 16, 48)
 ```
@@ -377,7 +381,10 @@ mix_ests_with_catch <- infer_mixture(
   reference = chinook,
   mixture = chinook_mix,
   gen_start_col = 5, 
-  total_catch_tib = total_catches
+  total_catch_tib = total_catches,
+  method = rubi_method,
+  prelim_reps = 100,
+  prelim_burn_in = 50
 )
 ```
 After that has run, the tibble in `mix_ests_with_catch$stock_specific_total_catch_traces`
@@ -560,6 +567,7 @@ catch_ests_with_var <- infer_mixture(
   reference = new_reference,
   mixture = chinook_mix_with_probs,
   gen_start_col = 6,
+  method = rubi_method,
   total_catch_tib = total_catches,
   variable_prob_is_catch = TRUE
 )
@@ -598,5 +606,20 @@ ggplot(three_counts_var, aes(x = n, fill = count_type)) +
 ```
 
 That all looks as it should.
+
+### Using this with the "Fully-Bayesian" model
+
+The function `infer_mixture()` allows for a model in which the allele frequencies
+are themselves updated in the MCMC by including the gene copies of fish from the
+mixture that are allocated to each collection.  This model is invoked using the
+`method = "BR"` option to `infer_mixture()`.  The "BR" stands for "Bayesian Resampling"
+(of allele frequencies).  All the stock-specific total catch estimation procedures
+described above has also been implemented in this "BR" method.  We don't show them
+natively in the vignette because it takes considerably longer and likely would not
+pass CRAN checks as a consequence.  However, you can run all the above steps using the
+"BR" model by simply setting the variable `rubi_method <- "BR"` in the first R code
+block below the "Examples" section header.
+
+
 
 ## Citations

@@ -24,8 +24,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // gsi_mcmc_fb
-List gsi_mcmc_fb(List par_list, NumericVector Pi_init, NumericVector lambda, int reps, int burn_in, int sample_int_Pi, int sample_int_PofZ);
-RcppExport SEXP _rubias_gsi_mcmc_fb(SEXP par_listSEXP, SEXP Pi_initSEXP, SEXP lambdaSEXP, SEXP repsSEXP, SEXP burn_inSEXP, SEXP sample_int_PiSEXP, SEXP sample_int_PofZSEXP) {
+List gsi_mcmc_fb(List par_list, NumericVector Pi_init, NumericVector lambda, int reps, int burn_in, int sample_int_Pi, int sample_int_PofZ, int sample_total_catch, IntegerVector total_catch_vals, int variable_prob_is_catch, NumericVector prob_is_catch_vec);
+RcppExport SEXP _rubias_gsi_mcmc_fb(SEXP par_listSEXP, SEXP Pi_initSEXP, SEXP lambdaSEXP, SEXP repsSEXP, SEXP burn_inSEXP, SEXP sample_int_PiSEXP, SEXP sample_int_PofZSEXP, SEXP sample_total_catchSEXP, SEXP total_catch_valsSEXP, SEXP variable_prob_is_catchSEXP, SEXP prob_is_catch_vecSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -36,7 +36,11 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type burn_in(burn_inSEXP);
     Rcpp::traits::input_parameter< int >::type sample_int_Pi(sample_int_PiSEXP);
     Rcpp::traits::input_parameter< int >::type sample_int_PofZ(sample_int_PofZSEXP);
-    rcpp_result_gen = Rcpp::wrap(gsi_mcmc_fb(par_list, Pi_init, lambda, reps, burn_in, sample_int_Pi, sample_int_PofZ));
+    Rcpp::traits::input_parameter< int >::type sample_total_catch(sample_total_catchSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type total_catch_vals(total_catch_valsSEXP);
+    Rcpp::traits::input_parameter< int >::type variable_prob_is_catch(variable_prob_is_catchSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type prob_is_catch_vec(prob_is_catch_vecSEXP);
+    rcpp_result_gen = Rcpp::wrap(gsi_mcmc_fb(par_list, Pi_init, lambda, reps, burn_in, sample_int_Pi, sample_int_PofZ, sample_total_catch, total_catch_vals, variable_prob_is_catch, prob_is_catch_vec));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -234,7 +238,7 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_rubias_rcpp_close_matchers", (DL_FUNC) &_rubias_rcpp_close_matchers, 3},
-    {"_rubias_gsi_mcmc_fb", (DL_FUNC) &_rubias_gsi_mcmc_fb, 7},
+    {"_rubias_gsi_mcmc_fb", (DL_FUNC) &_rubias_gsi_mcmc_fb, 11},
     {"_rubias_geno_logL", (DL_FUNC) &_rubias_geno_logL, 1},
     {"_rubias_geno_logL_ssq", (DL_FUNC) &_rubias_geno_logL_ssq, 1},
     {"_rubias_rcpp_indiv_specific_logl_means_and_vars", (DL_FUNC) &_rubias_rcpp_indiv_specific_logl_means_and_vars, 2},

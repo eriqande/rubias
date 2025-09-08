@@ -25,6 +25,14 @@ using namespace RcppParallel;
 //' @param sample_int_Pi the number of reps between samples being taken for Pi traces.  If 0 no trace samples are taken
 //' @param sample_int_PofZ the number of reps between samples being taken for the traces of posterior of each individual's origin. If 0
 //' no trace samples are taken.
+//'  @param sample_total_catch integer. Set it to 1 if you want to sample the total-stock specific catch. If so,
+//' then you have to set `total_catch_vals` appropriately.
+//' @param total_catch_vals an integer vector of length reps that holds the total catch.  It is a vector to allow
+//' for this to be a sample from the posterior for the total catch.
+//' @param variable_prob_is_catch integer. Set to 1 if samples have different probabilities of being
+//' considered catch.  If it is 1, then \code{prob_is_catch_vec} must be provided.
+//' @param prob_is_catch_vec NumericVector of probabilities that each individual in the sample should
+//' be considered catch.
 //'
 //' @return \code{gsi_mcmc_fb} returns a list of three. \code{$mean} lists the posterior
 //' means for collection proportions \code{pi}, for the individual posterior
@@ -50,8 +58,19 @@ using namespace RcppParallel;
 //' mcmc <- gsi_mcmc_fb(params, lambda, lambda, 20, 5, 4, 4)
 //' @export
 // [[Rcpp::export]]
-List gsi_mcmc_fb(List par_list, NumericVector Pi_init, NumericVector lambda,
-                 int reps, int burn_in, int sample_int_Pi, int sample_int_PofZ) {
+List gsi_mcmc_fb(
+    List par_list,
+    NumericVector Pi_init,
+    NumericVector lambda,
+    int reps,
+    int burn_in,
+    int sample_int_Pi,
+    int sample_int_PofZ,
+    int sample_total_catch = 0,
+    IntegerVector total_catch_vals = IntegerVector::create(-1),  // this makes the default a vector of length 1, holding -1.  Hopefully this will work when the user does not give a value for this...
+    int variable_prob_is_catch = 0,
+    NumericVector prob_is_catch_vec = NumericVector::create(-1)
+  ) {
 
   // Code from geno_logl, creating C X N loglikelihood matrix
   int r, i, c, l, a1, a2;
@@ -71,6 +90,10 @@ List gsi_mcmc_fb(List par_list, NumericVector Pi_init, NumericVector lambda,
 
   List pi_list;
   List PofZ_list;
+  List SSC_list;   // For gathering stock-specific total catch over the iterations
+  List PPRC_list;  // (PPRC = posterior-predictive remaining catch) for gathering stock-specific remaining catch over iterations (i.e., the part simulated from the posterior predictive of the non-sampled fish)
+  List CA_list;   // (CA = Current Allocations) for gathering a summary of the current allocations over the iterations.
+                  // Note: SSC = CA + PPRC.  I just want to be able to return it broken out by CA and PPRC
   List trace, mean, sd, ret;
   NumericVector pi = clone(Pi_init);
   NumericVector pi_sums(Pi_init.size());
@@ -209,6 +232,12 @@ List gsi_mcmc_fb(List par_list, NumericVector Pi_init, NumericVector lambda,
 
     // allocate individuals to populations and simulate a new pi
     allocs = samp_from_mat(posts);
+
+
+    // Copy allocs into Zeds for stock-specific total catch stuff
+    IntegerVector Zeds = clone(allocs);
+
+
     pi = dirch_from_allocations(allocs, lambda);
 
     // compute a new Dirichlet Parameter Vector based on the allocations
@@ -240,12 +269,66 @@ List gsi_mcmc_fb(List par_list, NumericVector Pi_init, NumericVector lambda,
 
         }
       }
-    }
-  }
+    } // Done with computing a new Dirichlet Parameter Vector
+
+
+    // Now, deal with all the stock-specific total catch stuff
+    if(sample_total_catch != 0) {
+
+      int NumThatAreCatch = N;  // by default, everyone is catch, N = number of samples
+
+      // now, if we have variable_prob_is_catch we need to simulate whether
+      // these individuals are part of the catch or not.  If they are not
+      // part of the catch, we assign them -1's. This also updates NumThatAreCatch
+      if(variable_prob_is_catch == 1) {
+        Zeds = turn_non_catch_to_minus_one(Zeds, prob_is_catch_vec, NumThatAreCatch);
+      }
+
+
+      //if(i % 500 == 0)  Rcpp::Rcout << "i= " << i << "  NewZeds= " << Zeds << std::endl;
+
+
+      // count up the current allocations (the catch contribution of the actual samples)
+      IntegerVector CurrentAllocations = tabulate_allocations(Zeds, C);
+
+
+
+      int remaining_catch = total_catch_vals(i) - NumThatAreCatch;
+      if(remaining_catch < 0) remaining_catch = 0;
+
+      unsigned int ncell = pi.length();
+      unsigned int rem_catch_uns = remaining_catch;
+
+      //if(i % 500 == 0)  Rcpp::Rcout << "i= " << i << "  NumThatAreCatch= " << NumThatAreCatch << "   rem_catch_uns= " << rem_catch_uns << std::endl;
+
+      // simulate the posterior predictive of the "remaining catch", PPRC
+      IntegerVector PPRC = rmultinom_1(rem_catch_uns, pi, ncell);
+
+      //if(i % 500 == 0) Rcpp::Rcout << "i= " << i << "  PPRC= " << PPRC << std::endl;
+
+
+      //if(i % 500 == 0) Rcpp::Rcout << "i= " << i << "  CUAL= " << CurrentAllocations << std::endl;
+
+      SSC_list.push_back(PPRC + CurrentAllocations);
+      // Hey Eric!  Return the SSC_list as done here, but also you are going to
+      // want to return the Remaining and the CurrentAllocations separately...
+      PPRC_list.push_back(PPRC);
+      CA_list.push_back(CurrentAllocations);
+
+    }  // end of stock-specific catch block
+
+
+
+  }  // close loop over r (reps)
 
   // put the traces in there if there are any
-  trace = List::create(pi_list, PofZ_list);
-  trace.names() = CharacterVector::create("pi", "PofZ");
+  if(sample_total_catch == 0) {
+    trace = List::create(pi_list, PofZ_list);
+    trace.names() = CharacterVector::create("pi", "PofZ");
+  } else {
+    trace = List::create(pi_list, PofZ_list, SSC_list, PPRC_list, CA_list);
+    trace.names() = CharacterVector::create("pi", "PofZ", "SSTC", "PPRC", "CA");
+  }
 
   // put the means and standard devs and traces in the return variable
   post_sums = post_sums / num_samp;

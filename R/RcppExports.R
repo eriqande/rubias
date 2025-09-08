@@ -34,6 +34,14 @@ rcpp_close_matchers <- function(par_list, non_miss_fract, match_fract) {
 #' @param sample_int_Pi the number of reps between samples being taken for Pi traces.  If 0 no trace samples are taken
 #' @param sample_int_PofZ the number of reps between samples being taken for the traces of posterior of each individual's origin. If 0
 #' no trace samples are taken.
+#'  @param sample_total_catch integer. Set it to 1 if you want to sample the total-stock specific catch. If so,
+#' then you have to set `total_catch_vals` appropriately.
+#' @param total_catch_vals an integer vector of length reps that holds the total catch.  It is a vector to allow
+#' for this to be a sample from the posterior for the total catch.
+#' @param variable_prob_is_catch integer. Set to 1 if samples have different probabilities of being
+#' considered catch.  If it is 1, then \code{prob_is_catch_vec} must be provided.
+#' @param prob_is_catch_vec NumericVector of probabilities that each individual in the sample should
+#' be considered catch.
 #'
 #' @return \code{gsi_mcmc_fb} returns a list of three. \code{$mean} lists the posterior
 #' means for collection proportions \code{pi}, for the individual posterior
@@ -58,8 +66,8 @@ rcpp_close_matchers <- function(par_list, non_miss_fract, match_fract) {
 #' # when checking on CRAN
 #' mcmc <- gsi_mcmc_fb(params, lambda, lambda, 20, 5, 4, 4)
 #' @export
-gsi_mcmc_fb <- function(par_list, Pi_init, lambda, reps, burn_in, sample_int_Pi, sample_int_PofZ) {
-    .Call('_rubias_gsi_mcmc_fb', PACKAGE = 'rubias', par_list, Pi_init, lambda, reps, burn_in, sample_int_Pi, sample_int_PofZ)
+gsi_mcmc_fb <- function(par_list, Pi_init, lambda, reps, burn_in, sample_int_Pi, sample_int_PofZ, sample_total_catch = 0L, total_catch_vals = as.integer( c(-1)), variable_prob_is_catch = 0L, prob_is_catch_vec = as.numeric( c(-1))) {
+    .Call('_rubias_gsi_mcmc_fb', PACKAGE = 'rubias', par_list, Pi_init, lambda, reps, burn_in, sample_int_Pi, sample_int_PofZ, sample_total_catch, total_catch_vals, variable_prob_is_catch, prob_is_catch_vec)
 }
 
 #' Calculate a matrix of genotype log-likelihoods for a genetic dataset
