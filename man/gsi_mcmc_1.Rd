@@ -13,7 +13,9 @@ gsi_mcmc_1(
   sample_int_Pi,
   sample_int_PofZ,
   sample_total_catch = 0L,
-  total_catch_vals = as.integer(c(-1))
+  total_catch_vals = as.integer(c(-1)),
+  variable_prob_is_catch = 0L,
+  prob_is_catch_vec = as.numeric(c(-1))
 )
 }
 \arguments{
@@ -40,6 +42,12 @@ then you have to set `total_catch_vals` appropriately.}
 
 \item{total_catch_vals}{an integer vector of length reps that holds the total catch.  It is a vector to allow
 for this to be a sample from the posterior for the total catch.}
+
+\item{variable_prob_is_catch}{integer. Set to 1 if samples have different probabilities of being
+considered catch.  If it is 1, then \code{prob_is_catch_vec} must be provided.}
+
+\item{prob_is_catch_vec}{NumericVector of probabilities that each individual in the sample should
+be considered catch.}
 }
 \value{
 \code{gsi_mcmc_1} returns a list of three. \code{$mean} lists the posterior

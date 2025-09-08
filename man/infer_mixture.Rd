@@ -20,7 +20,8 @@ infer_mixture(
   sample_int_Pi = 1,
   sample_theta = TRUE,
   pi_prior_sum = 1,
-  total_catch_tib = NULL
+  total_catch_tib = NULL,
+  variable_prob_is_catch = FALSE
 )
 }
 \arguments{
@@ -90,6 +91,9 @@ catch from the fishery.  That could be a single number, or it could be a sample 
 distribution of the total catch.  Providing a value for this parameter will make the function
 return a sample from the posterior for stock-specific total catch. Note that if you use this option
 then every single mixture collection in `mixture` must be represented in `total_catch_tib`.}
+
+\item{variable_prob_is_catch}{a logical indicating whether to use the `catch_is_prob` column to simulate
+for each fish whether or not it should be considered part of the catch.}
 }
 \value{
 Tidy data frames in a list with the following components:
@@ -97,7 +101,14 @@ mixing_proportions: the estimated mixing proportions of the different collection
 indiv_posteriors: the posterior probs of fish being from each of the collections.
 mix_prop_traces: the traces of the mixing proportions.  Useful for computing credible intervals.
 bootstrapped_proportions: If using method "PB" this returns the bootstrap corrected
-reporting unit proportions.
+reporting unit proportions.  If `total_catch_tib` is not NULL, then you will also found
+three other components in the output list: `stock_specific_total_catch_traces`,
+`posterior_predictive_remaining_catch_traces` and `allocation_count_traces`.  These
+give samples from the posterior distribution of total catch.  Note that
+`stock_specific_total_catch_traces` is the sum of `posterior_predictive_remaining_catch_traces`
+and `allocation_count_traces`.  All three are returned because it can be instructive
+to be able to decompose the `stock_specific_total_catch_traces` into its two
+constituents.
 }
 \description{
 Takes a mixture and reference dataframe of two-column genetic data, and a

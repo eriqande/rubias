@@ -92,7 +92,9 @@ NumericVector dirch_from_counts(IntegerVector C, NumericVector lambda) {
 //' Given a vector of n different categories in 1...n, count up their occurrences and return in a vector of length n
 //'
 //' I should have written this for the other functions above, but I am just getting to it now
-//' to sum up the Zeds of the fish for the total catch sampling stuff.
+//' to sum up the Zeds of the fish for the total catch sampling stuff.  This is set up so
+//' that if any of the fish have -1 they are skipped.  This lets us use it for
+//' variable_catch_is_prob == TRUE situations.
 //' @keywords internal
 //' @param C a vector of categories taking values of 1,...,n
 //' @param n the number of categories
@@ -101,11 +103,45 @@ NumericVector dirch_from_counts(IntegerVector C, NumericVector lambda) {
 IntegerVector tabulate_allocations(IntegerVector C, int n) {
   int i;
   int N = C.size();  // number of zeds
-  IntegerVector out(n);
+  IntegerVector out(n, 0);  // explicitly initialize to zeroes
 
   for(i = 0; i < N; i++) {
-    out[C[i] - 1] += 1;
+    if(C[i] != -1) out[C[i] - 1] += 1;
   }
 
   return(out);
 }
+
+
+//' Simulate whether fish are part of the catch or not
+//'
+//' This is for the variable_prob_is_catch == TRUE scenario. We simply
+//' go through the vector Z of allocations. For each one, we simulate
+//' a uniform RV.  If that RV is greater than the corresponding term
+//' in P, then we turn that Z into a -1, so it will not be counted by
+//' tabulate_allocations().  NC returns the number that are part of the
+//' catch by reference.
+//' @keywords internal
+ //' @param Z a vector of categories taking values of 1,...,n
+ //' @param P probabilities of being considered "catch" for each of the mixure samples
+ //' @param NC output by reference of the number of fish considered to actually be catch.
+ //' @export
+ // [[Rcpp::export]]
+
+ IntegerVector turn_non_catch_to_minus_one(IntegerVector Z, NumericVector P, int &NC) {
+   int N = Z.size();
+   IntegerVector out(N, 0);
+   NC = 0;
+
+   for (int i = 0; i < N; i++) {
+     double rando = runif(1)[0];
+     if (rando > P[i]) {
+       out[i] = -1;
+     } else {
+       out[i] = Z[i];
+       NC++;
+     }
+   }
+
+   return out;
+ }

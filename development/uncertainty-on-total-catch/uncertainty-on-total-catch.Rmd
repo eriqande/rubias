@@ -181,7 +181,7 @@ fishery might not be considered part of the total catch, and therefore, they
 should not contribute to the estimated impacts on any particular stock that they
 are assigned to.  In other cases, managers might have an independent estimate
 of post-sampling mortality that is not 0.  This can be accommodated, as shown
-in the examples in the "Some Genotypes Samples Might not be Considered Part of the Catch/Mortality" section below.
+in the examples in the "Some Genotypes Sampled Might not be Considered Part of the Catch/Mortality" section below.
 
 
 
@@ -398,9 +398,182 @@ some $772 \times 3 = 2316$ fish.  There will of course be a lot more variation t
 - In the "rec3" fishery, the variability is even greater because there is uncertainty
 in the actual fraction of the fishery that was sampled.
 
-### Some Genotypes Samples Might not be Considered Part of the Catch/Mortality
+It can also be instructive to visualize the total stock-specific catch when it is
+decomposed into the two parts of it: 1) the fish that are actually in the genetic
+sample, and 2) the additional fish (if any) that are part of the catch but not the
+genetic sample.  This is fairly easy---the return object has not just
+`stock_specific_total_catch_traces`, but also:
 
-Still to be implemented and described.  
+- `allocation_count_traces`: the counts of fish in the mixture that are allocated
+  to the catch each iteration.
+- `posterior_predictive_remaining_catch_traces`: the counts of fish sampled from the
+  posterior predictive distribution to account for the total catch.
+
+
+We can pick those out and plot them with the total catch to confirm things are
+working the way that they should.
+```{r}
+CC_pprc <- mix_ests_with_catch$posterior_predictive_remaining_catch_traces %>%
+  group_by(mixture_collection, sweep, repunit) %>%
+  summarise(repunit_pprc = sum(PPRC)) %>%   # column PPRC has the posterior_predictive_remaining_catch
+  filter(sweep > 200, repunit == "CaliforniaCoast")
+
+CC_ac <- mix_ests_with_catch$allocation_count_traces %>%
+  group_by(mixture_collection, sweep, repunit) %>%
+  summarise(repunit_ac = sum(CA)) %>%  # column CA has the allocation_count
+  filter(sweep > 200, repunit == "CaliforniaCoast")
+
+# then join those to the total stock-specific catch and pivot them
+three_counts <- CC_sstc %>%
+  left_join(CC_pprc, by = join_by(mixture_collection, sweep, repunit)) %>%
+  left_join(CC_ac, by = join_by(mixture_collection, sweep, repunit)) %>%
+  pivot_longer(cols = repunit_sstc:repunit_ac, names_to = "count_type", values_to = "n")
+```
+
+We can plot those all together like this:
+```{r}
+ggplot(three_counts, aes(x = n, fill = count_type)) +
+  geom_histogram(binwidth = 1) +
+  facet_grid(count_type ~ mixture_collection, scales = "free")
+```
+
+It is worth taking the time to confirm for yourself that these results are
+exactly as expected, given how the scenarios were designed.
+
+### Some Genotypes Sampled Might not be Considered Part of the Catch/Mortality
+
+There might be times when there is a test fishery that is going on concomitant
+with the retention fishery.  And genotypes from these different fisheries might
+all end up together as a sample from the mixed fishery at a certain time and place.
+If it is the case that fish from the test fishery are released after sampling,
+then it might be appropriate to _not_ treat those fish as catches.  Certainly if
+they survive the sampling process with no adverse impacts, one would not want to
+count them as part of the catch.  It is, however, conceivable that there is some
+mortality associated with the test fishery, and in that case, it might be appropriate
+to treat the fish that died due to participating in the test fishery as part of
+the catch.  It might be the case that when tissues are taken from the test fishery,
+a score is assigned to each fish rating the injuries they received---and hence the
+likelihood that they might die after release.  
+
+Rubias has a simple way of handling all these cases.  Essentially, each fish in the
+mixture is assigned a value between 0 and 1, incluside, in an additional column (which 
+must appear before the
+start of the genotype columns) called `prob_is_catch`.  That is short for "the probability
+this fish is considered to be part of the catch."  A value of 1 means that the fish
+is part of the catch.  A value of 0 means that the fish is certainly _not_ to be
+considered as part of the catch.  And a value of $p$ that is between 0 and 1 means
+that the fish had a probability $p$ of dying after sampling, and if it did die, then
+it should be considered part of the catch.  
+
+In the previous section, **All Fishery Samples are Part of the Catch**, we saw the
+simple case where each fish in the mixture has `prob_is_catch` = 1.  That is the
+default situation: unless otherwise
+specified, every fish in a mixture is considered to be part of the catch.  However,
+if you supply the option `variable_prob_is_catch = TRUE` to the `infer_mixture()`
+function, then that function will require that there is a `prob_is_catch` column,
+and it will use the values within it to account for
+fish from test samples that might not be considered part of the catch. 
+
+We will make up some data here to illustrate different scenarios.  We will imagine
+that:
+
+- Of the 743 "rec1" fishery samples, the first 300 of them were from a test fishery
+  that is believed to have zero mortality, and should not be considered part of the
+  catch.
+- All the 772 "rec2" fishery samples were taken in a test fishery where it is well
+  known that fish are handled roughly.  On average, 1/5 of those released  have a 50% chance of
+  dying as a result of that treatment, and
+  1/5 of the individuals have a 40, 30, 20, and 10% chance of dying and being
+  part of the catch, respectively, as well (this is obviously just for illustration!)
+- All the "rec3" fish are considered to be part of the catch.
+
+We can modify the chinook_mix data set to have a `prob_is_catch` column that
+reflects this:
+```{r}
+chinook_mix_with_probs <- chinook_mix %>%
+  group_by(collection) %>%
+  mutate(
+    prob_is_catch = case_when(
+      collection == "rec1" & (1:n()) <= 300 ~ 0,
+      collection == "rec1" & (1:n()) > 300 ~ 1,
+      collection == "rec2" ~ sample(c(0.5, 0.4, 0.3, 0.2, 0.1), n(), replace = TRUE),
+      collection == "rec3" ~ 1
+    ),
+    .after = indiv
+  ) %>%
+  ungroup()
+```
+
+Let's just verify that this was done correctly by counting up the occurrences
+of different `prob_is_catch` values:
+```{r}
+chinook_mix_with_probs %>%
+  count(collection, prob_is_catch)
+```
+
+That looks pretty good!
+
+One little gotcha here before we pass that off to `infer_mixture()` is with the
+`variable_prob_is_catch = TRUE` is that the reference data set and the mixture data
+set must all have the same columns.  So we need to add the same column to the reference
+data set `chinook`.  We will simply put a column of 0's in there.  (We could have used
+NA's as well, but I think we have to be careful to make sure they are NA_real's.  It
+is simpler to just put numeric values in there---they don't get used in any way...)
+```{r}
+new_reference <- chinook %>%
+  mutate(prob_is_catch = 0.0, .after = indiv)
+```
+
+Now, the genotype data start in the 6th column.  If we run this without the
+`variable_prob_is_catch = TRUE` option, then we will get just what we got
+before, because `infer_mixture()` will not use the `prob_is_catch` column.
+However, when we do include the `variable_prob_is_catch = TRUE` option,
+then the `infer_mixture()` function is going to look for and use the
+information in the `prob_is_catch` column.  
+```{r}
+catch_ests_with_var <- infer_mixture(
+  reference = new_reference,
+  mixture = chinook_mix_with_probs,
+  gen_start_col = 6,
+  total_catch_tib = total_catches,
+  variable_prob_is_catch = TRUE
+)
+```
+
+Let us now look at the resulting numbers, paying careful attention to "rec1",
+which is particularly illuminating.
+Because the total catch is the same as before (743), but 300
+of the mixture sample are _not_ part of the catch, then there is more variation
+in the total catch than before.
+```{r}
+CC_sstc_var <- catch_ests_with_var$stock_specific_total_catch_traces %>%
+  group_by(mixture_collection, sweep, repunit) %>%
+  summarise(repunit_sstc = sum(SSTC)) %>%
+  filter(sweep > 200, repunit == "CaliforniaCoast")
+
+CC_pprc_var <- catch_ests_with_var$posterior_predictive_remaining_catch_traces %>%
+  group_by(mixture_collection, sweep, repunit) %>%
+  summarise(repunit_pprc = sum(PPRC)) %>%   # column PPRC has the posterior_predictive_remaining_catch
+  filter(sweep > 200, repunit == "CaliforniaCoast")
+
+CC_ac_var <- catch_ests_with_var$allocation_count_traces %>%
+  group_by(mixture_collection, sweep, repunit) %>%
+  summarise(repunit_ac = sum(CA)) %>%  # column CA has the allocation_count
+  filter(sweep > 200, repunit == "CaliforniaCoast")
+
+# then join those to the total stock-specific catch and pivot them
+three_counts_var <- CC_sstc_var %>%
+  left_join(CC_pprc_var, by = join_by(mixture_collection, sweep, repunit)) %>%
+  left_join(CC_ac_var, by = join_by(mixture_collection, sweep, repunit)) %>%
+  pivot_longer(cols = repunit_sstc:repunit_ac, names_to = "count_type", values_to = "n")
+
+ggplot(three_counts_var, aes(x = n, fill = count_type)) +
+  geom_histogram(binwidth = 1) +
+  facet_grid(count_type ~ mixture_collection, scales = "free")
+```
+
+That all checks out!
+
 
 ## Notes:
 

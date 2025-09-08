@@ -355,7 +355,10 @@ gsi_em_1 <- function(SL, Pi_init, max_iterations, tolerance, return_progression)
 #' then you have to set `total_catch_vals` appropriately.
 #' @param total_catch_vals an integer vector of length reps that holds the total catch.  It is a vector to allow
 #' for this to be a sample from the posterior for the total catch.
-#'
+#' @param variable_prob_is_catch integer. Set to 1 if samples have different probabilities of being
+#' considered catch.  If it is 1, then \code{prob_is_catch_vec} must be provided.
+#' @param prob_is_catch_vec NumericVector of probabilities that each individual in the sample should
+#' be considered catch.
 #' @return \code{gsi_mcmc_1} returns a list of three. \code{$mean} lists the posterior
 #' means for collection proportions \code{pi} and for the individual posterior
 #' probabilities of assignment \code{PofZ}. \code{$sd} returns the posterior standard
@@ -379,9 +382,20 @@ gsi_em_1 <- function(SL, Pi_init, max_iterations, tolerance, return_progression)
 #' lambda <- rep(1/params$C, params$C)
 #' mcmc <- gsi_mcmc_1(SL, lambda, lambda, 200, 50, 5, 5)
 #' @export
-gsi_mcmc_1 <- function(SL, Pi_init, lambda, reps, burn_in, sample_int_Pi, sample_int_PofZ, sample_total_catch = 0L, total_catch_vals = as.integer( c(-1))) {
-    .Call('_rubias_gsi_mcmc_1', PACKAGE = 'rubias', SL, Pi_init, lambda, reps, burn_in, sample_int_Pi, sample_int_PofZ, sample_total_catch, total_catch_vals)
+gsi_mcmc_1 <- function(SL, Pi_init, lambda, reps, burn_in, sample_int_Pi, sample_int_PofZ, sample_total_catch = 0L, total_catch_vals = as.integer( c(-1)), variable_prob_is_catch = 0L, prob_is_catch_vec = as.numeric( c(-1))) {
+    .Call('_rubias_gsi_mcmc_1', PACKAGE = 'rubias', SL, Pi_init, lambda, reps, burn_in, sample_int_Pi, sample_int_PofZ, sample_total_catch, total_catch_vals, variable_prob_is_catch, prob_is_catch_vec)
 }
+
+#' Simulate whether fish are part of the catch or not
+#'
+#' This is for the variable_prob_is_catch == TRUE scenario. We simply
+#' go through the vector Z of allocations. For each one, we simulate
+#' a uniform RV.  If that RV is greater than the corresponding term
+#' in P, then we turn that Z into a -1, so it will not be counted by
+#' tabulate_allocations().  NC returns the number that are part of the
+#' catch by reference.
+#' @keywords internal
+NULL
 
 #' Given a vector of different categories in 1...n and a prior,
 #' simulate a Dirichlet random vector
@@ -427,12 +441,18 @@ dirch_from_counts <- function(C, lambda) {
 #' Given a vector of n different categories in 1...n, count up their occurrences and return in a vector of length n
 #'
 #' I should have written this for the other functions above, but I am just getting to it now
-#' to sum up the Zeds of the fish for the total catch sampling stuff.
+#' to sum up the Zeds of the fish for the total catch sampling stuff.  This is set up so
+#' that if any of the fish have -1 they are skipped.  This lets us use it for
+#' variable_catch_is_prob == TRUE situations.
 #' @keywords internal
 #' @param C a vector of categories taking values of 1,...,n
 #' @param n the number of categories
 #' @export
 tabulate_allocations <- function(C, n) {
     .Call('_rubias_tabulate_allocations', PACKAGE = 'rubias', C, n)
+}
+
+turn_non_catch_to_minus_one <- function(Z, P, NC) {
+    .Call('_rubias_turn_non_catch_to_minus_one', PACKAGE = 'rubias', Z, P, NC)
 }
 

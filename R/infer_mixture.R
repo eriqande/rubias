@@ -63,12 +63,21 @@
 #' distribution of the total catch.  Providing a value for this parameter will make the function
 #' return a sample from the posterior for stock-specific total catch. Note that if you use this option
 #' then every single mixture collection in `mixture` must be represented in `total_catch_tib`.
+#' @param variable_prob_is_catch a logical indicating whether to use the `catch_is_prob` column to simulate
+#' for each fish whether or not it should be considered part of the catch.
 #' @return Tidy data frames in a list with the following components:
 #' mixing_proportions: the estimated mixing proportions of the different collections.
 #' indiv_posteriors: the posterior probs of fish being from each of the collections.
 #' mix_prop_traces: the traces of the mixing proportions.  Useful for computing credible intervals.
 #' bootstrapped_proportions: If using method "PB" this returns the bootstrap corrected
-#' reporting unit proportions.
+#' reporting unit proportions.  If `total_catch_tib` is not NULL, then you will also found
+#' three other components in the output list: `stock_specific_total_catch_traces`,
+#' `posterior_predictive_remaining_catch_traces` and `allocation_count_traces`.  These
+#' give samples from the posterior distribution of total catch.  Note that
+#' `stock_specific_total_catch_traces` is the sum of `posterior_predictive_remaining_catch_traces`
+#' and `allocation_count_traces`.  All three are returned because it can be instructive
+#' to be able to decompose the `stock_specific_total_catch_traces` into its two
+#' constituents.
 #'
 #' @examples
 #' mcmc <- infer_mixture(reference = small_chinook_ref,
@@ -92,7 +101,8 @@ infer_mixture <- function(reference,
                           sample_int_Pi = 1,
                           sample_theta = TRUE,
                           pi_prior_sum = 1,
-                          total_catch_tib = NULL
+                          total_catch_tib = NULL,
+                          variable_prob_is_catch = FALSE
                         ) {
 
 
@@ -123,6 +133,27 @@ infer_mixture <- function(reference,
     novel_coll <- setdiff(unique(total_catch_tib$collection), unique(mixture$collection))
     if(length(novel_coll) > 0) stop("total_catch_tib collection(s) not included in mixture: ", paste(novel_coll, collapse = ", "))
   }
+
+  # If variable_prob_is_catch is TRUE, we have to ensure several things:
+  # 1. make sure total_catch_tib is not NULL
+  # 2. make sure that the reference and mixture genotypes tibbles have a column
+  #    named prob_is_catch, and that every value is between 0 and 1 inclusive
+  #    in the mixture version.
+  if(variable_prob_is_catch == TRUE) {
+    if(is.null(total_catch_tib)) {
+      stop("When using variable_prob_is_catch = TRUE, you must also supply a total_catch_tib.")
+    }
+    if(!("prob_is_catch" %in% names(reference))) {
+      stop("When using variable_prob_is_catch = TRUE, there must be a column in reference named prob_is_catch.")
+    }
+    if(!("prob_is_catch" %in% names(mixture))) {
+      stop("When using variable_prob_is_catch = TRUE, there must be a column in mixture named prob_is_catch.")
+    }
+    if(!all(mixture$prob_is_catch >= 0 & mixture$prob_is_catch <= 1)) {
+      stop("When using variable_prob_is_catch = TRUE, all entries in the prob_is_catch column in mixture must be between 0 and 1 inclusive.")
+    }
+  }
+
 
   # now, deal with the problem if ploidy is indeterminate in both ref and mix
   both_indet <- ploidies_ref == 0 & ploidies_mix == 0
@@ -371,7 +402,14 @@ infer_mixture <- function(reference,
     little_mix <- mixture_colls_list[[name]]
     tot_catch_vec <- tot_catch_list[[name]]
 
-
+    # make some variables to handle variable_prob_is_catch == TRUE
+    if(variable_prob_is_catch == TRUE) {
+      doin_variable_prob_is_catch <- 1L
+      prob_is_catch_vec <- little_mix$prob_is_catch
+    } else {
+      doin_variable_prob_is_catch <- 0L
+      prob_is_catch_vec <- 1.0  # this is just a dummy to put in there so the Rcpp function does not choke
+    }
 
     message("Working on mixture collection: ", little_mix$collection[1], " with ", nrow(little_mix), " individuals")
     if(!is.null(total_catch_tib)) {
@@ -483,7 +521,9 @@ infer_mixture <- function(reference,
                             sample_int_Pi = sample_int_Pi,
                             sample_int_PofZ = sample_int_PofZ,
                             sample_total_catch = as.integer(!is.null(total_catch_tib)),
-                            total_catch_vals = tot_catch_vec
+                            total_catch_vals = tot_catch_vec,
+                            variable_prob_is_catch = doin_variable_prob_is_catch,
+                            prob_is_catch_vec = prob_is_catch_vec
                             )
         })
       }
@@ -584,11 +624,24 @@ infer_mixture <- function(reference,
                                     car_tib = COLLS_AND_REPS_TIBBLE_CHAR,
                                     interval = sample_int_Pi)
 
-      # and, if we did sampling of stock-specific total catch we get that here too
+      # and, if we did sampling of stock-specific total catch we get that here too, along with
+      # the posterior-predictive remaining catch and the current allocations
       if(!is.null(total_catch_tib)) {
         sstc_traces <- tidy_pi_traces(
           input = out$trace$SSTC,
           pname = "SSTC",
+          car_tib = COLLS_AND_REPS_TIBBLE_CHAR,
+          interval = 1
+        )
+        pprc_traces <- tidy_pi_traces(
+          input = out$trace$PPRC,
+          pname = "PPRC",
+          car_tib = COLLS_AND_REPS_TIBBLE_CHAR,
+          interval = 1
+        )
+        allocation_count_traces <- tidy_pi_traces(
+          input = out$trace$CA,
+          pname = "CA",
           car_tib = COLLS_AND_REPS_TIBBLE_CHAR,
           interval = 1
         )
@@ -637,8 +690,11 @@ infer_mixture <- function(reference,
     }
 
     # and, if we did stock-specific total catch sampling, send that back too
+    # along with its component parts
     if(!is.null(total_catch_tib)) {
       ret$stock_specific_total_catch_traces <- sstc_traces
+      ret$posterior_predictive_remaining_catch_traces <- pprc_traces
+      ret$allocation_count_traces <- allocation_count_traces
     }
     ret   # return the list
   })
@@ -676,6 +732,10 @@ infer_mixture <- function(reference,
   # finally, here we bung together the stock-specific total catch
   if(!is.null(total_catch_tib)) {
     ret$stock_specific_total_catch_traces <- lapply(big_output_list, function(x) x$stock_specific_total_catch_traces) %>%
+      dplyr::bind_rows(.id = "mixture_collection")
+    ret$posterior_predictive_remaining_catch_traces <- lapply(big_output_list, function(x) x$posterior_predictive_remaining_catch_traces) %>%
+      dplyr::bind_rows(.id = "mixture_collection")
+    ret$allocation_count_traces <- lapply(big_output_list, function(x) x$allocation_count_traces) %>%
       dplyr::bind_rows(.id = "mixture_collection")
   }
 

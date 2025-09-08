@@ -13,6 +13,8 @@ tabulate_allocations(C, n)
 }
 \description{
 I should have written this for the other functions above, but I am just getting to it now
-to sum up the Zeds of the fish for the total catch sampling stuff.
+to sum up the Zeds of the fish for the total catch sampling stuff.  This is set up so
+that if any of the fish have -1 they are skipped.  This lets us use it for
+variable_catch_is_prob == TRUE situations.
 }
 \keyword{internal}

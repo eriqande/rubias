@@ -162,8 +162,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // gsi_mcmc_1
-List gsi_mcmc_1(NumericMatrix SL, NumericVector Pi_init, NumericVector lambda, int reps, int burn_in, int sample_int_Pi, int sample_int_PofZ, int sample_total_catch, IntegerVector total_catch_vals);
-RcppExport SEXP _rubias_gsi_mcmc_1(SEXP SLSEXP, SEXP Pi_initSEXP, SEXP lambdaSEXP, SEXP repsSEXP, SEXP burn_inSEXP, SEXP sample_int_PiSEXP, SEXP sample_int_PofZSEXP, SEXP sample_total_catchSEXP, SEXP total_catch_valsSEXP) {
+List gsi_mcmc_1(NumericMatrix SL, NumericVector Pi_init, NumericVector lambda, int reps, int burn_in, int sample_int_Pi, int sample_int_PofZ, int sample_total_catch, IntegerVector total_catch_vals, int variable_prob_is_catch, NumericVector prob_is_catch_vec);
+RcppExport SEXP _rubias_gsi_mcmc_1(SEXP SLSEXP, SEXP Pi_initSEXP, SEXP lambdaSEXP, SEXP repsSEXP, SEXP burn_inSEXP, SEXP sample_int_PiSEXP, SEXP sample_int_PofZSEXP, SEXP sample_total_catchSEXP, SEXP total_catch_valsSEXP, SEXP variable_prob_is_catchSEXP, SEXP prob_is_catch_vecSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -176,7 +176,9 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type sample_int_PofZ(sample_int_PofZSEXP);
     Rcpp::traits::input_parameter< int >::type sample_total_catch(sample_total_catchSEXP);
     Rcpp::traits::input_parameter< IntegerVector >::type total_catch_vals(total_catch_valsSEXP);
-    rcpp_result_gen = Rcpp::wrap(gsi_mcmc_1(SL, Pi_init, lambda, reps, burn_in, sample_int_Pi, sample_int_PofZ, sample_total_catch, total_catch_vals));
+    Rcpp::traits::input_parameter< int >::type variable_prob_is_catch(variable_prob_is_catchSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type prob_is_catch_vec(prob_is_catch_vecSEXP);
+    rcpp_result_gen = Rcpp::wrap(gsi_mcmc_1(SL, Pi_init, lambda, reps, burn_in, sample_int_Pi, sample_int_PofZ, sample_total_catch, total_catch_vals, variable_prob_is_catch, prob_is_catch_vec));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -216,6 +218,19 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// turn_non_catch_to_minus_one
+IntegerVector turn_non_catch_to_minus_one(IntegerVector Z, NumericVector P, int& NC);
+RcppExport SEXP _rubias_turn_non_catch_to_minus_one(SEXP ZSEXP, SEXP PSEXP, SEXP NCSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< IntegerVector >::type Z(ZSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type P(PSEXP);
+    Rcpp::traits::input_parameter< int& >::type NC(NCSEXP);
+    rcpp_result_gen = Rcpp::wrap(turn_non_catch_to_minus_one(Z, P, NC));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_rubias_rcpp_close_matchers", (DL_FUNC) &_rubias_rcpp_close_matchers, 3},
@@ -230,10 +245,11 @@ static const R_CallMethodDef CallEntries[] = {
     {"_rubias_gprob_sim_ind", (DL_FUNC) &_rubias_gprob_sim_ind, 2},
     {"_rubias_gprob_sim_gc_missing", (DL_FUNC) &_rubias_gprob_sim_gc_missing, 3},
     {"_rubias_gsi_em_1", (DL_FUNC) &_rubias_gsi_em_1, 5},
-    {"_rubias_gsi_mcmc_1", (DL_FUNC) &_rubias_gsi_mcmc_1, 9},
+    {"_rubias_gsi_mcmc_1", (DL_FUNC) &_rubias_gsi_mcmc_1, 11},
     {"_rubias_dirch_from_allocations", (DL_FUNC) &_rubias_dirch_from_allocations, 2},
     {"_rubias_dirch_from_counts", (DL_FUNC) &_rubias_dirch_from_counts, 2},
     {"_rubias_tabulate_allocations", (DL_FUNC) &_rubias_tabulate_allocations, 2},
+    {"_rubias_turn_non_catch_to_minus_one", (DL_FUNC) &_rubias_turn_non_catch_to_minus_one, 3},
     {NULL, NULL, 0}
 };
 

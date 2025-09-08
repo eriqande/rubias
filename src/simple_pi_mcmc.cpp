@@ -23,7 +23,10 @@ using namespace Rcpp;
 //' then you have to set `total_catch_vals` appropriately.
 //' @param total_catch_vals an integer vector of length reps that holds the total catch.  It is a vector to allow
 //' for this to be a sample from the posterior for the total catch.
-//'
+//' @param variable_prob_is_catch integer. Set to 1 if samples have different probabilities of being
+//' considered catch.  If it is 1, then \code{prob_is_catch_vec} must be provided.
+//' @param prob_is_catch_vec NumericVector of probabilities that each individual in the sample should
+//' be considered catch.
 //' @return \code{gsi_mcmc_1} returns a list of three. \code{$mean} lists the posterior
 //' means for collection proportions \code{pi} and for the individual posterior
 //' probabilities of assignment \code{PofZ}. \code{$sd} returns the posterior standard
@@ -57,11 +60,17 @@ List gsi_mcmc_1(
     int sample_int_Pi,
     int sample_int_PofZ,
     int sample_total_catch = 0,
-    IntegerVector total_catch_vals = IntegerVector::create(-1)  // this makes the default a vector of length 1, holding -1.  Hopefully this will work when the user does not give a value for this...
+    IntegerVector total_catch_vals = IntegerVector::create(-1),  // this makes the default a vector of length 1, holding -1.  Hopefully this will work when the user does not give a value for this...
+    int variable_prob_is_catch = 0,
+    NumericVector prob_is_catch_vec = NumericVector::create(-1)
 ) {
   List pi_list;
   List PofZ_list;
-  List SSC_list;   // For gathering tock-specific catch over the iterations
+  List SSC_list;   // For gathering stock-specific total catch over the iterations
+  List PPRC_list;  // (PPRC = posterior-predictive remaining catch) for gathering stock-specific remaining catch over iterations (i.e., the part simulated from the posterior predictive of the non-sampled fish)
+  List CA_list;   // (CA = Current Allocations) for gathering a summary of the current allocations over the iterations.
+                  // Note: SSC = CA + PPRC.  I just want to be able to return it broken out by CA and PPRC
+
   List trace, mean, sd, ret;
   NumericVector pi = clone(Pi_init);
   NumericVector pi_sums(Pi_init.size());
@@ -116,7 +125,7 @@ List gsi_mcmc_1(
     // of the fish in the mixture.  Doing so gives us access to them, which
     // allows us to sample from the posterior predictive of the total catch.
     IntegerVector Zeds = samp_from_mat(posts);
-    //if(i % 500 == 0)  Rcpp::Rcout << "i= " << i << "  Zeds= " << Zeds << std::endl;
+    if(i % 500 == 0)  Rcpp::Rcout << "i= " << i << "     Zeds= " << Zeds << std::endl;
 
     // finally, here we update pi
     pi = dirch_from_allocations(Zeds, lambda);
@@ -125,23 +134,46 @@ List gsi_mcmc_1(
     // If we are sampling from the posterior predictive of remaining catch
     // we do it here
     if(sample_total_catch != 0) {
-      int remaining_catch = total_catch_vals(i) - C;
+
+      int NumThatAreCatch = C;  // by default, everyone is catch, C = number of columns in SL matrix = number of samples.
+
+      // now, if we have variable_prob_is_catch we need to simulate whether
+      // these individuals are part of the catch or not.  If they are not
+      // part of the catch, we assign them -1's. This also updates NumThatAreCatch
+      if(variable_prob_is_catch == 1) {
+        Zeds = turn_non_catch_to_minus_one(Zeds, prob_is_catch_vec, NumThatAreCatch);
+      }
+
+
+      if(i % 500 == 0)  Rcpp::Rcout << "i= " << i << "  NewZeds= " << Zeds << std::endl;
+
+
+      // count up the current allocations (the catch contribution of the actual samples)
+      IntegerVector CurrentAllocations = tabulate_allocations(Zeds, R);
+
+
+
+      int remaining_catch = total_catch_vals(i) - NumThatAreCatch;
       if(remaining_catch < 0) remaining_catch = 0;
 
       unsigned int ncell = pi.length();
       unsigned int rem_catch_uns = remaining_catch;
 
+      if(i % 500 == 0)  Rcpp::Rcout << "i= " << i << "  NumThatAreCatch= " << NumThatAreCatch << "   rem_catch_uns= " << rem_catch_uns << std::endl;
+
       // simulate the posterior predictive of the "remaining catch", PPRC
       IntegerVector PPRC = rmultinom_1(rem_catch_uns, pi, ncell);
 
-      //if(i % 500 == 0) Rcpp::Rcout << "i= " << i << "  PPRC= " << PPRC << std::endl;
+      if(i % 500 == 0) Rcpp::Rcout << "i= " << i << "  PPRC= " << PPRC << std::endl;
 
-      // count up the current allocations (the catch contribution of the actual samples)
-      IntegerVector CurrentAllocations = tabulate_allocations(Zeds, R);
 
-      //if(i % 500 == 0) Rcpp::Rcout << "i= " << i << "  CUAL= " << CurrentAllocations << std::endl;
+      if(i % 500 == 0) Rcpp::Rcout << "i= " << i << "  CUAL= " << CurrentAllocations << std::endl;
       SSC_list.push_back(PPRC + CurrentAllocations);
 
+      // Hey Eric!  Return the SSC_list as done here, but also you are going to
+      // want to return the Remaining and the CurrentAllocations separately...
+      PPRC_list.push_back(PPRC);
+      CA_list.push_back(CurrentAllocations);
 
     }
 
@@ -153,8 +185,8 @@ List gsi_mcmc_1(
     trace = List::create(pi_list, PofZ_list);
     trace.names() = CharacterVector::create("pi", "PofZ");
   } else {
-    trace = List::create(pi_list, PofZ_list, SSC_list);
-    trace.names() = CharacterVector::create("pi", "PofZ", "SSTC");
+    trace = List::create(pi_list, PofZ_list, SSC_list, PPRC_list, CA_list);
+    trace.names() = CharacterVector::create("pi", "PofZ", "SSTC", "PPRC", "CA");
   }
   // put the means and standard devs and traces in the return variable'
   post_sums = post_sums / num_samp;
