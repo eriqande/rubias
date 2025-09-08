@@ -3,13 +3,15 @@ title: "Summarizing Uncertainty on Stock-Specific Total Catch"
 author: "Eric C. Anderson"
 date: "`r Sys.Date()`"
 output:
-  html_document:
-    df_print: paged
-    toc: true
-  word_document: default
   pdf_document:
     fig_caption: true
     toc: true
+  word_document: default
+  html_document:
+    df_print: paged
+    toc: true
+bibliography: citation.bib
+csl: ecology.csl
 ---
 
 
@@ -70,15 +72,15 @@ Bayesian framework used by 'rubias.'
 Although the uncertainty in $\bpi$ can affect the amount of uncertainty
 in stock-specific total catch, the two cannot be directly equated because uncertainty
 in $\bpi$ always reflects the variability due to having drawn a random sample. By
-contrast, the sample itself is a fixed part of the total catch. The implications of
+contrast, the sample itself might be a fixed part of the total catch. The implications of
 this are easiest to understand when the entire catch has been sampled for GSI.  For,
 example, imagine that the total catch was 300 fish, all 300 of those fish are subject
 to GSI, and the population of origin of fish from stock $x$ can be identified
-with no error using genetics.  If 20 fish originated from stock
+with no uncertainty using genetics.  If 20 fish originated from stock
 $x$, then the total catch from stock $x$ is 20, with no error.  However, the 90%
 credible interval on the proportion of fish from stock $x$ in the ocean would
 be, from the binomial distribution, (0.043, 0.09).
-If this variation were applied to the total catch, it would erroneously suggest
+If this variation were applied to the total catch of 300, it would erroneously suggest
 that between 13 and 27 fish from stock $x$ were in the catch, when it is clear that
 exactly 20 fish from $x$ were in the catch!
 
@@ -106,7 +108,7 @@ sample of the stock-specific total catch.
 
 ## MCMC for stock-specific total catch
 
-```{r standard, echo=FALSE, out.width="30%", fig.align='center', fig.cap="Acyclic directed graph showing the standard conditional GSI model. Diamond nodes are deterministic values used for priors. Circular nodes are variables. The shaded, circular nodes denote variables that are observed and the unshaded circular nodes are variables whose values are updated and sampled during the MCMC process."}
+```{r standard, echo=FALSE, out.width="30%", fig.align='center', fig.cap="Acyclic directed graph showing the standard conditional GSI model. Diamond nodes are deterministic values used for priors. Circular nodes are variables. The shaded, circular nodes denote variables that are observed and the unshaded circular nodes are variables whose values are updated and sampled during the MCMC process. The large rectangles are plates that represent replication over individuals and/or loci."}
 if (knitr::is_latex_output()) {
   knitr::include_graphics("images/standard-model-crop.pdf")
 } else {
@@ -116,7 +118,7 @@ if (knitr::is_latex_output()) {
 
 Figure 1 shows the acyclic directed graph (DAG) used in the conditional
 GSI model implemented in 'rubias.'
-The stock proportion vector in the ocean, $\bpi$, is visible just below $\blambda^{(\pi)}$, which
+The stock proportion vector in the ocean, $\bpi$, is visible immediately below $\blambda^{(\pi)}$, which
 is a parameter vector for the prior on $\bpi$.  There are $M$ fish in the reference
 baseline data set.
 $\bZ^*_j$ is the known origin of fish $j$ in the baseline, while $\bY^*_j$ is its
@@ -130,7 +132,7 @@ new value from its full conditional distribution.  (A "sweep" in this context is
 a cycle of the MCMC algorithm during which values have been updated for
 all the variables in the model.)
 
-```{r stock-spec, echo=FALSE, out.width="42%", fig.align='center', fig.cap="Acyclic directed graph showing the augemented standard conditional GSI model to include additional fish in the catch that were not inlcluded in the GSI analysis."}
+```{r stock-spec, echo=FALSE, out.width="42%", fig.align='center', fig.cap="Acyclic directed graph showing the augmented standard conditional GSI model to include additional fish in the catch that were not included in the GSI analysis."}
 if (knitr::is_latex_output()) {
   knitr::include_graphics("images/stock-spec-catch-model-crop.pdf")
 } else {
@@ -164,13 +166,31 @@ a multinomial random variable of R trials with cell probabilities of $\bpi$.
 ### Additional Complications
 
 Sometimes, the size of the total catch, $R$, might itself be
-estimated with some uncertainty.  So long as the true size of the total catch can be
+estimated with some uncertainty.
+Although catch estimates are often presented without uncertainty, validated catch
+estimates may be rare. Frequently, catches of individuals are estimated by converting
+landed biomass into individual pieces by estimating average weight for countable
+subsamples of the catch (e.g. commercial offloads at fish processing facilities),
+and substantial uncertainty in catch numbers may result due to heterogeneity in
+average size by date, location, or fishing gear, or even due to error in handled
+samples [e.g., species identification for estimating average weights;
+see @faunce2015can]. Another method commonly used to estimate numerical catch is
+to multiply total fishing effort by sampled estimates of catch per unit of effort
+(CPUE, e.g. creel surveys in recreational fisheries). Because fishers can vary
+strongly based on their behavior (spatiotemporal distribution, skill, and willingness
+to be surveyed), these estimates based on CPUE can be highly uncertain
+[@cabanellas2017estimating].
+
+In order to handle uncertainty in the true total catch, in 'riubias' the assumption
+is made that the true size of the total catch can be
 safely assumed to be conditionally independent of the stock composition given the
-estimated total catch, the uncertainty in $R$
+estimated total catch.  With that assumption, the uncertainty in $R$ (the total catch)
 can be propagated into the stock-specific total catch by supplying a sample of $R$
-from its posterior disribution.  Different values from that posterior sample can be
-used for $R$ in each sweep that 'rubias' performs.  This presents no problems, and
-the method for doing so is illustrated in the examples below.
+from its posterior distribution.  Different values from that posterior sample can be
+used for $R$ in each sweep that 'rubias' performs.  Examples for doing so are provided
+below. It is worth noting that there may be times when the stock composition is not
+conditionally independent of the true catch given the estimated total catch.  Users
+should verify whether or not this assumption holds.  
 
 Often, the mixed fishery includes commercial or recreational landings, which
 are certainly part of the lethal catch or take.  However, in some mixed
@@ -572,19 +592,6 @@ ggplot(three_counts_var, aes(x = n, fill = count_type)) +
   facet_grid(count_type ~ mixture_collection, scales = "free")
 ```
 
-That all checks out!
+That all looks as it should.
 
-
-## Notes:
-
-1. I still need to implement this for the BR (Bayesian Resampling) method.
-That should be relatively straigtforward. The difficult book-keeping parts have
-been done and now it is a matter of adding a few pieces of code around line
-213 in rcpp_fullBayes_mcmc.cpp.
-     * We don't need to do SSTC sampling for the preliminary steps in the BR method.
-2. The variable mortality rates (the probability with which individuals in the
-sample are included in the total catch or not---to accommodate test fishery fish, etc.)
-is not yet implemented, but will be pretty quick. I've done everything else with
-a mind to implementing that easily.  
-3. This is currently passing all CRAN checks so that it should be pretty quick to
-get it up on CRAN.  
+## Citations
