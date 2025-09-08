@@ -189,8 +189,13 @@ can be propagated into the stock-specific total catch by supplying a sample of $
 from its posterior distribution.  Different values from that posterior sample can be
 used for $R$ in each sweep that 'rubias' performs.  Examples for doing so are provided
 below. It is worth noting that there may be times when the stock composition is not
-conditionally independent of the true catch given the estimated total catch.  Users
-should verify whether or not this assumption holds.  
+conditionally independent of the true catch given the estimated total catch,
+and users should verify whether or not this assumption holds. For example,
+one can imagine a case in which transgenerational genetic mark-recapture
+[@rosenbaum2024reliability] would be used to inform run reconstructions and the associated
+catch estimates for some subset of stocks, and GSI could be used to parse the
+total catch estimates into all stocks, resulting in genotypes possibly contributing
+to both total catch estimates and estimates of stock composition.  
 
 Often, the mixed fishery includes commercial or recreational landings, which
 are certainly part of the lethal catch or take.  However, in some mixed
