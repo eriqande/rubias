@@ -3,13 +3,17 @@ title: "Summarizing Uncertainty on Stock-Specific Total Catch"
 author: "Eric C. Anderson"
 date: "`r Sys.Date()`"
 output:
+  bookdown::html_document2:
+    base_format: rmarkdown::html_vignette
+    fig_caption: true
+    toc: true
   pdf_document:
     fig_caption: true
     toc: true
-  word_document: default
   html_document:
     df_print: paged
     toc: true
+  word_document: default
 bibliography: citation.bib
 csl: ecology.csl
 ---
@@ -47,7 +51,9 @@ of different components present in the population from which the samples are bei
 taken.  We call this parameter $\bpi = (\pi_1,\ldots,\pi_K)$ which includes a proportion
 for each of the $K$ components in the mixture.  In the mixed-stock fisheries context,
 $\bpi$ holds the stock-specific proportions that are present _in the ocean_ at the
-time and location of sampling.  
+time and location of sampling.  This assemblage of fish is treated in the model
+(because of the assumption of multinomial sampling) as an infinite pool from which
+samples are drawn.
 
 While $\bpi$ is clearly a necessary variable in a mixture model---it is essential
 to model the population proportions---it might not always be the ultimate target
@@ -56,16 +62,15 @@ genetic stock identification (GSI).  In these cases, managers may be particularl
 interested in the numbers of fish from different populations or reporting units
 that occur in the total catch from a particular fishery (or across multiple fisheries).
 
-Because fisheries might be managed so as to limit the impacts on a particular weak stock
+Because fisheries might be managed to limit impacts on a particular weak stock
 to below a certain threshold, it is important to be able to evaluate the
 uncertainty in these estimates of stock-specific total catch.  This
-vignette describes how to do that with the newly updated version of 'rubias' that
-provides such functionality.  Before describing the details, however, we explain
+vignette describes how to do that with the new functionality available in the
+updated version of 'rubias'.  Before describing the details, however, we explain
 why propagating the uncertainty found in the Monte
 Carlo sample of $\bpi$ does not accurately reflect uncertainty in stock-specific
 total catch, and we describe the newly implemented approach in 'rubias' for evaluating
-uncertainty in stock-specific total catch in a rigorous way within the
-Bayesian framework used by 'rubias.'
+uncertainty in stock-specific total catch in a rigorous way.
 
 ## Uncertainty in $\bpi$ is not uncertainty in stock-specific total catch
 
@@ -92,12 +97,12 @@ CI <-  qbinom(
 ) / 300
 ```
 
-The above example is simple and contrived.  It serves well to illustrate that
+The above example is simple and contrived but it illustrates that
 the uncertainty around $\bpi$ cannot be directly used to quantify the uncertainty
-in stock-specific total catch.  However, unlike our simple example, stock-specific
+in stock-specific total catch.  Unlike our simple example, stock-specific
 total catch will typically be affected by other sources of variation such as
 uncertainty in genetic assignment, subsampling of the total catch for genetic
-analysis, as well as simply uncertainty in the estimates of the actual total catch.
+analysis, and simple uncertainty in the estimates of the actual total catch.
 Fortunately, all of these sources of uncertainty can now be accounted for in a rigorous
 way within the Markov Chain Monte Carlo (MCMC) sampling framework of 'rubias,' providing users with an MCMC
 sample of the stock-specific total catch for each stock.  This MCMC sample can then
@@ -116,7 +121,7 @@ if (knitr::is_latex_output()) {
 }
 ```
 
-Figure 1 shows the acyclic directed graph (DAG) used in the conditional
+Figure \@ref(fig:standard) shows the acyclic directed graph (DAG) used in the conditional
 GSI model implemented in 'rubias.'
 The stock proportion vector in the ocean, $\bpi$, is visible immediately below $\blambda^{(\pi)}$, which
 is a parameter vector for the prior on $\bpi$.  There are $M$ fish in the reference
@@ -146,7 +151,7 @@ In order to sample from a posterior distribution for the stock-specific total
 catch, we introduce the indicator vectors $\bZ^r_k$, $k=1,\ldots,R$, giving
 the unknown origin of each of the $R$ fish in the total catch that remain
 after the fish used in the GSI analysis are removed from the total catch. The DAG for that model
-appears in Figure 2. Sampling in this new model proceeds exactly as before, except
+appears in Figure \@ref(fig:stock-spec). Sampling in this new model proceeds exactly as before, except
 that in every sweep we also simulate values for the $R$ different $\bZ^r_k$ vectors from their
 full conditional distribution, which is simply a multinomial sample of size 1 from
 cell probabilities that are the current values of $\bpi$:
@@ -181,9 +186,9 @@ strongly based on their behavior (spatiotemporal distribution, skill, and willin
 to be surveyed), these estimates based on CPUE can be highly uncertain
 [@cabanellas2017estimating].
 
-In order to handle uncertainty in the true total catch, in 'riubias' the assumption
-is made that the true size of the total catch can be
-safely assumed to be conditionally independent of the stock composition given the
+In order to handle uncertainty in the true total catch, in 'rubias' the assumption
+is made that the true size of the total catch
+is conditionally independent of the stock composition given the
 estimated total catch.  With that assumption, the uncertainty in $R$ (the total catch)
 can be propagated into the stock-specific total catch by supplying a sample of $R$
 from its posterior distribution.  Different values from that posterior sample can be
@@ -191,7 +196,7 @@ used for $R$ in each sweep that 'rubias' performs.  Examples for doing so are pr
 below. It is worth noting that there may be times when the stock composition is not
 conditionally independent of the true catch given the estimated total catch,
 and users should verify whether or not this assumption holds. For example,
-one can imagine a case in which transgenerational genetic mark-recapture
+one may imagine a case in which transgenerational genetic mark-recapture
 [@rosenbaum2024reliability] would be used to inform run reconstructions and the associated
 catch estimates for some subset of stocks, and GSI could be used to parse the
 total catch estimates into all stocks, resulting in genotypes possibly contributing
@@ -223,11 +228,11 @@ data set contains genotypes from 2,256 fish grouped into three different
 fisheries ("rec1", "rec2", and "rec3").  (These were not really different
 fisheries, but for our purposes, here, we are going to pretend that they
 are different fisheries featuring different levels of management information.)
-For the most part, the mix of fish found in these fisheries are typical of what
-you see of the coast of central and northern California. Most of the fish are
-from the Central Valley fall-run stock, and for the purposes today we will
-assume that we are particularly interested in impacts on one of the reporting units
-less common in these mixtures: "CaliforniaCoast", which are fish from the 
+For the most part, the mix of fish found in these fisheries are typical of
+those seen off the coast of central and northern California. Most of the fish are
+from the Central Valley fall-run stock and, for our purposes here, we will
+assume that we are particularly interested in impacts on one of the less numerous reporting units
+in these mixtures: "CaliforniaCoast", which comprises fish from the 
 Eel and Russian rivers,listed as Threatened under the U.S. Endanged Species
 Act.  
 
@@ -243,20 +248,22 @@ of that posterior can be obtained like this
 ```{r, warning=FALSE, message=FALSE}
 library(tidyverse)
 library(rubias)
-rubi_method <-  "MCMC"  # set this to BR if you want to run everything using Ben's
-                       # "Bayesian Resampling" approach in which the allele frequencies
-                       # are updated according to the allocations of the fish in the
-                       # mixture.
+rubi_method <-  "MCMC" # set this to BR if you want to run everything using
+                       # the "Bayesian Resampling" approach in which the allele 
+                       # frequencies are updated according to the allocations
+                       # of the fish in the mixture.
 set.seed(3)
 rec3_tot_catch_sample <- rbeta(5000, 16, 48)
 ```
-And that posterior sample is distributed like this:
-```{r}
+
+And that posterior sample is distributed as shown in Figure \@ref(fig:rec3hist).
+
+```{r rec3hist, echo=FALSE, fig.align='center', fig.cap="Histogram of the estimated sampling fraction for the rec3 fishery", fig.width=7, out.width='70%'}
 hist(rec3_tot_catch_sample, breaks = 50)
 ```
 
 In other words, there is a lot of uncertainty about what the sampling fraction
-is, which means there is a lot of uncertainty about what the total catch is
+is, which means there is a lot of uncertainty in the estimate of total catch
 from that "rec3" fishery.
 
 ### Using Variability in $\bpi$ 
@@ -266,7 +273,7 @@ variability in $\bpi$ to try to estimate the variability on total catch.  We wil
 focus on the "rec1" fishery here, in which we are assuming that every single fish
 in the catch has been sampled and genotyped.  
 
-First, we analyze just that fishery, and summarise by reporting units.
+First, we analyze just that fishery and summarise by reporting units.
 ```{r}
 rec1_ests <- chinook_mix %>%
   filter(collection == "rec1") %>%
@@ -288,37 +295,41 @@ rec1_MAP_repu <- rec1_ests$indiv_posteriors %>%
 
 When we look at the _maximum-a-posteriori_ (MAP) assignments of individuals to
 reporting unit, we find 22 fish assigned to the CaliforniaCoast, most of them
-with a posterior near 1.0.  Here is the histogram of their posteriors:
-```{r}
+with a posterior probability near 1.0.  The histogram of their posterior probabilities
+appears in Figure \@ref(fig:posthist).
+```{r posthist, echo=FALSE, fig.align='center', fig.cap="Histogram of posterior probabilites of membership in the CaliforniaCoast reporting unit for 22 fish assigned there.", fig.width=7, out.width='70%'}
 rec1_MAP_repu %>%
   filter(repunit == "CaliforniaCoast") %>%
   ggplot(aes(x = repunit_PofZ)) +
   geom_histogram(bins = 50) +
+  xlab("Reporting Unit Posteriors for 22 Fish Assigned to CaliforniaCoast") +
   theme_bw()
 ```
 
 
-So, it looks like 15 fish are almost certainly from CaliforniaCoast, with another 5 being
+It appears that 15 fish are almost certainly from CaliforniaCoast, with another 5 being
 very likely from there, and then two of them somewhat likely from there.  In other words,
 we are pretty confident that 20 to 22 fish from the CaliforniaCoast are included
 in the total catch.  
 
 Let us see what happens if we naively use the estimated proportion of fish from
-CaliforniaCoast to try to estimate the number of such fish in the total catch.  Here
+CaliforniaCoast to try to estimate the number of such fish in the total catch.
+Figure \@ref(fig:pitraces)
 is a histogram of the posterior sample of the fraction of fish from CaliforniaCoast in the ocean
 from which the catch was taken:
-```{r}
+```{r pitraces, echo=FALSE, fig.align='center', fig.cap="Histogram of a sample from the posterior distribution of the fraction of fish from the CaliforniaCoast reporting unit in the ocean.", fig.width=7, out.width='70%'}
 rec1_pi_trace_repu %>%
   filter(repunit == "CaliforniaCoast") %>%
   ggplot(aes(x = repunit_pi)) +
   geom_histogram(binwidth = 0.001)
 ```
 
-And, if we used that fraction to try to estimate the uncertainty around the total
+If we used that fraction to try to estimate the uncertainty around the total
 catch of CaliforniaCoast we would greatly overestimate that uncertainty.  By multiplying
-the fraction of catch by the total number of fish (which happens to be 743 fish), we
-get the posterior for the total catch of CaliforniaCoast:
-```{r}
+the fraction of catch by the total number of fish (which happens to be 743 fish), we would
+get the posterior for the total catch of CaliforniaCoast as shown in
+Figure \@ref(fig:bogusfract).
+```{r bogusfract, echo=FALSE, fig.align='center', fig.cap="Posterior distribution of total catch from CaliforniaCoast if calculated naïvely by simply multiplying the corresponding mixing proportion sample by the total number of fish caught.", fig.width=7, out.width='70%'}
 rec1_pi_trace_repu %>%
   filter(repunit == "CaliforniaCoast") %>%
   mutate(Catch_of_CaliforniaCoast = 743 * repunit_pi) %>%
@@ -340,8 +351,8 @@ fishery.  In other words, every fish in the sample of genotypes is considered to
 part of the total catch.  (The next section discusses how to handle departures from
 this standard case).
 
-The first thing we must do to estimate the total stock specific catch is to provide
-rubias with information about the size of the total catch.  We provide this information
+To estimate the total stock specific catch we must provide
+'rubias' with information about the size of the total catch.  We provide this information
 in a tibble with one column `collection` which gives the mixture collection 
 ("rec1", "rec2", and "rec3" in the current case), and another column, `tot_catch`, 
 _which must be a list-column_,
@@ -357,7 +368,8 @@ chinook_mix %>%
 ```
 
 So, given what we described earlier about how the sample size relates to the total
-catch, we form the necessary tibble like this:
+catch (and, specifically recalling that `rec3_tot_catch_sample` is a sample from the
+posterior distribution of sampled catch fractions), we form the necessary tibble like this:
 ```{r}
 total_catches <- tibble(
   collection = c("rec1", "rec2", "rec3"),
@@ -382,9 +394,7 @@ mix_ests_with_catch <- infer_mixture(
   mixture = chinook_mix,
   gen_start_col = 5, 
   total_catch_tib = total_catches,
-  method = rubi_method,
-  prelim_reps = 100,
-  prelim_burn_in = 50
+  method = rubi_method
 )
 ```
 After that has run, the tibble in `mix_ests_with_catch$stock_specific_total_catch_traces`
@@ -402,15 +412,15 @@ we just have to:
 
 1. Summarize by reporting unit
 2. Filter down to just CaliforniaCoast
-3. Discard the burn-in (which we take to be 200 sweeps, here)
+3. Discard the burn-in (which we take to be the default 100 sweeps, here)
 4. Plot it
 
 Those steps look like this:
-```{r}
+```{r steps, fig.width=7, out.width='70%', fig.align='center'}
 CC_sstc <- mix_ests_with_catch$stock_specific_total_catch_traces %>%
   group_by(mixture_collection, sweep, repunit) %>%
   summarise(repunit_sstc = sum(SSTC)) %>%
-  filter(sweep > 200, repunit == "CaliforniaCoast")
+  filter(sweep > 100, repunit == "CaliforniaCoast")
 
 
 ggplot(CC_sstc, aes(x = repunit_sstc)) +
@@ -422,24 +432,26 @@ That is just how we expect things to look:
 
 - If we have genotyped the entire catch (as in the "rec1" fishery) then there is
 very little variation around the stock specific total catch, especially for a repunit
-like CaliforniaCoast that is fairly easily distinguished from the others.
+like CaliforniaCoast that is easily distinguished from the others.
 - If we have only genotyped 25% of the catch, there is considerably more variation
 in the posterior for stock-specific total catch.  This makes sense---in this case
 we are extrapolating the repunit from the mixture proportion ($\bpi$) estimates to
-some $772 \times 3 = 2316$ fish.  There will of course be a lot more variation there.
+some $772 \times 3 = 2316$ fish.  There will of course be a lot more
+uncertainty in the stock of origin for fish that were not sampled.
 - In the "rec3" fishery, the variability is even greater because there is uncertainty
 in the actual fraction of the fishery that was sampled.
 
 It can also be instructive to visualize the total stock-specific catch when it is
-decomposed into the two parts of it: 1) the fish that are actually in the genetic
+decomposed into its components: 1) the fish that are actually in the genetic
 sample, and 2) the additional fish (if any) that are part of the catch but not the
 genetic sample.  This is fairly easy---the return object has not just
 `stock_specific_total_catch_traces`, but also:
 
-- `allocation_count_traces`: the counts of fish in the mixture that are allocated
+- `allocation_count_traces`: the counts of fish in the mixture sample that are allocated
   to the catch each iteration.
 - `posterior_predictive_remaining_catch_traces`: the counts of fish sampled from the
-  posterior predictive distribution to account for the total catch.
+  posterior predictive distribution to account for the total catch (caught fish not
+  in the sample).
 
 
 We can pick those out and plot them with the total catch to confirm things are
@@ -448,12 +460,12 @@ working the way that they should.
 CC_pprc <- mix_ests_with_catch$posterior_predictive_remaining_catch_traces %>%
   group_by(mixture_collection, sweep, repunit) %>%
   summarise(repunit_pprc = sum(PPRC)) %>%   # column PPRC has the posterior_predictive_remaining_catch
-  filter(sweep > 200, repunit == "CaliforniaCoast")
+  filter(sweep > 100, repunit == "CaliforniaCoast")
 
 CC_ac <- mix_ests_with_catch$allocation_count_traces %>%
   group_by(mixture_collection, sweep, repunit) %>%
   summarise(repunit_ac = sum(CA)) %>%  # column CA has the allocation_count
-  filter(sweep > 200, repunit == "CaliforniaCoast")
+  filter(sweep > 100, repunit == "CaliforniaCoast")
 
 # then join those to the total stock-specific catch and pivot them
 three_counts <- CC_sstc %>%
@@ -463,10 +475,11 @@ three_counts <- CC_sstc %>%
 ```
 
 We can plot those all together like this:
-```{r}
+```{r confirm, fig.width=7, fig.height=5.5, out.width='70%', fig.align='center'}
 ggplot(three_counts, aes(x = n, fill = count_type)) +
   geom_histogram(binwidth = 1) +
-  facet_grid(count_type ~ mixture_collection, scales = "free")
+  facet_grid(count_type ~ mixture_collection, scales = "free") +
+  xlab("Number of individuals of repunit CaliforniaCoast")
 ```
 
 It is worth taking the time to confirm for yourself that these results are
@@ -474,21 +487,20 @@ exactly as expected, given how the scenarios were designed.
 
 ### Some Genotypes Sampled Might not be Considered Part of the Catch/Mortality
 
-There might be times when there is a test fishery that is going on concomitant
-with the retention fishery.  And genotypes from these different fisheries might
+Another possible use case could involve a test or catch-and-release fishery that is
+concomitant with a retention fishery.  Genotypes from these different fisheries might
 all end up together as a sample from the mixed fishery at a certain time and place.
-If it is the case that fish from the test fishery are released after sampling,
-then it might be appropriate to _not_ treat those fish as catches.  Certainly if
+If it occurs that fish are released after sampling and if
 they survive the sampling process with no adverse impacts, one would not want to
-count them as part of the catch.  It is, however, conceivable that there is some
-mortality associated with the test fishery, and in that case, it might be appropriate
-to treat the fish that died due to participating in the test fishery as part of
-the catch.  It might be the case that when tissues are taken from the test fishery,
-a score is assigned to each fish rating the injuries they received---and hence the
-likelihood that they might die after release.  
+count them as part of the fishing mortality  It is, however, conceivable that there is some
+mortality associated with live release, and in that case it might be appropriate
+to account for these mortalities as part of
+the catch.  A fixed rate of mortality may be assumed and applied to all releases depending on 
+fishery or environmental conditions. Alternatively, when tissues are taken from a test fishery, a score may be assigned to each fish rating the injuries they received---and hence the
+chance that they might die after release.  
 
 Rubias has a simple way of handling all these cases.  Essentially, each fish in the
-mixture is assigned a value between 0 and 1, incluside, in an additional column (which 
+mixture is assigned a value between 0 and 1, inclusive, in an additional column (which 
 must appear before the
 start of the genotype columns) called `prob_is_catch`.  That is short for "the probability
 this fish is considered to be part of the catch."  A value of 1 means that the fish
@@ -510,7 +522,7 @@ We will make up some data here to illustrate different scenarios.  We will imagi
 that:
 
 - Of the 743 "rec1" fishery samples, the first 300 of them were from a test fishery
-  that is believed to have zero mortality, and should not be considered part of the
+  that is believed to have zero mortality and should not be considered part of the
   catch.
 - All the 772 "rec2" fishery samples were taken in a test fishery where it is well
   known that fish are handled roughly.  On average, 1/5 of those released  have a 50% chance of
@@ -545,12 +557,10 @@ chinook_mix_with_probs %>%
 
 That looks pretty good!
 
-One little gotcha here before we pass that off to `infer_mixture()` is with the
-`variable_prob_is_catch = TRUE` is that the reference data set and the mixture data
+Before we pass that off to infer_mixture() we need to address a constraint
+associated with `variable_prob_is_catch = TRUE`: the reference data set and the mixture data
 set must all have the same columns.  So we need to add the same column to the reference
-data set `chinook`.  We will simply put a column of 0's in there.  (We could have used
-NA's as well, but I think we have to be careful to make sure they are NA_real's.  It
-is simpler to just put numeric values in there---they don't get used in any way...)
+data set `chinook`.  We will simply put a column of 0's in there.
 ```{r}
 new_reference <- chinook %>%
   mutate(prob_is_catch = 0.0, .after = indiv)
@@ -578,21 +588,21 @@ which is particularly illuminating.
 Because the total catch is the same as before (743), but 300
 of the mixture sample are _not_ part of the catch, then there is more variation
 in the total catch than before.
-```{r}
+```{r morevar, fig.width=7, fig.height=5.5, out.width='70%', fig.align='center'}
 CC_sstc_var <- catch_ests_with_var$stock_specific_total_catch_traces %>%
   group_by(mixture_collection, sweep, repunit) %>%
   summarise(repunit_sstc = sum(SSTC)) %>%
-  filter(sweep > 200, repunit == "CaliforniaCoast")
+  filter(sweep > 100, repunit == "CaliforniaCoast")
 
 CC_pprc_var <- catch_ests_with_var$posterior_predictive_remaining_catch_traces %>%
   group_by(mixture_collection, sweep, repunit) %>%
   summarise(repunit_pprc = sum(PPRC)) %>%   # column PPRC has the posterior_predictive_remaining_catch
-  filter(sweep > 200, repunit == "CaliforniaCoast")
+  filter(sweep > 100, repunit == "CaliforniaCoast")
 
 CC_ac_var <- catch_ests_with_var$allocation_count_traces %>%
   group_by(mixture_collection, sweep, repunit) %>%
   summarise(repunit_ac = sum(CA)) %>%  # column CA has the allocation_count
-  filter(sweep > 200, repunit == "CaliforniaCoast")
+  filter(sweep > 100, repunit == "CaliforniaCoast")
 
 # then join those to the total stock-specific catch and pivot them
 three_counts_var <- CC_sstc_var %>%
@@ -614,7 +624,7 @@ are themselves updated in the MCMC by including the gene copies of fish from the
 mixture that are allocated to each collection.  This model is invoked using the
 `method = "BR"` option to `infer_mixture()`.  The "BR" stands for "Bayesian Resampling"
 (of allele frequencies).  All the stock-specific total catch estimation procedures
-described above has also been implemented in this "BR" method.  We don't show them
+described above have also been implemented in this "BR" method.  We don't show them
 natively in the vignette because it takes considerably longer and likely would not
 pass CRAN checks as a consequence.  However, you can run all the above steps using the
 "BR" model by simply setting the variable `rubi_method <- "BR"` in the first R code
