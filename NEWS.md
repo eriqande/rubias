@@ -1,3 +1,9 @@
+# rubias 0.4.0
+
+* Added functionality to simulate from the posterior predictive distribution
+  to better summarize uncertainty on stock-specific total catch.
+
+
 # rubias 0.3.4
 
 Small patch update to deal with some CRAN check NOTES:
