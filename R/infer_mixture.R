@@ -125,7 +125,7 @@ infer_mixture <- function(reference,
     tcm <- setdiff(c("collection", "tot_catch"), names(total_catch_tib))
     if(length(tcm) > 0) stop("total_catch_tib missing necessary column(s): ", paste(tcm, collapse = ", "))
     # ensure tot_catch is a list-column
-    if(class(total_catch_tib$tot_catch) != "list") stop("Column tot_catch of total_catch_tib must be a list-column")
+    if(!inherits(total_catch_tib$tot_catch, "list")) stop("Column tot_catch of total_catch_tib must be a list-column")
     # ensure that a total catch is listed for every collection in mixture
     tc_missing_colls <- setdiff(unique(mixture$collection), unique(total_catch_tib$collection))
     if(length(tc_missing_colls) > 0) stop("total_catch_tib missing entries for collection(s) ", paste(tc_missing_colls, collapse = ", "))
