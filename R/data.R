@@ -5,7 +5,7 @@
 #' Can be fed directly into rubias because it has at least the columns sample_type,
 #' collection, repunit and indiv.
 #' @format A tibble.
-#' @source \url{https://datadryad.org/stash/dataset/doi:10.5061/dryad.80f4f}
+#' @source \url{https://datadryad.org/dataset/doi:10.5061/dryad.80f4f}
 #' @docType data
 #' @name alewife
 NULL
@@ -17,7 +17,7 @@ NULL
 #' Can be fed directly into rubias because it has at least the columns sample_type,
 #' collection, repunit and indiv.
 #' @format A tibble.
-#' @source \url{https://datadryad.org/stash/dataset/doi:10.5061/dryad.80f4f}
+#' @source \url{https://datadryad.org/dataset/doi:10.5061/dryad.80f4f}
 #' @docType data
 #' @name blueback
 NULL

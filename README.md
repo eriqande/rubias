@@ -375,7 +375,7 @@ mix_est <- infer_mixture(reference = chinook,
 #> Computing reference locus specific means and variances for computing mixture z-scores   time: 0.10 seconds
 #> Working on mixture collection: rec2 with 772 individuals
 #>   calculating log-likelihoods of the mixture individuals.   time: 0.07 seconds
-#>   performing 2000 total sweeps, 100 of which are burn-in and will not be used in computing averages in method "MCMC"   time: 0.54 seconds
+#>   performing 2000 total sweeps, 100 of which are burn-in and will not be used in computing averages in method "MCMC"   time: 0.55 seconds
 #>   tidying output into a tibble.   time: 0.03 seconds
 #> Working on mixture collection: rec1 with 743 individuals
 #>   calculating log-likelihoods of the mixture individuals.   time: 0.06 seconds
@@ -383,7 +383,7 @@ mix_est <- infer_mixture(reference = chinook,
 #>   tidying output into a tibble.   time: 0.03 seconds
 #> Working on mixture collection: rec3 with 741 individuals
 #>   calculating log-likelihoods of the mixture individuals.   time: 0.06 seconds
-#>   performing 2000 total sweeps, 100 of which are burn-in and will not be used in computing averages in method "MCMC"   time: 0.51 seconds
+#>   performing 2000 total sweeps, 100 of which are burn-in and will not be used in computing averages in method "MCMC"   time: 0.52 seconds
 #>   tidying output into a tibble.   time: 0.03 seconds
 ```
 
@@ -418,23 +418,23 @@ lapply(mix_est, head)
 #> # A tibble: 6 × 4
 #>   mixture_collection repunit         collection                  pi
 #>   <chr>              <chr>           <chr>                    <dbl>
-#> 1 rec2               CentralValleyfa Feather_H_sp         0.0788   
-#> 2 rec2               CentralValleysp Butte_Cr_Sp          0.0000457
-#> 3 rec2               CentralValleysp Mill_Cr_sp           0.0000438
-#> 4 rec2               CentralValleysp Deer_Cr_sp           0.0000641
-#> 5 rec2               CentralValleysp UpperSacramento_R_sp 0.000314 
-#> 6 rec2               CentralValleyfa Feather_H_fa         0.156    
+#> 1 rec2               CentralValleyfa Feather_H_sp         0.0811   
+#> 2 rec2               CentralValleysp Butte_Cr_Sp          0.0000416
+#> 3 rec2               CentralValleysp Mill_Cr_sp           0.0000445
+#> 4 rec2               CentralValleysp Deer_Cr_sp           0.0000642
+#> 5 rec2               CentralValleysp UpperSacramento_R_sp 0.000695 
+#> 6 rec2               CentralValleyfa Feather_H_fa         0.150    
 #> 
 #> $indiv_posteriors
 #> # A tibble: 6 × 10
 #>   mixture_collection indiv   repunit  collection     PofZ log_likelihood z_score
 #>   <chr>              <chr>   <chr>    <chr>         <dbl>          <dbl>   <dbl>
-#> 1 rec2               T124711 Central… Feather_H… 1.78e-28          -137.   -13.1
-#> 2 rec2               T124711 Central… Feather_H… 1.01e-27          -136.   -12.6
-#> 3 rec2               T124711 Central… Butte_Cr_… 1.52e-24          -130.   -10.5
-#> 4 rec2               T124711 Central… Mill_Cr_fa 7.67e-30          -135.   -11.8
-#> 5 rec2               T124711 Central… Deer_Cr_fa 2.01e-28          -134.   -11.6
-#> 6 rec2               T124711 Central… Mokelumne… 1.79e-27          -134.   -12.3
+#> 1 rec2               T124711 Central… Feather_H… 1.87e-28          -137.   -13.1
+#> 2 rec2               T124711 Central… Feather_H… 9.89e-28          -136.   -12.6
+#> 3 rec2               T124711 Central… Butte_Cr_… 1.55e-24          -130.   -10.5
+#> 4 rec2               T124711 Central… Mill_Cr_fa 1.55e-29          -135.   -11.8
+#> 5 rec2               T124711 Central… Deer_Cr_fa 3.95e-28          -134.   -11.6
+#> 6 rec2               T124711 Central… Mokelumne… 1.76e-27          -134.   -12.3
 #> # ℹ 3 more variables: n_non_miss_loci <int>, n_miss_loci <int>,
 #> #   missing_loci <list>
 #> 
@@ -498,19 +498,19 @@ mix_est_with_prior <- infer_mixture(reference = chinook,
                          mixture = chinook_mix, 
                          gen_start_col = 5,
                          pi_prior = prior_tibble)
-#> Collating data; compiling reference allele frequencies, etc.   time: 0.67 seconds
+#> Collating data; compiling reference allele frequencies, etc.   time: 0.68 seconds
 #> Computing reference locus specific means and variances for computing mixture z-scores   time: 0.10 seconds
 #> Working on mixture collection: rec2 with 772 individuals
-#> Joining with `by = join_by(collection)`  calculating log-likelihoods of the mixture individuals.   time: 0.06 seconds
-#>   performing 2000 total sweeps, 100 of which are burn-in and will not be used in computing averages in method "MCMC"   time: 0.54 seconds
+#> Joining with `by = join_by(collection)`  calculating log-likelihoods of the mixture individuals.   time: 0.07 seconds
+#>   performing 2000 total sweeps, 100 of which are burn-in and will not be used in computing averages in method "MCMC"   time: 0.55 seconds
 #>   tidying output into a tibble.   time: 0.03 seconds
 #> Working on mixture collection: rec1 with 743 individuals
 #> Joining with `by = join_by(collection)`  calculating log-likelihoods of the mixture individuals.   time: 0.06 seconds
-#>   performing 2000 total sweeps, 100 of which are burn-in and will not be used in computing averages in method "MCMC"   time: 0.52 seconds
+#>   performing 2000 total sweeps, 100 of which are burn-in and will not be used in computing averages in method "MCMC"   time: 0.53 seconds
 #>   tidying output into a tibble.   time: 0.03 seconds
 #> Working on mixture collection: rec3 with 741 individuals
 #> Joining with `by = join_by(collection)`  calculating log-likelihoods of the mixture individuals.   time: 0.06 seconds
-#>   performing 2000 total sweeps, 100 of which are burn-in and will not be used in computing averages in method "MCMC"   time: 0.52 seconds
+#>   performing 2000 total sweeps, 100 of which are burn-in and will not be used in computing averages in method "MCMC"   time: 0.53 seconds
 #>   tidying output into a tibble.   time: 0.03 seconds
 ```
 
@@ -551,8 +551,8 @@ comp_mix_ests %>%
 #> # A tibble: 2 × 3
 #>   coll_group  with_explicit_prior with_default_prior
 #>   <chr>                     <dbl>              <dbl>
-#> 1 CV_fall                   0.824              0.820
-#> 2 Not_CV_fall               0.176              0.180
+#> 1 CV_fall                   0.824              0.821
+#> 2 Not_CV_fall               0.176              0.179
 ```
 
 We see that for the most part this change to the prior changed the
@@ -565,8 +565,7 @@ extra weight in the prior will have.
 
 ## Aggregating collections into reporting units
 
-This is a simple operation in the
-[tidyverse](https://www.tidyverse.org/):
+This is a simple operation in the [tidyverse](https://tidyverse.org/):
 
 ``` r
 
@@ -639,12 +638,12 @@ top6_cis
 #> # A tibble: 6 × 3
 #>   repunit                     loCI   hiCI
 #>   <chr>                      <dbl>  <dbl>
-#> 1 CaliforniaCoast         1.88e- 2 0.0430
-#> 2 CentralValleyfa         7.91e- 1 0.846 
-#> 3 KlamathR                4.98e- 2 0.0872
-#> 4 NCaliforniaSOregonCoast 3.06e- 3 0.0172
-#> 5 RogueR                  4.34e- 2 0.0816
-#> 6 SnakeRfa                4.89e-90 0.0122
+#> 1 CaliforniaCoast         1.90e- 2 0.0437
+#> 2 CentralValleyfa         7.90e- 1 0.848 
+#> 3 KlamathR                4.99e- 2 0.0874
+#> 4 NCaliforniaSOregonCoast 2.90e- 3 0.0188
+#> 5 RogueR                  4.37e- 2 0.0818
+#> 6 UColumbiaRsufa          3.98e-17 0.0125
 ```
 
 ## Assessing whether individuals are not from any of the reference populations
@@ -1113,12 +1112,12 @@ top6
 #> # Groups:   mixture_collection [1]
 #>   mixture_collection repunit                 repprop
 #>   <chr>              <chr>                     <dbl>
-#> 1 rec1               CentralValleyfa         0.820  
-#> 2 rec1               KlamathR                0.0673 
-#> 3 rec1               RogueR                  0.0615 
-#> 4 rec1               CaliforniaCoast         0.0298 
-#> 5 rec1               NCaliforniaSOregonCoast 0.00918
-#> 6 rec1               SnakeRfa                0.00378
+#> 1 rec1               CentralValleyfa         0.821  
+#> 2 rec1               KlamathR                0.0665 
+#> 3 rec1               RogueR                  0.0611 
+#> 4 rec1               CaliforniaCoast         0.0301 
+#> 5 rec1               NCaliforniaSOregonCoast 0.00944
+#> 6 rec1               UColumbiaRsufa          0.00494
 ```
 
 We could, if we put those `repprop` values into a `ppn` column, simulate
@@ -1128,7 +1127,7 @@ like this:
 
 ``` r
 round(top6$repprop * 350)
-#> [1] 287  24  22  10   3   1
+#> [1] 287  23  21  11   3   2
 ```
 
 and then put them in a `cnts` column.
@@ -1156,12 +1155,12 @@ arep
 #> # A tibble: 6 × 2
 #>   repunit                 dirichlet
 #>   <chr>                       <dbl>
-#> 1 CentralValleyfa            8.20  
-#> 2 KlamathR                   0.673 
-#> 3 RogueR                     0.615 
-#> 4 CaliforniaCoast            0.298 
-#> 5 NCaliforniaSOregonCoast    0.0918
-#> 6 SnakeRfa                   0.0378
+#> 1 CentralValleyfa            8.21  
+#> 2 KlamathR                   0.665 
+#> 3 RogueR                     0.611 
+#> 4 CaliforniaCoast            0.301 
+#> 5 NCaliforniaSOregonCoast    0.0944
+#> 6 UColumbiaRsufa             0.0494
 ```
 
 Let’s do some simulations with those repunit parameters. By default, if
@@ -1394,12 +1393,12 @@ arep
 #> # A tibble: 6 × 2
 #>   repunit                 dirichlet
 #>   <chr>                       <dbl>
-#> 1 CentralValleyfa            8.20  
-#> 2 KlamathR                   0.673 
-#> 3 RogueR                     0.615 
-#> 4 CaliforniaCoast            0.298 
-#> 5 NCaliforniaSOregonCoast    0.0918
-#> 6 SnakeRfa                   0.0378
+#> 1 CentralValleyfa            8.21  
+#> 2 KlamathR                   0.665 
+#> 3 RogueR                     0.611 
+#> 4 CaliforniaCoast            0.301 
+#> 5 NCaliforniaSOregonCoast    0.0944
+#> 6 UColumbiaRsufa             0.0494
 ```
 
 But, now, let’s say that within reporting unit we want specific weights
@@ -1451,27 +1450,30 @@ chin_sims_sub_ppn %>%
   filter(repunit_mean_pi > 0.0)
 #> `summarise()` has grouped output by 'repunit'. You can override using the
 #> `.groups` argument.
-#> # A tibble: 17 × 5
+#> # A tibble: 20 × 5
 #> # Groups:   repunit [6]
 #>    repunit                 collection       mean_pi repunit_mean_pi fract_within
 #>    <chr>                   <chr>              <dbl>           <dbl>        <dbl>
-#>  1 CaliforniaCoast         Eel_R            3.50e-3          0.0350        0.1  
-#>  2 CaliforniaCoast         Russian_R        3.15e-2          0.0350        0.9  
-#>  3 CentralValleyfa         Battle_Cr        8.27e-8          0.827         0    
-#>  4 CentralValleyfa         Butte_Cr_fa      5.79e-1          0.827         0.700
-#>  5 CentralValleyfa         Deer_Cr_fa       8.27e-8          0.827         0    
-#>  6 CentralValleyfa         Feather_H_fa     8.27e-8          0.827         0    
-#>  7 CentralValleyfa         Feather_H_sp     2.48e-1          0.827         0.300
-#>  8 CentralValleyfa         Mill_Cr_fa       8.27e-8          0.827         0    
-#>  9 CentralValleyfa         Mokelumne_R_fa   8.27e-8          0.827         0    
-#> 10 CentralValleyfa         Sacramento_R_lf  8.27e-8          0.827         0    
-#> 11 KlamathR                Klamath_IGH_fa   3.10e-2          0.0619        0.5  
-#> 12 KlamathR                Trinity_H_sp     3.10e-2          0.0619        0.5  
-#> 13 NCaliforniaSOregonCoast Chetco_R         5.44e-3          0.0109        0.5  
-#> 14 NCaliforniaSOregonCoast Smith_R          5.44e-3          0.0109        0.5  
-#> 15 RogueR                  Applegate_Cr     2.74e-2          0.0548        0.5  
-#> 16 RogueR                  Cole_Rivers_H    2.74e-2          0.0548        0.5  
-#> 17 SnakeRfa                Lyons_Ferry_H    1.05e-2          0.0105        1
+#>  1 CaliforniaCoast         Eel_R            3.24e-3         0.0324         0.1  
+#>  2 CaliforniaCoast         Russian_R        2.92e-2         0.0324         0.9  
+#>  3 CentralValleyfa         Battle_Cr        8.43e-8         0.843          0    
+#>  4 CentralValleyfa         Butte_Cr_fa      5.90e-1         0.843          0.700
+#>  5 CentralValleyfa         Deer_Cr_fa       8.43e-8         0.843          0    
+#>  6 CentralValleyfa         Feather_H_fa     8.43e-8         0.843          0    
+#>  7 CentralValleyfa         Feather_H_sp     2.53e-1         0.843          0.300
+#>  8 CentralValleyfa         Mill_Cr_fa       8.43e-8         0.843          0    
+#>  9 CentralValleyfa         Mokelumne_R_fa   8.43e-8         0.843          0    
+#> 10 CentralValleyfa         Sacramento_R_lf  8.43e-8         0.843          0    
+#> 11 KlamathR                Klamath_IGH_fa   2.67e-2         0.0534         0.5  
+#> 12 KlamathR                Trinity_H_sp     2.67e-2         0.0534         0.5  
+#> 13 NCaliforniaSOregonCoast Chetco_R         4.22e-3         0.00845        0.5  
+#> 14 NCaliforniaSOregonCoast Smith_R          4.22e-3         0.00845        0.5  
+#> 15 RogueR                  Applegate_Cr     2.53e-2         0.0506         0.5  
+#> 16 RogueR                  Cole_Rivers_H    2.53e-2         0.0506         0.5  
+#> 17 UColumbiaRsufa          Hanford_Reach    3.01e-3         0.0120         0.25 
+#> 18 UColumbiaRsufa          PriestRapids_H   3.01e-3         0.0120         0.25 
+#> 19 UColumbiaRsufa          Wells_H          3.01e-3         0.0120         0.25 
+#> 20 UColumbiaRsufa          Wenatchee_R      3.01e-3         0.0120         0.25
 ```
 
 ## Multiple simulation scenarios and “100% Simulations”
@@ -1495,7 +1497,7 @@ each of the repunits in `arep`:
 arep$repunit
 #> [1] "CentralValleyfa"         "KlamathR"               
 #> [3] "RogueR"                  "CaliforniaCoast"        
-#> [5] "NCaliforniaSOregonCoast" "SnakeRfa"
+#> [5] "NCaliforniaSOregonCoast" "UColumbiaRsufa"
 ```
 
 We will let the collections within them just be drawn from a dirichlet
@@ -1548,7 +1550,7 @@ repu_hundy_results <- assess_reference_loo(reference = chinook,
 #> Doing LOO simulations rep 3 of 5
 #> Doing LOO simulations rep 4 of 5
 #> Doing LOO simulations rep 5 of 5
-#> ++++ Starting in on repunit_scenario All-SnakeRfa with collection scenario 1 ++++
+#> ++++ Starting in on repunit_scenario All-UColumbiaRsufa with collection scenario 1 ++++
 #> Doing LOO simulations rep 1 of 5
 #> Doing LOO simulations rep 2 of 5
 #> Doing LOO simulations rep 3 of 5

@@ -18,11 +18,11 @@ The remaining columns are two columns for each locus.  These columns are named l
 is denoted by NA.
 }
 \source{
-\url{https://datadryad.org/stash/dataset/doi:10.5061/dryad.574sv}
+\url{https://datadryad.org/dataset/doi:10.5061/dryad.574sv}
 }
 \description{
 Chinook salmon baseline data similar to that which can be
-downloaded from \url{https://datadryad.org/stash/dataset/doi:10.5061/dryad.574sv}.
+downloaded from \url{https://datadryad.org/dataset/doi:10.5061/dryad.574sv}.
 This data set includes 91 SNPs and 7301 fish and is what the Dryad data became
 after we converted from TaqMan to SNPtype assays (being forced to toss some loci)
 and tossed out a bunch of lousy historical

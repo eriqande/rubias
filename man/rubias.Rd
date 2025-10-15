@@ -45,8 +45,16 @@ genetic data sets that are useful for playing around with rubias and testing it
 out.
 }
 
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/eriqande/rubias}
+  \item Report bugs at \url{https://github.com/eriqande/rubias/issues}
+}
+
+}
 \author{
-\strong{Maintainer}: Eric C. Anderson \email{eric.anderson@noaa.gov}
+\strong{Maintainer}: Eric C. Anderson \email{eriq@rams.colostate.edu}
 
 Authors:
 \itemize{

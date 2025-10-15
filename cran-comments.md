@@ -1,14 +1,38 @@
 ## Test environments
 
-* local OS X install, R 4.3.1
+* local OS X install, R 4.4.2
 * win-builder (devel and release)
 * Linux and Windows on RHub with `rhub::check_for_cran()`
 
 ## R CMD check results
 
-MAC, local: 0 errors | 0 warnings | 1 notes
+
+
+MAC, local: 0 errors | 1 warnings | 2 notes
+
+  - 1 Warning: 
+```
+checking CRAN incoming feasibility ... [4s/17s] WARNING
+  Maintainer: ‘Eric C. Anderson <eriq@rams.colostate.edu>’
+  
+  Insufficient package version (submitted: 0.3.4, existing: 0.3.4)
+  
+  New maintainer:
+    Eric C. Anderson <eriq@rams.colostate.edu>
+  Old maintainer(s):
+    Eric C. Anderson <eric.anderson@noaa.gov>
+```
+
+I am the same person, I just retired from federal service and so am using a
+different email.  I no longer have access to eric.anderson@noaa.gov.
+
+  - 1 note =  checking HTML version of manual ... NOTE. This seems to be HTML validation problems. These
+              are issues I have never seen before. I suspect roxygen2 is at fault as the problems occur
+              in all Rd files.  I am using roxygen 7.3.3 which is the most up-to-date.  
   - 1 note =  GNU make is a SystemRequirements (this is for RcppParallel)
+  
 LINUX, Ubuntu Linux 20.04.1 LTS, R-release, GCC: 0 errors | 0 warnings | 4 notes
+
   - 1 note = installed size is 10.8Mb, because libs is > 9.0 Mb. This is RCpp on Linux issue I suspect
   - 1 note =  GNU extensions in Makefiles (this is for RcppParallel)
   - 1 note = Examples with CPU elapsed time > 5s. But user time is < 2.2 secs.  I suspect
