@@ -120,7 +120,7 @@ if (knitr::is_latex_output()) {
 }
 ```
 
-Figure \@ref(fig:standard) shows the acyclic directed graph (DAG) used in the conditional
+The above figure shows the acyclic directed graph (DAG) used in the conditional
 GSI model implemented in 'rubias.'
 The stock proportion vector in the ocean, $\bpi$, is visible immediately below $\blambda^{(\pi)}$, which
 is a parameter vector for the prior on $\bpi$.  There are $M$ fish in the reference
@@ -150,7 +150,7 @@ In order to sample from a posterior distribution for the stock-specific total
 catch, we introduce the indicator vectors $\bZ^r_k$, $k=1,\ldots,R$, giving
 the unknown origin of each of the $R$ fish in the total catch that remain
 after the fish used in the GSI analysis are removed from the total catch. The DAG for that model
-appears in Figure \@ref(fig:stock-spec). Sampling in this new model proceeds exactly as before, except
+appears in the above figure. Sampling in this new model proceeds exactly as before, except
 that in every sweep we also simulate values for the $R$ different $\bZ^r_k$ vectors from their
 full conditional distribution, which is simply a multinomial sample of size 1 from
 cell probabilities that are the current values of $\bpi$:
@@ -257,7 +257,7 @@ set.seed(3)
 rec3_tot_catch_sample <- rbeta(5000, 16, 48)
 ```
 
-And that posterior sample is distributed as shown in Figure \@ref(fig:rec3hist).
+And that posterior sample is distributed as shown in the following figure.
 
 ```{r rec3hist, echo=FALSE, fig.align='center', fig.cap="Histogram of the estimated sampling fraction for the rec3 fishery", fig.width=7, out.width='70%'}
 hist(rec3_tot_catch_sample, breaks = 50)
@@ -297,7 +297,7 @@ rec1_MAP_repu <- rec1_ests$indiv_posteriors %>%
 When we look at the _maximum-a-posteriori_ (MAP) assignments of individuals to
 reporting unit, we find 22 fish assigned to the CaliforniaCoast, most of them
 with a posterior probability near 1.0.  The histogram of their posterior probabilities
-appears in Figure \@ref(fig:posthist).
+appears in the figure below.
 ```{r posthist, echo=FALSE, fig.align='center', fig.cap="Histogram of posterior probabilites of membership in the CaliforniaCoast reporting unit for 22 fish assigned there.", fig.width=7, out.width='70%'}
 rec1_MAP_repu %>%
   filter(repunit == "CaliforniaCoast") %>%
@@ -315,7 +315,7 @@ in the total catch.
 
 Let us see what happens if we naively use the estimated proportion of fish from
 CaliforniaCoast to try to estimate the number of such fish in the total catch.
-Figure \@ref(fig:pitraces)
+The figure below
 is a histogram of the posterior sample of the fraction of fish from CaliforniaCoast in the ocean
 from which the catch was taken:
 ```{r pitraces, echo=FALSE, fig.align='center', fig.cap="Histogram of a sample from the posterior distribution of the fraction of fish from the CaliforniaCoast reporting unit in the ocean.", fig.width=7, out.width='70%'}
@@ -329,7 +329,7 @@ If we used that fraction to try to estimate the uncertainty around the total
 catch of CaliforniaCoast we would greatly overestimate that uncertainty.  By multiplying
 the fraction of catch by the total number of fish (which happens to be 743 fish), we would
 get the posterior for the total catch of CaliforniaCoast as shown in
-Figure \@ref(fig:bogusfract).
+the following figure.
 ```{r bogusfract, echo=FALSE, fig.align='center', fig.cap="Posterior distribution of total catch from CaliforniaCoast if calculated naïvely by simply multiplying the corresponding mixing proportion sample by the total number of fish caught.", fig.width=7, out.width='70%'}
 rec1_pi_trace_repu %>%
   filter(repunit == "CaliforniaCoast") %>%
