@@ -122,13 +122,12 @@ IntegerVector tabulate_allocations(IntegerVector C, int n) {
 //' tabulate_allocations().  NC returns the number that are part of the
 //' catch by reference.
 //' @keywords internal
- //' @param Z a vector of categories taking values of 1,...,n
- //' @param P probabilities of being considered "catch" for each of the mixure samples
- //' @param NC output by reference of the number of fish considered to actually be catch.
- //' @export
- // [[Rcpp::export]]
-
- IntegerVector turn_non_catch_to_minus_one(IntegerVector Z, NumericVector P, int &NC) {
+//' @param Z a vector of categories taking values of 1,...,n
+//' @param P probabilities of being considered "catch" for each of the mixure samples
+//' @param NC output by reference of the number of fish considered to actually be catch.
+//' @export
+// [[Rcpp::export]]
+IntegerVector turn_non_catch_to_minus_one(IntegerVector Z, NumericVector P, int &NC) {
    int N = Z.size();
    IntegerVector out(N, 0);
    NC = 0;

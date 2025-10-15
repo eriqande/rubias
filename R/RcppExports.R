@@ -394,17 +394,6 @@ gsi_mcmc_1 <- function(SL, Pi_init, lambda, reps, burn_in, sample_int_Pi, sample
     .Call('_rubias_gsi_mcmc_1', PACKAGE = 'rubias', SL, Pi_init, lambda, reps, burn_in, sample_int_Pi, sample_int_PofZ, sample_total_catch, total_catch_vals, variable_prob_is_catch, prob_is_catch_vec)
 }
 
-#' Simulate whether fish are part of the catch or not
-#'
-#' This is for the variable_prob_is_catch == TRUE scenario. We simply
-#' go through the vector Z of allocations. For each one, we simulate
-#' a uniform RV.  If that RV is greater than the corresponding term
-#' in P, then we turn that Z into a -1, so it will not be counted by
-#' tabulate_allocations().  NC returns the number that are part of the
-#' catch by reference.
-#' @keywords internal
-NULL
-
 #' Given a vector of different categories in 1...n and a prior,
 #' simulate a Dirichlet random vector
 #'
@@ -460,6 +449,19 @@ tabulate_allocations <- function(C, n) {
     .Call('_rubias_tabulate_allocations', PACKAGE = 'rubias', C, n)
 }
 
+#' Simulate whether fish are part of the catch or not
+#'
+#' This is for the variable_prob_is_catch == TRUE scenario. We simply
+#' go through the vector Z of allocations. For each one, we simulate
+#' a uniform RV.  If that RV is greater than the corresponding term
+#' in P, then we turn that Z into a -1, so it will not be counted by
+#' tabulate_allocations().  NC returns the number that are part of the
+#' catch by reference.
+#' @keywords internal
+#' @param Z a vector of categories taking values of 1,...,n
+#' @param P probabilities of being considered "catch" for each of the mixure samples
+#' @param NC output by reference of the number of fish considered to actually be catch.
+#' @export
 turn_non_catch_to_minus_one <- function(Z, P, NC) {
     .Call('_rubias_turn_non_catch_to_minus_one', PACKAGE = 'rubias', Z, P, NC)
 }

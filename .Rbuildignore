@@ -18,3 +18,5 @@
 ^README-data-structures\.nb\.html$
 ^CRAN-RELEASE$
 ^CRAN-SUBMISSION$
+^_pkgdown\.yml$
+^pkgdown$

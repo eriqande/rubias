@@ -92,13 +92,7 @@ not have every single individual with an NA at the second gene copy, then it's a
 
 
 Load our packages first:
-```{r, eval=FALSE}
-library(rubias)
-library(tidyverse)
-```
-
-```{r, echo=FALSE}
-# this is what we actually evaluate.
+```{r}
 library(rubias)
 
 # all the following libraries can be loaded with "library(tidyverse)"
