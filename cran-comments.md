@@ -50,8 +50,10 @@ WINDOWS RHUB, Windows Server 2022, R-devel, 64 bit: 0 errors | 0 warnings | 3 no
   - 1 note =  GNU make is a SystemRequirements (this is for RcppParallel)
   - 1 note = Found the following files/directories: ''NULL''  (This seems to be an issue with the check process)
   - 1 note = Found the following files/directories: 'lastMiKTeXException' (PC Latex exception of some sort?)
-WINDOWS check_win RELEASE, 4.1.2, win-builder: 0 errors | 0 warnings | 0 notes
-WINDOWS check_win DEVEL, (2022-02-07 r81667 ucrt), win-builder: 0 errors | 0 warnings | 0 notes
+WINDOWS check_win RELEASE, 4.5.1, win-builder: 0 errors | 0 warnings | 1 notes
+  - 1 note = hecking CRAN incoming feasibility because my email address has changed
+WINDOWS check_win DEVEL, (2022-02-07 r81667 ucrt), win-builder: 0 errors | 0 warnings | 1 notes
+  - 1 note = hecking CRAN incoming feasibility because my email address has changed
 
 
 
