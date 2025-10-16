@@ -2,10 +2,8 @@
 title: "Summarizing Uncertainty on Stock-Specific Total Catch"
 author: "Eric C. Anderson"
 date: "`r Sys.Date()`"
-output:
-  bookdown::html_document2:
-    base_format: rmarkdown::html_vignette
-    fig_caption: true
+output: 
+  rmarkdown::html_vignette:
     toc: true
 bibliography: citation.bib
 csl: ecology.csl
