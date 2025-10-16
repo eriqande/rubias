@@ -1,0 +1,12 @@
+pandoc: 3.6.3
+pkgdown: 2.1.3
+pkgdown_sha: ~
+articles:
+  rubias-fully-bayesian: rubias-fully-bayesian.html
+  rubias-overview: rubias-overview.html
+  rubias-underlying-data-structures: rubias-underlying-data-structures.html
+  uncertainty-on-total-catch: uncertainty-on-total-catch.html
+last_built: 2025-10-16T21:20Z
+urls:
+  reference: https://eriqande.github.io/rubias/reference
+  article: https://eriqande.github.io/rubias/articles

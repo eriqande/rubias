@@ -36,5 +36,5 @@ Suggests: knitr,
     ggplot2
 VignetteBuilder: knitr
 Encoding: UTF-8
-URL: https://github.com/eriqande/rubias
+URL: https://github.com/eriqande/rubias, https://eriqande.github.io/rubias
 BugReports: https://github.com/eriqande/rubias/issues
