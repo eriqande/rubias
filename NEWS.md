@@ -2,6 +2,7 @@
 
 * Added functionality to simulate from the posterior predictive distribution
   to better summarize uncertainty on stock-specific total catch.
+* Replaced `read_table2()` with `read_table()`
 
 
 # rubias 0.3.4

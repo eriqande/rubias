@@ -21,12 +21,12 @@ read_gsi_sim <- function(path, sample_type, repunits = NULL) {
   rscript <- system.file("scripts/clean-up-gsisim-repunits.awk", package = "rubias")
 
   system(paste("awk -f", gscript, path, " > ", gfile))
-  gsi_df <- readr::read_table2(gfile, na = "0")
+  gsi_df <- readr::read_table(gfile, na = "0")
 
   if (sample_type == "reference") {
     if (!is.null(repunits)) {
       system(paste("awk -f", rscript, repunits, " > ", rfile))
-      repu_df <- readr::read_table2(rfile)
+      repu_df <- readr::read_table(rfile)
     } else {
       repu_df <- tibble::tibble(repunit = "default_repu", collection = unique(gsi_df$collection))
     }

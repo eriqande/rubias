@@ -49,6 +49,7 @@ out.
 Useful links:
 \itemize{
   \item \url{https://github.com/eriqande/rubias}
+  \item \url{https://eriqande.github.io/rubias}
   \item Report bugs at \url{https://github.com/eriqande/rubias/issues}
 }
 
