@@ -1,0 +1,123 @@
+---
+title: "Proportions Less Than 1/n"
+author: "Eric C. Anderson"
+date: "`r Sys.Date()`"
+output:
+  pdf_document:
+    fig_caption: true
+    toc: true
+  bookdown::html_document2:
+    base_format: rmarkdown::html_vignette
+    fig_caption: true
+    toc: true
+  html_document:
+    df_print: paged
+    toc: true
+  word_document: default
+bibliography: ../../vignettes/citation.bib
+csl: ../../vignettes/ecology.csl
+---
+
+
+\newcommand{\bpi}{\boldsymbol{\pi}}
+
+
+```{r setup, include=FALSE}
+library(tidyverse)
+```
+
+
+## Introduction 
+
+One of the main outputs from 'rubias' is a Markov chain Monte Carlo (MCMC) sample of
+the mixing proportion.  This is meant to be a sample from the posterior distribution
+of the vector of mixing proportions from which the sample was drawn.  This sample is
+returned from the `infer_mixture()` function in the `mix_prop_traces` component,
+of the return object, and the posterior mean of the mixing proportions is returned
+in the `mixing_proportions` component.  
+
+During each step of the MCMC the current value of the mixing proportions are drawn
+as a sample from a Dirichlet distribution.  This is a vector $\bpi = (\pi_1,\ldots,\pi_K)$
+of values with $0< \pi_k < 1$ for all $k$ and $\sum_{k=1}^K \pi_k = 1$.  The individual
+$\pi_k$ values are constrained to not be equal to 0 or 1.  Thus, even if there are no fish
+from a certain collection in the mixture, there might still be a small, but non-zero,
+estimate of the proportion of fish from that collection.  Depending on they are
+interpreted, these small, but non-zero estimates can lead to different thoughts
+about how fisheries should be managed.  For example, if a very small proportion is
+interpreted as evidence that there is a non-zero chance that a rare or threatened
+stock is being impacted by a fishery, then some might wish to curtail the fishery
+on that basis, even if none of the fish in the sample are actually from that
+threatened stock. If it actually is the case that none of the fish in the sample
+are from the threatened stock, then fishery restrictions put in place simply because
+of a non-zero estimate of the mixing proportion would incur a loss (lost income,
+reduced catch, etc.); however since no fish from the threatened stock were in the
+sample, it is far from clear that the fishery restrictions would actually be
+benefitting the threatened stock. 
+
+
+Similar dynamics can affect the output of the newly implemented approach in 'rubias'
+to quantify the uncertainty on the total catch from the genetic data. (See the
+[vignette](https://eriqande.github.io/rubias/articles/uncertainty-on-total-catch.html) about
+this.)  In that work, the actual allocations of fish in the sample to different collections
+are used to simulate from the posterior predictive distribution of a much larger sample.
+In this case, especially if the catch is being expanded to the numbers of fish that
+are in the escapement, for example, the occasional allocation of a fish to a rare
+stock can lead to a large estimate (with considerable variance) of the number of
+fish returning to that stock.  In this case it would be natural to ask whether
+there was high confidence in the allocation of that fish to the rare stock. 
+
+There are reports of small, non-zero estimates of mixing proportions that are
+considerably less than $1/N$, where $N$ is the number of fish sampled from the
+mixture.  That would indicate that there is not even a single fish that can be
+said to confidently belong to the population.  There might also be estimated proportions
+that are greater than $1/N$, but which are based on a handful of fish, none of
+possess compelling genetic data that they are actually from the stock in question.
+
+I have been thinking of ways to
+approach this problem so that such small, but non-zero, proportions could be
+given less weight, or at least could be identified. This might be a
+good candidate for a "spike-and-slab" type of prior, that is hoped to make the
+Dirichlet prior parameter on truly empty components a lot smaller than it is for
+components that are not empty.  Or, perhaps the problem can be better approached
+in a decision-theoretic framework applied to the currently calculated posterior.
+
+Regardless of how we decide to approacy the problem, I think it would be
+good to have some tools to really let us explore the details of this problem. I
+have a lot of questions: is the small non-zero weight coming entirely from the
+prior, or are there some fish that are occasionally being assigned to that
+component? Is it just one fish, or is a little bit of weight from many fish?
+Do those fish suffer from lots of missing data so that they are getting smeared
+across a lot of different populations?  These are all things that would be good
+to know and to be able to diagnose, whether or not we have a formal
+solution to this problem.  Furthermore, whatever solution we do come up with,
+any tools to explore the problem now will likely be useful for assessing how well
+the solution works.  
+
+
+## Assessment Tools
+
+First and foremost, when assessing these sorts of issues, it would be handy to have
+a record of the actual full-conditional probabilities for each fish at each
+sweep of the MCMC algorithm.  These full-conditional probabilities are effectively
+the posterior probabilities of assignment for each fish given the current values
+of the mixing proportions ($\bpi$).  We never included code to output these, because
+the size of the output might be rather larger.  However, in the case of the default
+conditional mixture model, (`infer_mixture()` with `method="MCMC"`) the actual
+full_conditional probabilities can be reconstructed using only the sampled $\bpi$
+values---which are already returned in `$mix_prop_traces` and the matrix of scaled
+likelihoods.  The scaled likelihoods have not been traditionally returned by
+`infer_mixture()`, but I have updated the function so that it always returns
+the scaled likelihoods in a matrix.  This can be handy in a number of ways for
+the problem at hand.  
+
+
+## A Cool plot
+
+Let's get some example results:
+```{r}
+library(tidyverse)
+
+mixf <- infer_mixture(chinook, chinook_mix, 5)
+```
+
+
