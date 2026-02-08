@@ -33,6 +33,8 @@
 #' height of bar, fbox is factor by which the boxplot differs from b, fgap is the
 #' fraction of b that is the gap between boxplot and bar and fnext is the number
 #' of b's between the bottom of the bottom bar and the top of the next boxplot.
+#' ftick is the length of the ticks along the bars (when using "bars_expanded_and_ticked)
+#' as a fraction of the bar height, b.
 #' @param left_edge_fract the fraction of the sample size to put the lower xlim.
 #' Make this larger to keep the N x pi number text from getting cut off.
 #' @param Npi_text_size size of text giving the N x pi number
@@ -46,7 +48,14 @@ plot_PofZ_vs_pi <- function(
   burn_in = 100,
   plot_flavor = c("normal", "bars_fully_expanded", "bars_expanded_and_ticked")[1],
   arrange_scaled_likelihood_ascending = FALSE,
-  dimens = list(b = 1, fbox = 0.9, fgap = 0.15, fnext = 2),  #
+  dimens = list(b = 1, fbox = 0.9, fgap = 0.15, fnext = 2, ftick = 0.05),
+  more_plot_pars = list(
+    boxplot_linewidth = 0.1,
+    boxplot_outlier.stroke = 0.25,
+    boxplot_outlier.size = 0.1,
+    bar_linewidth = 0.02,
+    tick_linewidth = 0.02
+  ),
   left_edge_fract = 0.1,
   Npi_text_size = 2,
   Npi_left_nudge = 0.005
@@ -63,6 +72,9 @@ plot_PofZ_vs_pi <- function(
   # remove the function name and the data set
   params_list$plot_PofZ_vs_pi <- NULL
   params_list$X <- NULL
+
+  YLAB <- "Proportions (multipled by Sample Size)"
+  FILLLAB <- "Individual\nProportion"
 
   # Individual quantity manipulations:
   # 1. Get tibble and filter to mixture collection
@@ -87,9 +99,12 @@ plot_PofZ_vs_pi <- function(
       ) %>%
       ungroup() %>%
       rename(group = repunit)
+
+    XLAB = "Reporting Unit"
   } else {
     PofZ <- PofZ %>%
       rename(group = collection)
+    XLAB = "Collection"
   }
 
 
@@ -98,6 +113,8 @@ plot_PofZ_vs_pi <- function(
   Pi_pm <- X$mixing_proportions %>%
     filter(mixture_collection == mix_coll)
 
+
+  ## Handle by_repunit == TRUE or FALSE
   if(by_repunit == TRUE) {
     Pi_pm <- Pi_pm %>%
       group_by(repunit) %>%
@@ -106,6 +123,7 @@ plot_PofZ_vs_pi <- function(
       ) %>%
       ungroup() %>%
       rename(group = repunit)
+
   }  else {
     Pi_pm <- Pi_pm %>%
       rename(group = collection)
@@ -135,6 +153,7 @@ plot_PofZ_vs_pi <- function(
   fbox <- dimens$fbox
   fgap <- dimens$fgap
   fnext <- dimens$fnext
+  ftick <- dimens$ftick
 
   box_nudge <- bstar * (1 + fgap + 0.5 * fbox)
   top_bar_nudge <- bstar / 2
@@ -178,6 +197,8 @@ plot_PofZ_vs_pi <- function(
   # expand the bars, if indicated
   if(plot_flavor == "bars_fully_expanded") {
 
+    YLAB <- "Proportion x N (Bars Fully Expanded)"
+
     # then we have to figure out the scaling factors for the scaled likelihoods
     # and the posterior probabilities. We want both bars to reach to the same
     # extent across all groups
@@ -206,6 +227,8 @@ plot_PofZ_vs_pi <- function(
         scaled_likelihood = Scale_Factor_ScLik * scaled_likelihood
       )
   } else if(plot_flavor == "bars_expanded_and_ticked") {
+
+    YLAB <- "Proportion x N (Bars Expanded. Bars < 1 Represent Ppn out of 1.0)"
     # now we do something slightly differently for the bars_expanded_and_ticked case.
     scale_factors <- PofZ_ready %>%
       group_by(group) %>%
@@ -217,8 +240,41 @@ plot_PofZ_vs_pi <- function(
         Scale_Factor_PofZ = ifelse(sumNPofZ > 1, max(sumNPofZ) / sumNPofZ, max(sumNPofZ)),
         Scale_Factor_ScLik = ifelse(sumNScLik > 1, max(sumNPofZ) / sumNScLik, max(sumNPofZ))
       ) %>%
-      select(group, Scale_Factor_PofZ, Scale_Factor_ScLik)
-      # now, get the left-right positions of the ticks
+      select(group, Scale_Factor_PofZ, Scale_Factor_ScLik, sumNPofZ, sumNScLik)
+
+    # then we can apply that Scale Factor to each of them
+    PofZ_ready <- PofZ_ready %>%
+      left_join(scale_factors, by = join_by(group)) %>%
+      mutate(
+        PofZ = Scale_Factor_PofZ * PofZ,
+        scaled_likelihood = Scale_Factor_ScLik * scaled_likelihood
+      )
+    ScLik_ready <- ScLik_ready %>%
+      left_join(scale_factors, by = join_by(group)) %>%
+      mutate(
+        scaled_likelihood = Scale_Factor_ScLik * scaled_likelihood
+      )
+
+    # now, get the left-right positions of the ticks. We start from the right edge and
+    # take them down.  If sumNPofZ < 1, the we just put them at the right edge and 0.
+    right_edge <- max(scale_factors$sumNPofZ)
+    tick_positions_PofZ <- scale_factors %>%
+      mutate(
+        step_size = ifelse(sumNPofZ > 1, right_edge / sumNPofZ, right_edge),
+        tick_pos = map(.x = step_size, .f = function(x) seq(from = right_edge, to = 0, by = -x)),
+        group_f = factor(group, levels = group_ord)
+      ) %>%
+      select(group_f, tick_pos) %>%
+      unnest(cols = tick_pos)
+
+    tick_positions_ScLik <- scale_factors %>%
+      mutate(
+        step_size = ifelse(sumNScLik > 1, right_edge / sumNScLik, right_edge),
+        tick_pos = map(.x = step_size, .f = function(x) seq(from = right_edge, to = 0, by = -x)),
+        group_f = factor(group, levels = group_ord)
+      ) %>%
+      select(group_f, tick_pos) %>%
+      unnest(cols = tick_pos)
   }
 
 
@@ -227,9 +283,9 @@ plot_PofZ_vs_pi <- function(
       data = Pi_trace_ready,
       aes(x = group_f, y = pi * N),
       width = (dimens$fbox * dimens$b) / D,
-      linewidth = 0.2,
-      outlier.stroke = 0.25,
-      outlier.size = 0.1,
+      linewidth = more_plot_pars$boxplot_linewidth,
+      outlier.stroke = more_plot_pars$boxplot_outlier.stroke,
+      outlier.size = more_plot_pars$boxplot_outlier.size,
       position = position_nudge(x = box_nudge)
     ) +
     geom_col(
@@ -237,7 +293,7 @@ plot_PofZ_vs_pi <- function(
       mapping = aes(x = group_f, y = PofZ, fill = PofZfill, group = spot),
       width = dimens$b / D,
       colour = "black",
-      linewidth = 0.02,
+      linewidth = more_plot_pars$bar_linewidth,
       position = ggpp::position_stacknudge(x = top_bar_nudge)
     ) +
     geom_col(
@@ -245,7 +301,7 @@ plot_PofZ_vs_pi <- function(
       mapping = aes(x = group_f, y = scaled_likelihood, fill = scaled_likelihood_fill, group = spot),
       width = dimens$b / D,
       colour = "black",
-      linewidth = 0.02,
+      linewidth = more_plot_pars$bar_linewidth,
       position = ggpp::position_stacknudge(x = bottom_bar_nudge)
     ) +
     geom_text(
@@ -259,14 +315,61 @@ plot_PofZ_vs_pi <- function(
     scale_fill_viridis_c() +
     ylim(-left_edge_fract * N, NA) +
     coord_flip() +
-    theme_bw()
+    theme_bw() +
+    labs(x = XLAB, y = YLAB, fill = FILLLAB)
+
+
+  # finally, down here, we add the ticks to g if we are supposed to
+  if(plot_flavor == "bars_expanded_and_ticked") {
+    g <- g +
+      geom_segment(
+        data = tick_positions_PofZ,
+        mapping = aes(
+          x = as.integer(group_f) + top_bar_nudge + 0.5 * bstar,
+          xend = as.integer(group_f) + top_bar_nudge + 0.5 * bstar + bstar * ftick,
+          y = tick_pos,
+          yend = tick_pos,
+        ),
+        linewidth = more_plot_pars$tick_linewidth
+      ) +
+      geom_segment(
+        data = tick_positions_ScLik,
+        mapping = aes(
+          x = as.integer(group_f) + bottom_bar_nudge - 0.5 * bstar,
+          xend = as.integer(group_f) + bottom_bar_nudge - 0.5 * bstar - bstar * ftick,
+          y = tick_pos,
+          yend = tick_pos,
+        ),
+        linewidth = more_plot_pars$tick_linewidth
+      ) + # now, we also extend a segment along the outer edge of the bar to the very end
+      geom_segment(
+        data = tick_positions_PofZ %>% select(group_f) %>% distinct(),
+        mapping = aes(
+          x = as.integer(group_f) + top_bar_nudge + 0.5 * bstar,
+          xend = as.integer(group_f) + top_bar_nudge + 0.5 * bstar
+        ),
+        y = 0,
+        yend = right_edge,
+        linewidth = more_plot_pars$bar_linewidth
+      ) +
+      geom_segment(
+        data = tick_positions_ScLik %>% select(group_f) %>% distinct(),
+        mapping = aes(
+          x = as.integer(group_f) + bottom_bar_nudge - 0.5 * bstar,
+          xend = as.integer(group_f) + bottom_bar_nudge - 0.5 * bstar
+        ),
+        y = 0,
+        yend = right_edge,
+        linewidth = more_plot_pars$bar_linewidth
+      )
+  }
 
 
 
   # We return the plot, but we also want to return the data that went into
   # making the plot, (in case someone wants to mess with it further)
   # and also the parameters
-  list(
+  ret <- list(
     plot = g,
     params = params_list,
     underlying_data = list(
