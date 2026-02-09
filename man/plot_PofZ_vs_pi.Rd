@@ -11,7 +11,7 @@ plot_PofZ_vs_pi(
   burn_in = 100,
   plot_flavor = c("normal", "bars_fully_expanded", "bars_expanded_and_ticked")[1],
   arrange_scaled_likelihood_ascending = FALSE,
-  dimens = list(b = 1, fbox = 0.9, fgap = 0.15, fnext = 2, ftick = 0.05),
+  dimens = list(b = 1, fbox = 0.9, fgap = 0.15, fnext = 2, ftick = 0.15),
   more_plot_pars = list(boxplot_linewidth = 0.1, boxplot_outlier.stroke = 0.25,
     boxplot_outlier.size = 0.1, bar_linewidth = 0.02, tick_linewidth = 0.02),
   left_edge_fract = 0.1,

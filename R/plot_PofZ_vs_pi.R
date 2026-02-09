@@ -48,7 +48,7 @@ plot_PofZ_vs_pi <- function(
   burn_in = 100,
   plot_flavor = c("normal", "bars_fully_expanded", "bars_expanded_and_ticked")[1],
   arrange_scaled_likelihood_ascending = FALSE,
-  dimens = list(b = 1, fbox = 0.9, fgap = 0.15, fnext = 2, ftick = 0.05),
+  dimens = list(b = 1, fbox = 0.9, fgap = 0.15, fnext = 2, ftick = 0.15),
   more_plot_pars = list(
     boxplot_linewidth = 0.1,
     boxplot_outlier.stroke = 0.25,
@@ -67,13 +67,27 @@ plot_PofZ_vs_pi <- function(
   stopifnot(plot_flavor %in% c("normal", "bars_fully_expanded", "bars_expanded_and_ticked"))
 
 
+  # note if we have current allocations or not
+  if("allocation_count_traces" %in% names(X)) {
+    prob_alo_tmp <- prob_at_least_one_in_sample(X, mix_coll = mix_coll, burn_in = burn_in)
+
+    if(by_repunit == TRUE) {
+      prob_alo <- prob_alo_tmp$by_repunit %>%
+        rename(group = repunit)
+    } else {
+      prob_alo <- prob_alo_tmp$by_collection %>%
+        rename(group = collection)
+    }
+  }
+
+
   # capture the input parameters so we can return them as well
   params_list <- as.list(environment())
   # remove the function name and the data set
   params_list$plot_PofZ_vs_pi <- NULL
   params_list$X <- NULL
 
-  YLAB <- "Proportions (multipled by Sample Size)"
+  YLAB <- "Proportions (multiplied by Sample Size)"
   FILLLAB <- "Individual\nProportion"
 
   # Individual quantity manipulations:
@@ -160,8 +174,17 @@ plot_PofZ_vs_pi <- function(
   bottom_bar_nudge <- -bstar / 2
 
 
-  # get the order of the groups:
-  group_ord <- Pi_pm %>% arrange(pi) %>% pull(group)
+  # get the order of the groups. This varies depending on if we have the allocation counts
+  # or not
+  if("allocation_count_traces" %in% names(X)) {
+    group_ord <- prob_alo %>%
+      left_join(Pi_pm, by = join_by(group)) %>%
+      arrange(fract_non_zero, pi) %>%
+      pull(group)
+  } else {
+    group_ord <- Pi_pm %>% arrange(pi) %>% pull(group)
+  }
+
 
   # sample size:
   N <- n_distinct(PofZ$indiv)
@@ -180,6 +203,16 @@ plot_PofZ_vs_pi <- function(
   Pi_pm_ready <- Pi_pm %>%
     mutate(group_f = factor(group, levels = group_ord)) %>%
     mutate(pipm_times_n = sprintf("%.3f   ", pi * N))  # I am adding a space here to make it easy to fit left of the bar
+
+
+  # now, we also will add on the fract_non_zero to these guys if we have it
+  if("allocation_count_traces" %in% names(X)) {
+    Pi_pm_ready <- Pi_pm_ready %>%
+      left_join(prob_alo, by = join_by(group)) %>%
+      mutate(pipm_times_n = paste0(
+        pipm_times_n, "  ", sprintf("%.3f  ", fract_non_zero)))
+  }
+
 
   Pi_trace_ready <- Pi_trace %>%
     mutate(group_f = factor(group, levels = group_ord))
