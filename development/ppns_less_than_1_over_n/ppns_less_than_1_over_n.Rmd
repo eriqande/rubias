@@ -375,7 +375,7 @@ ideas for what $L_z$ and $L_n$ should be, it is straightforward to apply them.
 
 # A Revamped Plot Function
 
-The above decision theory stuff work out so tidily that I decided to augment the
+The above decision theory stuff works out so tidily that I decided to augment the
 `plot_PofZ_vs_pi()` function to use this information to arrange groups and also
 to print the value of `fract_non_zero` just to the right of the sample size times
 the mixing proportion.  The function now automatically detects if the
