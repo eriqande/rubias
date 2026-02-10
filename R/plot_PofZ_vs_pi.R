@@ -1,6 +1,6 @@
 #' Make a plot comparing PofZs and Pi values for all collections (or repunits)
 #'
-#' @param X The return object from infer_mixture
+#' @param X The return object from infer_mixture()
 #' @param mix_coll  character name of the mixture_collection within X
 #' you want to plot results for.
 #' @param by_repunit logical.  If true, do by reporting units rather than collections.
@@ -35,6 +35,9 @@
 #' of b's between the bottom of the bottom bar and the top of the next boxplot.
 #' ftick is the length of the ticks along the bars (when using "bars_expanded_and_ticked)
 #' as a fraction of the bar height, b.
+#' @param more_plot_pars a list of additional plot pars with self-explanatory
+#' names: boxplot_linewidth, boxplot_outlier.stroke, boxplot_outlier.size, bar_linewidth,
+#  tick_linewidth.
 #' @param left_edge_fract the fraction of the sample size to put the lower xlim.
 #' Make this larger to keep the N x pi number text from getting cut off.
 #' @param Npi_text_size size of text giving the N x pi number

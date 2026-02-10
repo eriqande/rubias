@@ -20,7 +20,7 @@ plot_PofZ_vs_pi(
 )
 }
 \arguments{
-\item{X}{The return object from infer_mixture}
+\item{X}{The return object from infer_mixture()}
 
 \item{mix_coll}{character name of the mixture_collection within X
 you want to plot results for.}
@@ -61,6 +61,9 @@ fraction of b that is the gap between boxplot and bar and fnext is the number
 of b's between the bottom of the bottom bar and the top of the next boxplot.
 ftick is the length of the ticks along the bars (when using "bars_expanded_and_ticked)
 as a fraction of the bar height, b.}
+
+\item{more_plot_pars}{a list of additional plot pars with self-explanatory
+names: boxplot_linewidth, boxplot_outlier.stroke, boxplot_outlier.size, bar_linewidth,}
 
 \item{left_edge_fract}{the fraction of the sample size to put the lower xlim.
 Make this larger to keep the N x pi number text from getting cut off.}
