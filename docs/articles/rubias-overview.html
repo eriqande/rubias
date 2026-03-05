@@ -63,7 +63,7 @@
                         <h4 data-toc-skip class="author">Eric C.
 Anderson</h4>
             
-            <h4 data-toc-skip class="date">2025-10-16</h4>
+            <h4 data-toc-skip class="date">2026-03-05</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/eriqande/rubias/blob/HEAD/vignettes/rubias-overview.Rmd" class="external-link"><code>vignettes/rubias-overview.Rmd</code></a></small>
       <div class="d-none name"><code>rubias-overview.Rmd</code></div>
@@ -384,7 +384,7 @@ proportion estimate. This is how it is run with the default options:</p>
 <code class="sourceCode R"><span><span class="va">mix_est</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/infer_mixture.html">infer_mixture</a></span><span class="op">(</span>reference <span class="op">=</span> <span class="va">chinook</span>, </span>
 <span>                         mixture <span class="op">=</span> <span class="va">chinook_mix</span>, </span>
 <span>                         gen_start_col <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Collating data; compiling reference allele frequencies, etc.   time: 1.06 seconds</span></span>
+<pre><code><span><span class="co">## Collating data; compiling reference allele frequencies, etc.   time: 1.02 seconds</span></span>
 <span><span class="co">## Computing reference locus specific means and variances for computing mixture z-scores   time: 0.10 seconds</span></span>
 <span><span class="co">## Working on mixture collection: rec2 with 772 individuals</span></span>
 <span><span class="co">##   calculating log-likelihoods of the mixture individuals.   time: 0.06 seconds</span></span>
@@ -392,7 +392,7 @@ proportion estimate. This is how it is run with the default options:</p>
 <span><span class="co">##   tidying output into a tibble.   time: 0.03 seconds</span></span>
 <span><span class="co">## Working on mixture collection: rec1 with 743 individuals</span></span>
 <span><span class="co">##   calculating log-likelihoods of the mixture individuals.   time: 0.06 seconds</span></span>
-<span><span class="co">##   performing 2000 total sweeps, 100 of which are burn-in and will not be used in computing averages in method "MCMC"   time: 0.52 seconds</span></span>
+<span><span class="co">##   performing 2000 total sweeps, 100 of which are burn-in and will not be used in computing averages in method "MCMC"   time: 0.51 seconds</span></span>
 <span><span class="co">##   tidying output into a tibble.   time: 0.03 seconds</span></span>
 <span><span class="co">## Working on mixture collection: rec3 with 741 individuals</span></span>
 <span><span class="co">##   calculating log-likelihoods of the mixture individuals.   time: 0.06 seconds</span></span>
@@ -508,7 +508,7 @@ the other column, named “pi_param” gives the desired parameter.</p>
 <span>                         mixture <span class="op">=</span> <span class="va">chinook_mix</span>, </span>
 <span>                         gen_start_col <span class="op">=</span> <span class="fl">5</span>,</span>
 <span>                         pi_prior <span class="op">=</span> <span class="va">prior_tibble</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Collating data; compiling reference allele frequencies, etc.   time: 0.79 seconds</span></span>
+<pre><code><span><span class="co">## Collating data; compiling reference allele frequencies, etc.   time: 0.75 seconds</span></span>
 <span><span class="co">## Computing reference locus specific means and variances for computing mixture z-scores   time: 0.10 seconds</span></span>
 <span><span class="co">## Working on mixture collection: rec2 with 772 individuals</span></span>
 <span><span class="co">## Joining with `by = join_by(collection)`  calculating log-likelihoods of the mixture individuals.   time: 0.06 seconds</span></span>
@@ -516,7 +516,7 @@ the other column, named “pi_param” gives the desired parameter.</p>
 <span><span class="co">##   tidying output into a tibble.   time: 0.03 seconds</span></span>
 <span><span class="co">## Working on mixture collection: rec1 with 743 individuals</span></span>
 <span><span class="co">## Joining with `by = join_by(collection)`  calculating log-likelihoods of the mixture individuals.   time: 0.06 seconds</span></span>
-<span><span class="co">##   performing 2000 total sweeps, 100 of which are burn-in and will not be used in computing averages in method "MCMC"   time: 0.54 seconds</span></span>
+<span><span class="co">##   performing 2000 total sweeps, 100 of which are burn-in and will not be used in computing averages in method "MCMC"   time: 0.52 seconds</span></span>
 <span><span class="co">##   tidying output into a tibble.   time: 0.03 seconds</span></span>
 <span><span class="co">## Working on mixture collection: rec3 with 741 individuals</span></span>
 <span><span class="co">## Joining with `by = join_by(collection)`  calculating log-likelihoods of the mixture individuals.   time: 0.06 seconds</span></span>

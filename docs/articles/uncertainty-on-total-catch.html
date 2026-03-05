@@ -63,7 +63,7 @@
                         <h4 data-toc-skip class="author">Eric C.
 Anderson</h4>
             
-            <h4 data-toc-skip class="date">2025-10-16</h4>
+            <h4 data-toc-skip class="date">2026-03-05</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/eriqande/rubias/blob/HEAD/vignettes/uncertainty-on-total-catch.Rmd" class="external-link"><code>vignettes/uncertainty-on-total-catch.Rmd</code></a></small>
       <div class="d-none name"><code>uncertainty-on-total-catch.Rmd</code></div>
@@ -370,11 +370,11 @@ units.</p>
 <code class="sourceCode R"><span><span class="va">rec1_ests</span> <span class="op">&lt;-</span> <span class="va">chinook_mix</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">collection</span> <span class="op">==</span> <span class="st">"rec1"</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="../reference/infer_mixture.html">infer_mixture</a></span><span class="op">(</span><span class="va">chinook</span>, <span class="va">.</span>, gen_start_col <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Collating data; compiling reference allele frequencies, etc.   time: 1.01 seconds</span></span>
+<pre><code><span><span class="co">## Collating data; compiling reference allele frequencies, etc.   time: 0.96 seconds</span></span>
 <span><span class="co">## Computing reference locus specific means and variances for computing mixture z-scores   time: 0.10 seconds</span></span>
 <span><span class="co">## Working on mixture collection: rec1 with 743 individuals</span></span>
 <span><span class="co">##   calculating log-likelihoods of the mixture individuals.   time: 0.06 seconds</span></span>
-<span><span class="co">##   performing 2000 total sweeps, 100 of which are burn-in and will not be used in computing averages in method "MCMC"   time: 0.52 seconds</span></span>
+<span><span class="co">##   performing 2000 total sweeps, 100 of which are burn-in and will not be used in computing averages in method "MCMC"   time: 0.51 seconds</span></span>
 <span><span class="co">##   tidying output into a tibble.   time: 0.03 seconds</span></span></code></pre>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># get the mixing proportions trace by repunit</span></span>
@@ -500,7 +500,7 @@ the <code>total_catch_tib</code> parameter.</p>
 <span>  total_catch_tib <span class="op">=</span> <span class="va">total_catches</span>,</span>
 <span>  method <span class="op">=</span> <span class="va">rubi_method</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Collating data; compiling reference allele frequencies, etc.   time: 0.80 seconds</span></span>
+<pre><code><span><span class="co">## Collating data; compiling reference allele frequencies, etc.   time: 0.76 seconds</span></span>
 <span><span class="co">## Computing reference locus specific means and variances for computing mixture z-scores   time: 0.10 seconds</span></span>
 <span><span class="co">## Working on mixture collection: rec2 with 772 individuals</span></span>
 <span><span class="co">## tot_catch_vec: 3088 3088 3088 3088 3088 3088 3088 3088 3088 3088 3088 3088...</span></span>
@@ -511,12 +511,12 @@ the <code>total_catch_tib</code> parameter.</p>
 <span><span class="co">## tot_catch_vec: 743 743 743 743 743 743 743 743 743 743 743 743...</span></span>
 <span><span class="co">##   calculating log-likelihoods of the mixture individuals.   time: 0.06 seconds</span></span>
 <span><span class="co">##   performing 2000 total sweeps, 100 of which are burn-in and will not be used in computing averages in method "MCMC"   time: 0.55 seconds</span></span>
-<span><span class="co">##   tidying output into a tibble.   time: 0.06 seconds</span></span>
+<span><span class="co">##   tidying output into a tibble.   time: 0.05 seconds</span></span>
 <span><span class="co">## Working on mixture collection: rec3 with 741 individuals</span></span>
 <span><span class="co">## tot_catch_vec: 3839 3198 2791 4069 2834 2951 2911 2258 4157 2172 3606 4042...</span></span>
 <span><span class="co">##   calculating log-likelihoods of the mixture individuals.   time: 0.06 seconds</span></span>
-<span><span class="co">##   performing 2000 total sweeps, 100 of which are burn-in and will not be used in computing averages in method "MCMC"   time: 0.57 seconds</span></span>
-<span><span class="co">##   tidying output into a tibble.   time: 0.06 seconds</span></span></code></pre>
+<span><span class="co">##   performing 2000 total sweeps, 100 of which are burn-in and will not be used in computing averages in method "MCMC"   time: 0.55 seconds</span></span>
+<span><span class="co">##   tidying output into a tibble.   time: 0.05 seconds</span></span></code></pre>
 <p>After that has run, the tibble in
 <code>mix_ests_with_catch$stock_specific_total_catch_traces</code> holds
 the posterior sample of the total catch. It is structured much like the
@@ -740,22 +740,22 @@ information in the <code>prob_is_catch</code> column.</p>
 <span>  total_catch_tib <span class="op">=</span> <span class="va">total_catches</span>,</span>
 <span>  variable_prob_is_catch <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Collating data; compiling reference allele frequencies, etc.   time: 0.71 seconds</span></span>
-<span><span class="co">## Computing reference locus specific means and variances for computing mixture z-scores   time: 0.10 seconds</span></span>
+<pre><code><span><span class="co">## Collating data; compiling reference allele frequencies, etc.   time: 0.69 seconds</span></span>
+<span><span class="co">## Computing reference locus specific means and variances for computing mixture z-scores   time: 0.09 seconds</span></span>
 <span><span class="co">## Working on mixture collection: rec2 with 772 individuals</span></span>
 <span><span class="co">## tot_catch_vec: 3088 3088 3088 3088 3088 3088 3088 3088 3088 3088 3088 3088...</span></span>
 <span><span class="co">##   calculating log-likelihoods of the mixture individuals.   time: 0.06 seconds</span></span>
-<span><span class="co">##   performing 2000 total sweeps, 100 of which are burn-in and will not be used in computing averages in method "MCMC"   time: 0.67 seconds</span></span>
+<span><span class="co">##   performing 2000 total sweeps, 100 of which are burn-in and will not be used in computing averages in method "MCMC"   time: 0.66 seconds</span></span>
 <span><span class="co">##   tidying output into a tibble.   time: 0.05 seconds</span></span>
 <span><span class="co">## Working on mixture collection: rec1 with 743 individuals</span></span>
 <span><span class="co">## tot_catch_vec: 743 743 743 743 743 743 743 743 743 743 743 743...</span></span>
 <span><span class="co">##   calculating log-likelihoods of the mixture individuals.   time: 0.06 seconds</span></span>
-<span><span class="co">##   performing 2000 total sweeps, 100 of which are burn-in and will not be used in computing averages in method "MCMC"   time: 0.64 seconds</span></span>
+<span><span class="co">##   performing 2000 total sweeps, 100 of which are burn-in and will not be used in computing averages in method "MCMC"   time: 0.63 seconds</span></span>
 <span><span class="co">##   tidying output into a tibble.   time: 0.05 seconds</span></span>
 <span><span class="co">## Working on mixture collection: rec3 with 741 individuals</span></span>
 <span><span class="co">## tot_catch_vec: 3839 3198 2791 4069 2834 2951 2911 2258 4157 2172 3606 4042...</span></span>
 <span><span class="co">##   calculating log-likelihoods of the mixture individuals.   time: 0.06 seconds</span></span>
-<span><span class="co">##   performing 2000 total sweeps, 100 of which are burn-in and will not be used in computing averages in method "MCMC"   time: 0.64 seconds</span></span>
+<span><span class="co">##   performing 2000 total sweeps, 100 of which are burn-in and will not be used in computing averages in method "MCMC"   time: 0.63 seconds</span></span>
 <span><span class="co">##   tidying output into a tibble.   time: 0.05 seconds</span></span></code></pre>
 <p>Let us now look at the resulting numbers, paying careful attention to
 “rec1”, which is particularly illuminating. Because the total catch is
