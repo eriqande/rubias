@@ -32,7 +32,7 @@ and the number of populations within each reporting unit are uneven.
 More recently, the package has been enhanced to:
 
 1. Allow sampling from the posterior probability of the total catch
-[See Vignette](https://eriqande.github.io/rubias/docs/articles/uncertainty-on-total-catch.html)
+[See Vignette](https://eriqande.github.io/rubias/articles/uncertainty-on-total-catch.html)
 2. Provide enhanced tools to understand whether mixing proportions $<\frac{1}{N}$ are the
 result of fish in the mixture that actually look like they belong to a certain reporting unit
 or whether it is from the accumulation of a lot of uncertainty.
