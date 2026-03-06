@@ -281,7 +281,10 @@
      inkscape:label="1"
      transform="matrix(0.26458332,0,0,0.26458334,220.00001,0)"><g
        id="g95"
-       transform="matrix(3.7191313,0,0,2.1335033,-805.62058,-11.906236)"><g
+       transform="matrix(3.7191313,0,0,2.1335033,-805.62058,-11.906236)"
+       inkscape:export-filename="rubias-sticker.png"
+       inkscape:export-xdpi="96"
+       inkscape:export-ydpi="96"><g
          aria-label="λ&#10;(π)"
          transform="matrix(1.3333333,0,0,1.3333333,33.778667,27.645333)"
          clip-path="url(#clipPath2-5)"
