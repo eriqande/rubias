@@ -3,32 +3,30 @@ title: "Proportions Less Than $1/N$"
 author: "Eric C. Anderson"
 date: "`r Sys.Date()`"
 output:
-  bookdown::pdf_document2:
-    fig_caption: true
+  rmarkdown::html_vignette:
     toc: true
-  pdf_document:
-    fig_caption: true
-    toc: true
-  bookdown::html_document2:
-    base_format: rmarkdown::html_vignette
-    fig_caption: true
-    toc: true
-  html_document:
-    df_print: paged
-    toc: true
-  word_document: default
+vignette: >
+  %\VignetteIndexEntry{An Overview of rubias Usage}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
 bibliography: ../../vignettes/citation.bib
 csl: ../../vignettes/ecology.csl
 ---
 
+\usepackage{mathrsfs}
 
 \newcommand{\bpi}{\boldsymbol{\pi}}
-\newcommand{\Loss}{\mathcal{L}}
+\newcommand{\Loss}{\mathscr{L}}
 \newcommand{\vecx}{\mathbf{x}}
+
 
 
 ```{r setup, include=FALSE}
 library(tidyverse)
+knitr::opts_chunk$set(
+  dev = "svg",
+  fig.ext = "svg"
+)
 ```
 
 
@@ -62,9 +60,10 @@ the fishery restrictions would actually be benefitting the threatened stock.
 Similar dynamics can affect the output of the newly implemented approach in 'rubias'
 to quantify the uncertainty on the total catch from the genetic data. (See the
 vignette about this at [https://eriqande.github.io/rubias/articles/uncertainty-on-total-catch.html](https://eriqande.github.io/rubias/articles/uncertainty-on-total-catch.html).)
-In that work, the actual allocations of fish in the sample to different collections
-are used to simulate from the posterior predictive distribution of a much larger sample.
-In this case, especially if the catch is being expanded to the numbers of fish that
+In that work, the actual allocations of fish in the genetic mixture sample to different collections
+are used to simulate from the posterior predictive distribution of a much larger group of
+fish (typically the harvest or the escapement, etc).
+In this case, especially if the sample is being expanded to the numbers of fish that
 are in the escapement, for example, the occasional allocation of a fish to a rare
 stock can lead to a large estimate (with considerable variance) of the number of
 fish returning to that stock.  In this case it would be natural to ask whether
@@ -129,20 +128,28 @@ Now, we can make the plot with `plot_PofZ_vs_pi()`.  Note that, by default, it a
 over the `collections` to visualize estimates of the `repunits` (though, by passing
 `by_repunit = FALSE` you can focus on the collections).  You also have to pass it
 the name of the `mix_collection` to use.  In this case we will visualize the results
-for `rec2`.
+for `rec2`, a mixture sample consisting of 772 fish.
 
-(ref:p1-fig-caption) The default plot from `plot_PofZ_vs_pi()` Note that you really have to zoom in to see the features, so put this in a good PDF viewer and zoom away! Along the $y$-axis you will see the different reporting units arranged top to bottom from the largest posterior mean mixing proportion to the smallest.  The basic elements of the plot are as follows: 1) the boxplots summarise the posterior distribution of each $\pi_k$, for each reporting unit, and these have been scaled by the sample size $N$, which relates it to the number of individuals in the sample that might have come from each reporting unit. 2) The numbers to the left of the $x=0$ line are the product of the sample size and the posterior mean of the mixing proportion for each reporting unit  This makes it quite clear how many fish in the sample the mixing proportion might represent.  3) The top bar for each group shows the individual PofZ values, arranged in ascending order from left to right, for all the fish in the mixture. Each small rectangle in the bar represents a fish; the width of the rectangle indicates the PofZ value for the reporting unit as does the fill color. As the color legend indicates, yellow is near 1.0 and dark purple is near 0.0. 4) The bottom bar of each reporting unit shows the scaled likelihoods of all the individuals sorted in the same order as the PofZ bar. Just as in the PofZ bars, the rectangle widths and
-fill colors in the scaled likelihood bars indicate the magnitude of the scaled likelihood to the reporting unit. 
 
-```{r p1, warning=FALSE, message=FALSE, fig.cap="(ref:p1-fig-caption)", fig.width=6.5, fig.height = 6}
+```{r p1, warning=FALSE, message=FALSE, fig.width=6.5, fig.height = 6, out.width = "100%"}
 P <- plot_PofZ_vs_pi(X = mixf, mix_coll = "rec2")
 
 # once we have the return object, we can access the plot with `$plot`
 P$plot
 ```
 
-The resulting plot appears in Figure \@ref(fig:p1), the caption of which explains and
-describes the elements in the plot.  Once the elements of the plot are understood, we
+The resulting plot appears above.  Note: you really need to zoom in on these plots. You
+can do that to some extent on the HTML version of the vignetter in your web browser,
+but to get the full experience it is better to zoom in on a PDF file. 
+You **REALLY** need to zoom in on these plots. So please download a [PDF version of the figure](https://github.com/eriqande/rubias/blob/master/man/figures/ppns-figure1.pdf?raw=1)
+and open it with a PDF viewer and zoom way in. 
+On a Mac, Preview works acceptably well.  My colleagues who use Windows suggest that
+[Sumatra PDF Reader](https://www.sumatrapdfreader.org/download-free-pdf-viewer) works well.
+
+Along the $y$-axis you will see the different reporting units arranged top to bottom from the largest posterior mean mixing proportion to the smallest.  The basic elements of the plot are as follows: 1) the boxplots summarise the posterior distribution of each $\pi_k$, for each reporting unit, and these have been scaled by the sample size $N$, which relates it to the number of individuals in the sample that might have come from each reporting unit. 2) The numbers to the left of the $x=0$ line are the product of the sample size (772, in this case) and the posterior mean of the mixing proportion for each reporting unit.  Thus, these numbers sum to 772. This makes it quite clear how many fish in the sample the mixing proportion might represent.  3) The top bar for each group shows the individual PofZ values, arranged in ascending order from left to right, for all the fish in the mixture. (Yes, values for _all_ the fish are there, but if the PofZ value for any fish is very small you won't see it, as it will just look like a thin vertical line). Each small rectangle in the bar represents a fish; the width of the rectangle indicates the PofZ value for the reporting unit as does the fill color. As the color legend indicates, yellow is near 1.0 and dark purple is near 0.0. 4) The bottom bar of each reporting unit shows the scaled likelihoods of all the individuals sorted in the same order as the PofZ bar. Just as in the PofZ bars, the rectangle widths and
+fill colors in the scaled likelihood bars indicate the magnitude of the scaled likelihood to the reporting unit. 
+
+Once the elements of the plot are understood, we
 can see that it indicates a lot of interesting things. First off, 
 notice that the most abundant stock, `CentralValleyfa`, the fall-run from the Central Valley, is represented
 by a large number of individuals with high posterior probability for `CentralValleyfa`; however, there are
@@ -153,7 +160,14 @@ data on the next fish, you expect that
 it is more likely to come from `CentralValleyfa` than from some other stock that
 you have not already seen in the sample---that sort of information gets used and applied in the mixture
 model (which does so by weighting the scaled likelihoods by the "prior," which in this case is $\bpi$, to
-obtain the posterior probability).  The other thing that is quite interesting in the `CentralValleyfa`
+obtain the posterior probability). 
+
+Just to be clear, the scaled likelihoods are like posterior probabilities under a model
+in which any of the collections is equally likely as the origin of a fish.  The actual
+posterior probabilities are calculated while also taking account of the estimated fraction
+of fish in the mixture from each of the collections.  
+
+The other thing that is quite interesting in the `CentralValleyfa`
 bars is that the rank order of PofZ and scaled likelihoods is not identical.  This actually makes
 sense: because the posterior probability involves rescaling the prior ($\bpi$) times the likelihoods
 in order for it to sum to one over all reporting units, the scaled likelihood and the
@@ -172,14 +186,14 @@ the posterior probability for `CentralValleysp` ends up being less than the scal
 for `CentralValleysp` for most of the fish, such that the estimated mixing proportion for
 `CentralValleyfa` is quite small---considerably less than $1/N$.
 
-Also noteworthy is the `CohoSp`.  There appears to be one individual with scaled likelihood
+Also noteworthy is the `CohoSp`.  There appears to be one individual with both PofZ ane scaled likelihood
 very close to 1.0 of being a coho salmon.  This makes sense because with this baseline it is quite
 easy to distinguish coho from Chinook salmon.  So, even though the mixing proportion for `CohoSp`
 is very low, there is overwhelming evidence (from the likelihood based on the genetic data)
 that this fish is a coho salmon, so the posterior probability of the individual remains high.
 As a consequence, we can be quite confident that there is a single coho salmon in the sample,
 and that the non-zero estimate of the  mixing proportion for `CohoSp` is well-supported.
-On the other hand, the mixing proportion estimate of 0.115 for `SnakeRiverfa` appears to be based
+On the other hand, the mixing proportion estimate times $N$ of 0.115 for `SnakeRiverfa` appears to be based
 on a small handful of fish with very low scaled likelihoods (and even lower posterior probabilities)
 for `SnakeRiverfa`.  Hence, we should have less confidence that the mixing proportion for
 `SnakeRiverfa` is well supported. 
@@ -189,10 +203,8 @@ probabilities, it is helpful to expand all the bars to the full width of the plo
 makes it easier to count how many fish are involved, etc.   We can do that by setting the
 `plot_flavor` to `"bars_fully_expanded"` below.
 
-(ref:p2-fig-caption) The plot from `plot_PofZ_vs_pi()` with `plot_flavor = "bars_fully_expanded"`. The
-bars have been extended to make it easier to resolve individuals in the bar plots.  
 
-```{r p2, warning=FALSE, message=FALSE, fig.cap="(ref:p2-fig-caption)", fig.width=6.5, fig.height = 6}
+```{r p2, warning=FALSE, message=FALSE, fig.width=6.5, fig.height = 6, out.width='100%'}
 P2 <- plot_PofZ_vs_pi(X = mixf, mix_coll = "rec2", plot_flavor = "bars_fully_expanded")
 
 # once we have the return object, we can access the plot with `$plot`
@@ -200,7 +212,8 @@ P2$plot
 ```
 
 
-That code produces the plot in Figure \@ref(fig:p2) which makes it much easier
+A PDF version of the plot can be found [here](https://github.com/eriqande/rubias/blob/master/man/figures/ppns-figure2.pdf?raw=1).
+The expanded bars of this plot make it much easier
 to see how many fish are involved in the smaller $\pi_k$ estimates.  In fact, if I were
 to eyeball this, I would say that it would make sense to put all of the mixing proportion
 mass from `CentralValleysp` down to `TakuR` into an "Undetermined" category.  
@@ -213,18 +226,19 @@ show where individuals with a PofZ or scaled likelihood of 1.0 would line up
 can be compared to these.  Additionally, bars that have a total length less than
 one are depicted on the scale where the far right edge is equal to one.  This makes
 it easier to visually compare values across those low values.  We make that plot
-and put it in Figure \@ref(fig:p3) with:
+with:
 
-(ref:p3-fig-caption) A plot with `plot_flavor = "bars_expanded_and_ticked"`. You really
-need to zoom in on this to see the tick marks.  
 
-```{r p3, warning=FALSE, message=FALSE, fig.cap="(ref:p3-fig-caption)", fig.width=6.5, fig.height = 6}
+```{r p3, warning=FALSE, message=FALSE, fig.width=6.5, fig.height = 6, out.width='100%'}
 P3 <- plot_PofZ_vs_pi(X = mixf, mix_coll = "rec2", plot_flavor = "bars_expanded_and_ticked")
 
 # once we have the return object, we can access the plot with `$plot`
 P3$plot
 ```
 
+To see the tick marks added in this plot, you really need to zoom in on it. To facilitate
+this you can download the
+[PDF version](https://github.com/eriqande/rubias/blob/master/man/figures/ppns-figure3.pdf?raw=1)
 
 # A Bayesian Decision-Theoretic Approach
 
@@ -381,16 +395,14 @@ to print the value of `fract_non_zero` just to the right of the sample size time
 the mixing proportion.  The function now automatically detects if the
 `allocation_count_traces` component it present (as it is in `mixf2`), and if it is
 then it includes the posterior probability of having at least one fish in the sample.
-When we use it, we have to expand the left edge a little bit to fit everything. The result
-is in Figure \@ref(fig:p4).
-
-(ref:p4-fig-caption) A plot with `plot_flavor = "bars_fully_expanded"` using output
-from `infer_mixture()` that has the `allocation_count_traces`, which happens when 
-`infer_mixture()` was run with the `total_catch_tib` option.  This plot includes
+When we use it, we have to expand the left edge a little bit to fit everything.
+To get the plot we use the  `plot_flavor = "bars_fully_expanded" option with output
+from `infer_mixture()` that has the `allocation_count_traces` (which happens when 
+`infer_mixture()` was run with the `total_catch_tib` option).  This plot includes
 the posterior probability that at least one member of the reporting unit was in the
 sample, just left of the bars.
 
-```{r p4, warning=FALSE, message=FALSE, fig.cap="(ref:p4-fig-caption)", fig.width=6.5, fig.height = 6}
+```{r p4, warning=FALSE, message=FALSE, fig.width=6.5, fig.height = 6, out.width='100%'}
 P4 <- plot_PofZ_vs_pi(
   X = mixf2,
   mix_coll = "rec2",
@@ -402,3 +414,6 @@ P4 <- plot_PofZ_vs_pi(
 P4$plot
 ```
 
+
+
+Once again, you can download a [PDF Version](https://github.com/eriqande/rubias/blob/master/man/figures/ppns-figure4.pdf?raw=1)
