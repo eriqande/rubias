@@ -1,3 +1,10 @@
+# rubias 0.4.1
+
+* Added enhanced tools to understand whether mixing proportions $<\frac{1}{N}$ are the
+result of fish in the mixture that actually look like they belong to a certain reporting unit
+or whether it is from the accumulation of a lot of uncertainty.
+
+
 # rubias 0.4.0
 
 * Added functionality to simulate from the posterior predictive distribution

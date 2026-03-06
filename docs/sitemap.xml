@@ -2,6 +2,7 @@
 <url><loc>https://eriqande.github.io/rubias/404.html</loc></url>
 <url><loc>https://eriqande.github.io/rubias/TODO.html</loc></url>
 <url><loc>https://eriqande.github.io/rubias/articles/index.html</loc></url>
+<url><loc>https://eriqande.github.io/rubias/articles/ppns_less_than_1_over_n.html</loc></url>
 <url><loc>https://eriqande.github.io/rubias/articles/rubias-fully-bayesian.html</loc></url>
 <url><loc>https://eriqande.github.io/rubias/articles/rubias-overview.html</loc></url>
 <url><loc>https://eriqande.github.io/rubias/articles/rubias-underlying-data-structures.html</loc></url>
@@ -48,6 +49,8 @@
 <url><loc>https://eriqande.github.io/rubias/reference/perfect_chinook.html</loc></url>
 <url><loc>https://eriqande.github.io/rubias/reference/perfect_chinook_mix.html</loc></url>
 <url><loc>https://eriqande.github.io/rubias/reference/pipe.html</loc></url>
+<url><loc>https://eriqande.github.io/rubias/reference/plot_PofZ_vs_pi.html</loc></url>
+<url><loc>https://eriqande.github.io/rubias/reference/prob_at_least_one_in_sample.html</loc></url>
 <url><loc>https://eriqande.github.io/rubias/reference/rcpp_close_matchers.html</loc></url>
 <url><loc>https://eriqande.github.io/rubias/reference/rcpp_indiv_specific_logl_means_and_vars.html</loc></url>
 <url><loc>https://eriqande.github.io/rubias/reference/rcpp_per_locus_logls.html</loc></url>

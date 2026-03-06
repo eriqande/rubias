@@ -10,11 +10,19 @@ reference:
 - title: "Genetic Analysis of Mixtures"
   desc: >
     Functions for running mixed-stock analysis, also
-    called genetic stock identification.
+    called genetic stock identification
 - contents:
   - close_matching_samples
   - infer_mixture
 
+- title: "Interpretation of Mixture Analyses"
+  desc: >
+    Functions that process the output of `infer_mixture()` to help interpret
+    the estimated values, especially in regard to estimated mixture proportions
+    that are less than 1 divided by the mixture sample size
+- contents:
+  - plot_PofZ_vs_pi
+  - prob_at_least_one_in_sample
 
 - title: "Predicting the Accuracy Expected with a Reference Baseline"
   desc: >

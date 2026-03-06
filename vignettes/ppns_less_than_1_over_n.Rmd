@@ -1,0 +1,419 @@
+---
+title: "Proportions Less Than 1/N"
+author: "Eric C. Anderson"
+date: "`r Sys.Date()`"
+output:
+  rmarkdown::html_vignette:
+    toc: true
+vignette: >
+  %\VignetteIndexEntry{Proportions Less Than 1/N}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+bibliography: citation.bib
+csl: ecology.csl
+---
+
+\usepackage{mathrsfs}
+
+\newcommand{\bpi}{\boldsymbol{\pi}}
+\newcommand{\Loss}{\mathscr{L}}
+\newcommand{\vecx}{\mathbf{x}}
+
+
+
+```{r setup, include=FALSE}
+library(tidyverse)
+knitr::opts_chunk$set(
+  dev = "svg",
+  fig.ext = "svg"
+)
+```
+
+
+# Introduction 
+
+One of the main outputs from 'rubias' is a Markov chain Monte Carlo (MCMC) sample of
+the mixing proportion.  This is meant to be a sample from the posterior distribution
+of the vector of mixing proportions from which the sample was drawn.  This sample is
+returned from the `infer_mixture()` function in the `mix_prop_traces` component,
+of the return object, and the posterior mean of the mixing proportions is returned
+in the `mixing_proportions` component.  
+
+During each step of the MCMC, the current value of the mixing proportions are drawn
+as a sample from a Dirichlet distribution.  This is a vector $\bpi = (\pi_1,\ldots,\pi_K)$
+of values with $0< \pi_k < 1$ for all $k$ and $\sum_{k=1}^K \pi_k = 1$.  The individual
+$\pi_k$ values are constrained to not be equal to 0 or 1.  Thus, even if there are no fish
+from a certain collection in the mixture, there might still be a small, but non-zero,
+estimate of the proportion of fish from that collection.  Depending on how they are
+interpreted, these small, but non-zero estimates can lead to different notions
+about how fisheries should be managed.  For example, if a very small proportion is
+interpreted as evidence that there is a non-zero chance that a rare or threatened
+stock is being impacted by a fishery, then some might wish to curtail the fishery
+on that basis, even if none of the fish in the sample are actually from that
+threatened stock. If fishery restrictions are put in place this will incur a loss
+of some sort (lost income,
+reduced catch, etc.); however if no fish in the sample are actually from the
+threatened stock, then it is far from clear that there is compelling evidence that
+the fishery restrictions would actually be benefitting the threatened stock. 
+
+
+Similar dynamics can affect the output of the newly implemented approach in 'rubias'
+to quantify the uncertainty on the total catch from the genetic data. (See the
+vignette about this at [https://eriqande.github.io/rubias/articles/uncertainty-on-total-catch.html](https://eriqande.github.io/rubias/articles/uncertainty-on-total-catch.html).)
+In that work, the actual allocations of fish in the genetic mixture sample to different collections
+are used to simulate from the posterior predictive distribution of a much larger group of
+fish (typically the harvest or the escapement, etc).
+In this case, especially if the sample is being expanded to the numbers of fish that
+are in the escapement, for example, the occasional allocation of a fish to a rare
+stock can lead to a large estimate (with considerable variance) of the number of
+fish returning to that stock.  In this case it would be natural to ask whether
+there was high confidence in the allocation of that fish to the rare stock. 
+
+There are reports of small, non-zero estimates of mixing proportions that are
+considerably less than $1/N$, where $N$ is the number of fish sampled from the
+mixture.  That would indicate that there is not even a single fish that can be
+said to confidently belong to the population.  There might also be estimated proportions
+that are greater than $1/N$, but which are based on a handful of fish, none of which
+possess compelling genetic data that they are actually from the stock in question.
+
+I have been thinking of ways to
+approach this problem such that small, but non-zero, proportions could be identified
+and removed or given less weight or transferred to an "Undetermined" category.
+I have largely settled
+on a Bayesian decision-theory based approach that will be described shortly.
+Before that, however, I find it very helpful---nay, critical even---to have
+a good visualization tool that lets us explore the details of this problem. It
+is correct to 
+have a lot of questions: is the small non-zero weight coming entirely from the
+prior, or are there some fish that are occasionally being assigned to that
+component? Is it just one fish, or is a little bit of weight from many fish?
+How do the scaled likelihoods of these fish compare to their posterior
+probabilities? These are all things that would be good
+to know and to be able to diagnose, so, in the next section I illustrate the
+use of a new function `plot_PofZ_vs_pi()` to visualize the relationship between
+the mixing proportions and the posterior probabilities of allocation (as well
+as the scaled likelihoods) for all individuals.  These plots give us considerable
+insight into what is going on under the hood in 'rubias.'
+
+
+# Visualizing Estimates with `plot_PofZ_vs_pi()`
+
+The main goal of the `plot_PofZ_vs_pi()` function is to compare the relationships
+between the posterior mean of allocation of each fish (known as `PofZ` in rubias
+parlance, because it is the posterior probability of the indicator vector $Z$ which 
+indicates where the fish originated) and the mixing proportions from that stock
+or reporting unit.  It aims to answer the question, "Does a low mixing proportion
+$\pi_k$ result from a few fish that confidently belong to reporting unit $k$,
+or from a whole lot of fish, none or few of which confidently belong to reporting
+unit $k$?"  As we will see, it also includes facilities to look specifically at 
+stocks or reporting units which have mixing proportions that equate to less than
+1 individual in the sample. 
+
+
+We will use some of the data in 'rubias' for an example: the `chinook`
+and `chinook_mix` data sets that ship with the package.  First we want to
+run a standard mixture analysis with `infer_mixture()` using those data. Note that
+we are doing just a short run here because this will ultimately get evaluated
+in a vignette, and we don't want it to take too long.  In your own practice, you would
+probably want more sweeps of the MCMC.  
+```{r, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(rubias)
+
+set.seed(5)
+mixf <- infer_mixture(chinook, chinook_mix, 5)
+```
+
+Now, we can make the plot with `plot_PofZ_vs_pi()`.  Note that, by default, it aggregates
+over the `collections` to visualize estimates of the `repunits` (though, by passing
+`by_repunit = FALSE` you can focus on the collections).  You also have to pass it
+the name of the `mix_collection` to use.  In this case we will visualize the results
+for `rec2`, a mixture sample consisting of 772 fish.
+
+
+```{r p1, warning=FALSE, message=FALSE, fig.width=6.5, fig.height = 6, out.width = "100%"}
+P <- plot_PofZ_vs_pi(X = mixf, mix_coll = "rec2")
+
+# once we have the return object, we can access the plot with `$plot`
+P$plot
+```
+
+The resulting plot appears above.  Note: you really need to zoom in on these plots. You
+can do that to some extent on the HTML version of the vignetter in your web browser,
+but to get the full experience it is better to zoom in on a PDF file. 
+You **REALLY** need to zoom in on these plots. So please download a [PDF version of the figure](https://github.com/eriqande/rubias/blob/master/man/figures/ppns-figure1.pdf?raw=1)
+and open it with a PDF viewer and zoom way in. 
+On a Mac, Preview works acceptably well.  My colleagues who use Windows suggest that
+[Sumatra PDF Reader](https://www.sumatrapdfreader.org/download-free-pdf-viewer) works well.
+
+Along the $y$-axis you will see the different reporting units arranged top to bottom from the largest posterior mean mixing proportion to the smallest.  The basic elements of the plot are as follows: 1) the boxplots summarise the posterior distribution of each $\pi_k$, for each reporting unit, and these have been scaled by the sample size $N$, which relates it to the number of individuals in the sample that might have come from each reporting unit. 2) The numbers to the left of the $x=0$ line are the product of the sample size (772, in this case) and the posterior mean of the mixing proportion for each reporting unit.  Thus, these numbers sum to 772. This makes it quite clear how many fish in the sample the mixing proportion might represent.  3) The top bar for each group shows the individual PofZ values, arranged in ascending order from left to right, for all the fish in the mixture. (Yes, values for _all_ the fish are there, but if the PofZ value for any fish is very small you won't see it, as it will just look like a thin vertical line). Each small rectangle in the bar represents a fish; the width of the rectangle indicates the PofZ value for the reporting unit as does the fill color. As the color legend indicates, yellow is near 1.0 and dark purple is near 0.0. 4) The bottom bar of each reporting unit shows the scaled likelihoods of all the individuals sorted in the same order as the PofZ bar. Just as in the PofZ bars, the rectangle widths and
+fill colors in the scaled likelihood bars indicate the magnitude of the scaled likelihood to the reporting unit. 
+
+Once the elements of the plot are understood, we
+can see that it indicates a lot of interesting things. First off, 
+notice that the most abundant stock, `CentralValleyfa`, the fall-run from the Central Valley, is represented
+by a large number of individuals with high posterior probability for `CentralValleyfa`; however, there are
+also some individuals that don't have a really high scaled likelihood for `CentralValleyfa`, but their
+posterior to `CentralValleyfa` still ends up being high.  This is a consequence of how a mixure model like
+this works: if you've seen a lot of fish from `CentralValleyfa`, then even before you look at any genetic 
+data on the next fish, you expect that
+it is more likely to come from `CentralValleyfa` than from some other stock that
+you have not already seen in the sample---that sort of information gets used and applied in the mixture
+model (which does so by weighting the scaled likelihoods by the "prior," which in this case is $\bpi$, to
+obtain the posterior probability). 
+
+Just to be clear, the scaled likelihoods are like posterior probabilities under a model
+in which any of the collections is equally likely as the origin of a fish.  The actual
+posterior probabilities are calculated while also taking account of the estimated fraction
+of fish in the mixture from each of the collections.  
+
+The other thing that is quite interesting in the `CentralValleyfa`
+bars is that the rank order of PofZ and scaled likelihoods is not identical.  This actually makes
+sense: because the posterior probability involves rescaling the prior ($\bpi$) times the likelihoods
+in order for it to sum to one over all reporting units, the scaled likelihood and the
+$\pi_k$ values to _other_ populations or
+reporting units will affect the posterior probability.  In other words, if a fish has a moderate scaled
+likelihood to `CentralValleyfa` and a moderate scaled likelihood to only one other reporting unit that has a very
+low mixing proportion, then the posterior for `CentralValleyfa` will be quite high, whereas if it has a moderate scaled likelihood to another reporting unit that is seen at higher frequency, the posterior to
+`CentralValleyfa` would be somewhat reduced.  
+
+We see the reverse occurring with the `CentralValleysp` reporting
+unit.  There are actually a fair number of fish that have moderate scaled likelihoods to
+`CentralValleysp`, but most of those fish also probably have moderate scaled likelihoods to
+`CentralValleyfa`, which is the most genetically similar reporting unit to `CentralValleysp`.  Since
+there are so many fish from `CentralValleyfa`, the $\pi_k$ for `CentralValleyfa` is large, and thus
+the posterior probability for `CentralValleysp` ends up being less than the scaled likelihood
+for `CentralValleysp` for most of the fish, such that the estimated mixing proportion for
+`CentralValleyfa` is quite small---considerably less than $1/N$.
+
+Also noteworthy is the `CohoSp`.  There appears to be one individual with both PofZ ane scaled likelihood
+very close to 1.0 of being a coho salmon.  This makes sense because with this baseline it is quite
+easy to distinguish coho from Chinook salmon.  So, even though the mixing proportion for `CohoSp`
+is very low, there is overwhelming evidence (from the likelihood based on the genetic data)
+that this fish is a coho salmon, so the posterior probability of the individual remains high.
+As a consequence, we can be quite confident that there is a single coho salmon in the sample,
+and that the non-zero estimate of the  mixing proportion for `CohoSp` is well-supported.
+On the other hand, the mixing proportion estimate times $N$ of 0.115 for `SnakeRiverfa` appears to be based
+on a small handful of fish with very low scaled likelihoods (and even lower posterior probabilities)
+for `SnakeRiverfa`.  Hence, we should have less confidence that the mixing proportion for
+`SnakeRiverfa` is well supported. 
+
+When only small numbers of fish have non-negligible scaled likelihoods or posterior
+probabilities, it is helpful to expand all the bars to the full width of the plot.  This
+makes it easier to count how many fish are involved, etc.   We can do that by setting the
+`plot_flavor` to `"bars_fully_expanded"` below.
+
+
+```{r p2, warning=FALSE, message=FALSE, fig.width=6.5, fig.height = 6, out.width='100%'}
+P2 <- plot_PofZ_vs_pi(X = mixf, mix_coll = "rec2", plot_flavor = "bars_fully_expanded")
+
+# once we have the return object, we can access the plot with `$plot`
+P2$plot
+```
+
+
+A PDF version of the plot can be found [here](https://github.com/eriqande/rubias/blob/master/man/figures/ppns-figure2.pdf?raw=1).
+The expanded bars of this plot make it much easier
+to see how many fish are involved in the smaller $\pi_k$ estimates.  In fact, if I were
+to eyeball this, I would say that it would make sense to put all of the mixing proportion
+mass from `CentralValleysp` down to `TakuR` into an "Undetermined" category.  
+
+Before we go on to talk about principled ways of characterizing an "Undetermined"
+category, we will introduce one other plot flavor, the "bars_expanded_and_ticked"
+flavor.  In this plot, tick marks are added upon the outer edges of the bars to
+show where individuals with a PofZ or scaled likelihood of 1.0 would line up 
+(starting from the right side) so that the widths of the rectangles within the bars
+can be compared to these.  Additionally, bars that have a total length less than
+one are depicted on the scale where the far right edge is equal to one.  This makes
+it easier to visually compare values across those low values.  We make that plot
+with:
+
+
+```{r p3, warning=FALSE, message=FALSE, fig.width=6.5, fig.height = 6, out.width='100%'}
+P3 <- plot_PofZ_vs_pi(X = mixf, mix_coll = "rec2", plot_flavor = "bars_expanded_and_ticked")
+
+# once we have the return object, we can access the plot with `$plot`
+P3$plot
+```
+
+To see the tick marks added in this plot, you really need to zoom in on it. To facilitate
+this you can download the
+[PDF version](https://github.com/eriqande/rubias/blob/master/man/figures/ppns-figure3.pdf?raw=1)
+
+# A Bayesian Decision-Theoretic Approach
+
+We will cast this as a decision theory problem to gain some insights into it. Let
+us consider two possible actions that we can take for each reporting unit on the basis
+of the data:
+
+1. We can declare the mixing proportion of a reporting unit to be zero, and any
+mass from that reporting unit will be placed in an "Undetermined" category.
+2. We can leave the mixing proportion of a reporting unit to be the value that
+was estimated.
+
+As far as a loss function for these two possible actions, we could use a sort
+of common sense approach that says we incur a loss from action 1  if there is
+actually an individual from the reporting unit in the sample.  That would represent
+a case where the mixing proportion should certainly not be zero, but it was
+declared to be zero.  On the other hand, if the sample does not include any individual
+from the reporting unit and we do not declare the mixing proportion to be zero
+(i.e., we do action 2),
+we might also be incurring a loss, because, as we noted before, this might lead to
+fishery closures, etc. when there is a small, but non-zero, estimate of the mixing
+proportion even though the data themselves don't offer any compelling evidence that
+there is actually a fish in the sample from that reporting unit (and hence no
+compelling evidence from the data---as opposed to the prior---that the
+mixing proportion is, in fact, non-zero).
+
+
+Let $a_0^{(k)}$ be the action of declaring reporting unit $k$ to have a mixing
+proportion of zero and let $a_1^{(k)}$ be the action of letting the mixing proportion
+estimate of $k$ remain as it was estimated.  Further, denote by $\theta^{(k)} = 1$
+the situation where there is at least one fish in the sample from reporting unit $k$
+and let $\theta^{(k)} = 0$ denote that there are no fish in the sample from reporting unit
+$k$.  Finally, we will let $\Loss(\theta^{(k)}, a^{(k)})$ denote a loss function with the following
+values:
+$$
+\Loss(\theta^{(k)}, a^{(k)}) = 
+\begin{cases}
+0,~~\mbox{when}~ \theta^{(k)} = 0~~\mbox{and}~~a^{(k)} = a^{(k)}_0 \\
+L_z,~~\mbox{when}~ \theta^{(k)} = 1~~\mbox{and}~~a^{(k)} = a^{(k)}_0 \\
+L_n,~~\mbox{when}~ \theta^{(k)} = 0~~\mbox{and}~~a^{(k)} = a^{(k)}_1 \\
+0,~~\mbox{when}~ \theta^{(k)} = 1~~\mbox{and}~~a^{(k)} = a^{(k)}_1 \\
+\end{cases}.
+$$
+
+So, $L_z$ is the loss incurred when you declare a mixing proportion zero, but the sample
+included at least one individual from that reporting unit, and $L_n$ is the loss incurred
+when you retain a non-zero mixing proportion even though there are no individuals from
+that reporting unit in the sample.  I remember these as $L_z$ is when you "**z**ap it, but it
+is present" and $L_n$ is when "you leave it when it is **n**ot present."
+
+In a Bayesian decision theory framework, the optimal decision rule is the one that minimizes the Bayes risk,
+which also turns out to be the one that minimizes the posterior loss.
+So, in general, one would typically take the action that
+minimizes the posterior loss---the expected loss weighted by the posterior distribution which is
+calculated as:
+$$
+\int_\Theta \Loss(\theta,
+a)P(\theta|\vecx)d\theta.
+$$
+where $\vecx$ is the data and $P(\theta|\vecx)$ is the posterior distribution of
+$\theta$.  In our case, $\theta^{(k)} = 1$ translates to the situation where at
+least one individual is allocated to reporting unit $k$.  Thus, if 
+$(Z_1^{(k)},\ldots,Z_N^{(k)})$ are indicators, taking the value of 0 or 1 according to
+whether sample 1 up through $N$ is from reporting unit $k$, we have that
+$\theta^{(k)} = 1$ when $Z_1^{(k)} + Z_2^{(k)} + \cdots + Z_N^{(k)}$ is greater than
+zero.  Accordingly, if we can collect a sample from the posterior distribution of 
+$(Z_1^{(k)},\ldots,Z_N^{(k)})$, we can use that to obtain a sample from the posterior
+distribution of $\theta^{(k)}$, and hence evaluate the posterior loss under the different
+actions.  
+
+We can collect the sample of $(Z_1^{(k)},\ldots,Z_N^{(k)})$ as the `allocation_count_traces`
+output when we run `infer_mixture()` assuming that we are recording total catch.  So,
+it would be run like this:
+```{r, message=FALSE}
+# make a total_catch_tib where we are pretending that we have sampled the total catch
+# (though you don't have to do it this way...you can also have total catch be larger
+# than the sample size...)
+tct <- chinook_mix %>%
+  count(collection, name = "tot_catch") %>%
+  mutate(tot_catch = map(tot_catch, function(x) x))
+
+
+set.seed(5)
+mixf2 <- infer_mixture(chinook, chinook_mix, 5, total_catch_tib = tct)
+```
+
+**Important Note: When running the above, you cannot expect to get the best results if
+you have set `variable_prob_is_catch = TRUE`.**
+
+Then we can calculate the posterior probability that at least one fish in the sample
+is from each of the reporting units like this:
+```{r}
+at_least_one <- mixf2$allocation_count_traces %>%
+  filter(mixture_collection == "rec2", sweep > 100) %>%
+  group_by(sweep, repunit) %>%
+  summarise(CA_repu = sum(CA)) %>%
+  ungroup() %>%
+  group_by(repunit) %>%
+  summarise(fract_non_zero = mean(CA_repu > 0)) %>%
+  ungroup() %>%
+  arrange(desc(fract_non_zero))
+  
+```
+
+But, to be honest, that is a lot of code to remember, and a bit of a hassle, 
+so we will write a new function to do it and include it in 'rubias.'  Now, we
+can get the posterior probability that
+the sample contains at least one fish in each reporting unit like this:
+```{r}
+at_least_one <- prob_at_least_one_in_sample(mixf2, "rec2")
+at_least_one$by_repunit %>%
+  print(n = 20)
+```
+
+
+That is pretty cool!  First, we see that even though the sample size times the mixing proportion for 
+`CentralValleysp` is around 0.42, we have a lower posterior probability that the sample contains
+at least one fish from `CentralValleysp`.  This actually makes sense: during the course of the MCMC there
+will be times when there is a higher than average mixing proportion from `CentralValleysp`, and during
+those times there might be 2 or 3 fish allocated to `CentralValleysp`, but each of those sweeps only counts for
+one (and not 2 or 3), because we are simply counting the fraction of sweeps in which there are more than zero fish from
+`CentralValleysp`.  The same goes for the `DeschutesRfa`---the mixing proportion posterior mean 
+times the sample size was around 1.3, but it has only a 50% posterior of having at least
+one fish in the sample.
+
+How can we use this in a decision-theory framework? Well, remember that the "Bayes Rule" (i.e., the
+decision rule we should choose) is the one that minimizes the posterior loss.  In the above output
+we have calculated the posterior probability $P(\theta^{(k)} = 1|\vecx)$ for each reporting
+unit $k$.  That is, the posterior probability that there is at least one fish in the sample from
+reporting unit $k$.  Notice also that $P(\theta^{(k)} = 0|\vecx) = 1 - P(\theta^{(k)} = 1|\vecx)$.  
+Since there are only two possible values that $\theta^{(k)}$ takes, the integral in the expression
+for posterior loss (above) is simply a sum and we have that the posterior loss for $a_0^{(k)}$ is:
+$$
+L_z P(\theta^{(k)} = 1|\vecx)
+$$
+while the posterior loss for $a_1^{(k)}$ is:
+$$
+L_n [P(\theta^{(k)} = 0|\vecx)] =  L_n [1 - P(\theta^{(k)} = 1|\vecx)].
+$$
+From this it is clear that $a_0^{(k)}$ is the optimal choice whenever
+$$
+L_z P(\theta^{(k)} = 1|\vecx) <  L_n [1 - P(\theta^{(k)} = 1|\vecx)] \Longrightarrow 
+\frac{P(\theta^{(k)} = 1|\vecx)}{1 - P(\theta^{(k)} = 1|\vecx)} < \frac{L_n}{L_z}.
+$$
+So, if we had $L_z = L_n$ then we would declare mixing proportions of zero for all
+reporting units that had `fract_non_zero` less than 0.5.   And, if one had different
+ideas for what $L_z$ and $L_n$ should be, it is straightforward to apply them.  
+
+# A Revamped Plot Function
+
+The above decision theory stuff works out so tidily that I decided to augment the
+`plot_PofZ_vs_pi()` function to use this information to arrange groups and also
+to print the value of `fract_non_zero` just to the right of the sample size times
+the mixing proportion.  The function now automatically detects if the
+`allocation_count_traces` component it present (as it is in `mixf2`), and if it is
+then it includes the posterior probability of having at least one fish in the sample.
+When we use it, we have to expand the left edge a little bit to fit everything.
+To get the plot we use the  `plot_flavor = "bars_fully_expanded" option with output
+from `infer_mixture()` that has the `allocation_count_traces` (which happens when 
+`infer_mixture()` was run with the `total_catch_tib` option).  This plot includes
+the posterior probability that at least one member of the reporting unit was in the
+sample, just left of the bars.
+
+```{r p4, warning=FALSE, message=FALSE, fig.width=6.5, fig.height = 6, out.width='100%'}
+P4 <- plot_PofZ_vs_pi(
+  X = mixf2,
+  mix_coll = "rec2",
+  plot_flavor = "bars_fully_expanded",
+  left_edge_fract = 0.18
+)
+
+# once we have the return object, we can access the plot with `$plot`
+P4$plot
+```
+
+
+
+Once again, you can download a [PDF Version](https://github.com/eriqande/rubias/blob/master/man/figures/ppns-figure4.pdf?raw=1)
