@@ -1,4 +1,66 @@
 url: https://eriqande.github.io/rubias
+
 template:
   bootstrap: 5
+  params:
+    bootswatch: cosmo
+
+
+reference:
+- title: "Genetic Analysis of Mixtures"
+  desc: >
+    Functions for running mixed-stock analysis, also
+    called genetic stock identification.
+- contents:
+  - close_matching_samples
+  - infer_mixture
+
+
+- title: "Predicting the Accuracy Expected with a Reference Baseline"
+  desc: >
+    Functions simulating mixture samples and analyzing those to predict
+    how much power you will have for distinguishing fish from different
+    populations and reporting units and for estimating their mixture
+    proportions
+- contents:
+  - assess_reference_loo
+  - assess_reference_mc
+  - assess_pb_bias_correction
+  - self_assign
+
+
+- title: "Package Data Sets"
+  desc: >
+    Data sets and data objects that ship with the 'rubias' package
+- contents:
+  - alewife
+  - blueback
+  - chinook
+  - chinook_mix
+  - chinook_collection_levels
+  - chinook_repunit_levels
+  - perfect_chinook
+  - perfect_chinook_mix
+  - sim_spec_examples
+  - small_chinook_ref
+  - small_chinook_mix
+
+
+
+- title: "Data Input and Output"
+  desc: >
+    A few convenience functions to import/export data from GSI_SIM format,
+    mostly
+- contents:
+  - read_gsi_sim
+  - write_gsi_sim_reference
+  - write_gsi_sim_mixture
+
+
+- title: "General Package Information"
+  desc: >
+    The contents of the rubias-package file
+- contents:
+  - rubias
+
 

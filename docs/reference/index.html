@@ -3,7 +3,7 @@
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
-    <nav class="navbar navbar-expand-lg fixed-top bg-light" data-bs-theme="light" aria-label="Site navigation"><div class="container">
+    <nav class="navbar navbar-expand-lg fixed-top bg-primary" data-bs-theme="dark" aria-label="Site navigation"><div class="container">
 
     <a class="navbar-brand me-2" href="../index.html">rubias</a>
 
@@ -39,9 +39,67 @@
     </div>
 
     <div class="section level2">
-      <h2 id="all-functions">All functions<a class="anchor" aria-label="anchor" href="#all-functions"></a></h2>
+      <h2 id="genetic-analysis-of-mixtures">Genetic Analysis of Mixtures<a class="anchor" aria-label="anchor" href="#genetic-analysis-of-mixtures"></a></h2>
+
+      <div class="section-desc"><p>Functions for running mixed-stock analysis, also called genetic stock identification.</p></div>
 
 
+    </div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="close_matching_samples.html">close_matching_samples()</a></code>
+
+        </dt>
+        <dd>check for matching (or close to matching) genotypes in a data frame</dd>
+      </dl><dl><dt>
+
+          <code><a href="infer_mixture.html">infer_mixture()</a></code>
+
+        </dt>
+        <dd>Estimate mixing proportions and origin probabilities from one or several mixtures</dd>
+      </dl></div><div class="section level2">
+      <h2 id="predicting-the-accuracy-expected-with-a-reference-baseline">Predicting the Accuracy Expected with a Reference Baseline<a class="anchor" aria-label="anchor" href="#predicting-the-accuracy-expected-with-a-reference-baseline"></a></h2>
+
+      <div class="section-desc"><p>Functions simulating mixture samples and analyzing those to predict how much power you will have for distinguishing fish from different populations and reporting units and for estimating their mixture proportions</p></div>
+
+
+    </div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="assess_reference_loo.html">assess_reference_loo()</a></code>
+
+        </dt>
+        <dd>Simulate mixtures and estimate reporting group and collection proportions.</dd>
+      </dl><dl><dt>
+
+          <code><a href="assess_reference_mc.html">assess_reference_mc()</a></code>
+
+        </dt>
+        <dd>Partition a reference dataset and estimate reporting group and collection proportions</dd>
+      </dl><dl><dt>
+
+          <code><a href="assess_pb_bias_correction.html">assess_pb_bias_correction()</a></code>
+
+        </dt>
+        <dd>Test the effects of the parametric bootstrap bias correction on a reference dataset through cross-validation</dd>
+      </dl><dl><dt>
+
+          <code><a href="self_assign.html">self_assign()</a></code>
+
+        </dt>
+        <dd>Do leave-one-out self-assignment of individuals in a reference baseline</dd>
+      </dl></div><div class="section level2">
+      <h2 id="package-data-sets">Package Data Sets<a class="anchor" aria-label="anchor" href="#package-data-sets"></a></h2>
+
+      <div class="section-desc"><p>Data sets and data objects that ship with the ‘rubias’ package</p></div>
 
 
     </div><div class="section level2">
@@ -57,24 +115,6 @@
         <dd>Microsat data from alewife herring reference populations</dd>
       </dl><dl><dt>
 
-          <code><a href="assess_pb_bias_correction.html">assess_pb_bias_correction()</a></code>
-
-        </dt>
-        <dd>Test the effects of the parametric bootstrap bias correction on a reference dataset through cross-validation</dd>
-      </dl><dl><dt>
-
-          <code><a href="assess_reference_loo.html">assess_reference_loo()</a></code>
-
-        </dt>
-        <dd>Simulate mixtures and estimate reporting group and collection proportions.</dd>
-      </dl><dl><dt>
-
-          <code><a href="assess_reference_mc.html">assess_reference_mc()</a></code>
-
-        </dt>
-        <dd>Partition a reference dataset and estimate reporting group and collection proportions</dd>
-      </dl><dl><dt>
-
           <code><a href="blueback.html">blueback</a></code>
 
         </dt>
@@ -87,34 +127,22 @@
         <dd>SNP data from chinook reference populations</dd>
       </dl><dl><dt>
 
-          <code><a href="chinook_collection_levels.html">chinook_collection_levels</a></code>
-
-        </dt>
-        <dd>a vector that gives a desired sort order of the chinook collections</dd>
-      </dl><dl><dt>
-
           <code><a href="chinook_mix.html">chinook_mix</a></code>
 
         </dt>
         <dd>SNP data from Chinook salmon taken in May/August 2015 from California fisheries</dd>
       </dl><dl><dt>
 
+          <code><a href="chinook_collection_levels.html">chinook_collection_levels</a></code>
+
+        </dt>
+        <dd>a vector that gives a desired sort order of the chinook collections</dd>
+      </dl><dl><dt>
+
           <code><a href="chinook_repunit_levels.html">chinook_repunit_levels</a></code>
 
         </dt>
         <dd>a vector that gives a desired sort order of the chinook repunits</dd>
-      </dl><dl><dt>
-
-          <code><a href="close_matching_samples.html">close_matching_samples()</a></code>
-
-        </dt>
-        <dd>check for matching (or close to matching) genotypes in a data frame</dd>
-      </dl><dl><dt>
-
-          <code><a href="infer_mixture.html">infer_mixture()</a></code>
-
-        </dt>
-        <dd>Estimate mixing proportions and origin probabilities from one or several mixtures</dd>
       </dl><dl><dt>
 
           <code><a href="perfect_chinook.html">perfect_chinook</a></code>
@@ -129,34 +157,10 @@
         <dd>perfect-assignment mixture genetic data for chinook.</dd>
       </dl><dl><dt>
 
-          <code><a href="read_gsi_sim.html">read_gsi_sim()</a></code>
-
-        </dt>
-        <dd>read a gsi_sim formatted input file into a tibble that rubias can use</dd>
-      </dl><dl><dt>
-
-          <code><a href="rubias.html">rubias-package</a></code> <code><a href="rubias.html">rubias</a></code>
-
-        </dt>
-        <dd>rubias: Bayesian inference from the conditional genetic stock identification model</dd>
-      </dl><dl><dt>
-
-          <code><a href="self_assign.html">self_assign()</a></code>
-
-        </dt>
-        <dd>Do leave-one-out self-assignment of individuals in a reference baseline</dd>
-      </dl><dl><dt>
-
           <code><a href="sim_spec_examples.html">sim_spec_examples</a></code>
 
         </dt>
         <dd>List of example ways of specifying repunit and collection quantities in simulations</dd>
-      </dl><dl><dt>
-
-          <code><a href="small_chinook_mix.html">small_chinook_mix</a></code>
-
-        </dt>
-        <dd>Small sample of SNP data from Chinook salmon taken in May/August 2015 from California fisheries</dd>
       </dl><dl><dt>
 
           <code><a href="small_chinook_ref.html">small_chinook_ref</a></code>
@@ -165,18 +169,59 @@
         <dd>SNP data from selected chinook reference populations</dd>
       </dl><dl><dt>
 
-          <code><a href="write_gsi_sim_mixture.html">write_gsi_sim_mixture()</a></code>
+          <code><a href="small_chinook_mix.html">small_chinook_mix</a></code>
 
         </dt>
-        <dd>Write a mixture data frame to gsi_sim format baseline and repunits file</dd>
+        <dd>Small sample of SNP data from Chinook salmon taken in May/August 2015 from California fisheries</dd>
+      </dl></div><div class="section level2">
+      <h2 id="data-input-and-output">Data Input and Output<a class="anchor" aria-label="anchor" href="#data-input-and-output"></a></h2>
+
+      <div class="section-desc"><p>A few convenience functions to import/export data from GSI_SIM format, mostly</p></div>
+
+
+    </div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="read_gsi_sim.html">read_gsi_sim()</a></code>
+
+        </dt>
+        <dd>read a gsi_sim formatted input file into a tibble that rubias can use</dd>
       </dl><dl><dt>
 
           <code><a href="write_gsi_sim_reference.html">write_gsi_sim_reference()</a></code>
 
         </dt>
         <dd>Write a reference data frame to gsi_sim format baseline and repunits file</dd>
+      </dl><dl><dt>
+
+          <code><a href="write_gsi_sim_mixture.html">write_gsi_sim_mixture()</a></code>
+
+        </dt>
+        <dd>Write a mixture data frame to gsi_sim format baseline and repunits file</dd>
+      </dl></div><div class="section level2">
+      <h2 id="general-package-information">General Package Information<a class="anchor" aria-label="anchor" href="#general-package-information"></a></h2>
+
+      <div class="section-desc"><p>The contents of the rubias-package file</p></div>
+
+
+    </div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="rubias.html">rubias-package</a></code> <code><a href="rubias.html">rubias</a></code>
+
+        </dt>
+        <dd>rubias: Bayesian inference from the conditional genetic stock identification model</dd>
       </dl></div>
-  </main></div>
+  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
+    </nav></aside></div>
 
 
     <footer><div class="pkgdown-footer-left">

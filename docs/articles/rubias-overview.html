@@ -16,7 +16,7 @@
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
-    <nav class="navbar navbar-expand-lg fixed-top bg-light" data-bs-theme="light" aria-label="Site navigation"><div class="container">
+    <nav class="navbar navbar-expand-lg fixed-top bg-primary" data-bs-theme="dark" aria-label="Site navigation"><div class="container">
 
     <a class="navbar-brand me-2" href="../index.html">rubias</a>
 
@@ -63,7 +63,7 @@
                         <h4 data-toc-skip class="author">Eric C.
 Anderson</h4>
             
-            <h4 data-toc-skip class="date">2026-03-05</h4>
+            <h4 data-toc-skip class="date">2026-03-06</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/eriqande/rubias/blob/HEAD/vignettes/rubias-overview.Rmd" class="external-link"><code>vignettes/rubias-overview.Rmd</code></a></small>
       <div class="d-none name"><code>rubias-overview.Rmd</code></div>
@@ -197,10 +197,11 @@ going to throw an error.</p>
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyr.tidyverse.org" class="external-link">tidyr</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://stringr.tidyverse.org" class="external-link">stringr</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## Warning: package 'ggplot2' was built under R version 4.4.3</span></span></code></pre>
 <p>Here are the meta data columns and the first two loci for eight
 individuals in the <code>chinook</code> reference data set that comes
 with the package:</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">chinook</span><span class="op">[</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">8</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## <span style="color: #949494;"># A tibble: 6 × 8</span></span></span>
 <span><span class="co">##   sample_type repunit         collection   indiv   Ots_94857.232 Ots_94857.232.1</span></span>
@@ -218,7 +219,7 @@ with the package:</p>
 </h3>
 <p>Here is the same for the mixture data frame that goes along with that
 reference data set:</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">chinook_mix</span><span class="op">[</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">8</span><span class="op">]</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## <span style="color: #949494;"># A tibble: 6 × 8</span></span></span>
 <span><span class="co">##   sample_type repunit collection indiv   Ots_94857.232 Ots_94857.232.1</span></span>
@@ -246,7 +247,7 @@ samples, let’s require 85% of the genotypes to be non-missing in both
 members of the pair. The last parameter is the fraction of non-missing
 loci at which the pair has the same genotype. We will set that to 0.94
 first. Here we see it in action:</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># combine small_chinook_ref and small_chinook_mix into one big data frame,</span></span>
 <span><span class="co"># but drop the California_Coho collection because Coho all</span></span>
 <span><span class="co"># have pretty much the same genotype at these loci!</span></span>
@@ -270,7 +271,7 @@ first. Here we see it in action:</p>
 <span><span class="co">## 6 Collections: Deer_Cr_sp, Feather_H_fa, Sacramento_H, Eel_R, Klamath_IGH_fa, Umpqua_sp</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## 3.65% of allelic data identified as missing</span></span></code></pre>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># see that that looks like:</span></span>
 <span><span class="va">matchy_pairs</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html" class="external-link">arrange</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/desc.html" class="external-link">desc</a></span><span class="op">(</span><span class="va">num_non_miss</span><span class="op">)</span>, <span class="fu"><a href="https://dplyr.tidyverse.org/reference/desc.html" class="external-link">desc</a></span><span class="op">(</span><span class="va">num_match</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
@@ -290,7 +291,7 @@ duplicate samples.</p>
 <p>If we reduce the <code>min_frac_matching</code>, we get more matches,
 but these are very unlikely to be the same individual, unless genotyping
 error rates are very high.</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># then toss them into a function.  This takes half a minute or so...</span></span>
 <span><span class="va">matchy_pairs2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/close_matching_samples.html">close_matching_samples</a></span><span class="op">(</span>D <span class="op">=</span> <span class="va">small_chinook_all</span>, </span>
 <span>                                       gen_start_col <span class="op">=</span> <span class="fl">5</span>, </span>
@@ -308,7 +309,7 @@ error rates are very high.</p>
 <span><span class="co">## 6 Collections: Deer_Cr_sp, Feather_H_fa, Sacramento_H, Eel_R, Klamath_IGH_fa, Umpqua_sp</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## 3.65% of allelic data identified as missing</span></span></code></pre>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># see that that looks like:</span></span>
 <span><span class="va">matchy_pairs2</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html" class="external-link">arrange</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/desc.html" class="external-link">desc</a></span><span class="op">(</span><span class="va">num_non_miss</span><span class="op">)</span>, <span class="fu"><a href="https://dplyr.tidyverse.org/reference/desc.html" class="external-link">desc</a></span><span class="op">(</span><span class="va">num_match</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
@@ -380,11 +381,11 @@ three different fisheries, <code>rec1</code>, <code>rec2</code>, and
 <code>rec3</code> as denoted in the collection column. Each of those
 collections is treated as a separate sample, getting its own mixing
 proportion estimate. This is how it is run with the default options:</p>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mix_est</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/infer_mixture.html">infer_mixture</a></span><span class="op">(</span>reference <span class="op">=</span> <span class="va">chinook</span>, </span>
 <span>                         mixture <span class="op">=</span> <span class="va">chinook_mix</span>, </span>
 <span>                         gen_start_col <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Collating data; compiling reference allele frequencies, etc.   time: 1.02 seconds</span></span>
+<pre><code><span><span class="co">## Collating data; compiling reference allele frequencies, etc.   time: 1.11 seconds</span></span>
 <span><span class="co">## Computing reference locus specific means and variances for computing mixture z-scores   time: 0.10 seconds</span></span>
 <span><span class="co">## Working on mixture collection: rec2 with 772 individuals</span></span>
 <span><span class="co">##   calculating log-likelihoods of the mixture individuals.   time: 0.06 seconds</span></span>
@@ -428,7 +429,7 @@ be a tibble of bootstrap-corrected reporting unit mixing
 proportions.</li>
 </ol>
 <p>These data frames look like this:</p>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">mix_est</span>, <span class="va">head</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## $mixing_proportions</span></span>
 <span><span class="co">## <span style="color: #949494;"># A tibble: 6 × 4</span></span></span>
@@ -481,7 +482,7 @@ That can be accomplished with the <code>pi_prior</code> argument to the
 tibble in which one column named “collection” gives the collection, and
 the other column, named “pi_param” gives the desired parameter.</p>
 <p>Here we construct that kind of input:</p>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">prior_tibble</span> <span class="op">&lt;-</span> <span class="va">chinook</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/count.html" class="external-link">count</a></span><span class="op">(</span><span class="va">repunit</span>, <span class="va">collection</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">repunit</span> <span class="op">==</span> <span class="st">"CentralValleyfa"</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
@@ -502,13 +503,13 @@ the other column, named “pi_param” gives the desired parameter.</p>
 <span><span class="co">## <span style="color: #BCBCBC;">7</span> Mokelumne_R_fa         2</span></span>
 <span><span class="co">## <span style="color: #BCBCBC;">8</span> Sacramento_R_lf        2</span></span></code></pre>
 <p>Then we can run that in infer_mixture():</p>
-<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">12</span><span class="op">)</span></span>
 <span><span class="va">mix_est_with_prior</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/infer_mixture.html">infer_mixture</a></span><span class="op">(</span>reference <span class="op">=</span> <span class="va">chinook</span>, </span>
 <span>                         mixture <span class="op">=</span> <span class="va">chinook_mix</span>, </span>
 <span>                         gen_start_col <span class="op">=</span> <span class="fl">5</span>,</span>
 <span>                         pi_prior <span class="op">=</span> <span class="va">prior_tibble</span><span class="op">)</span></span></code></pre></div>
-<pre><code><span><span class="co">## Collating data; compiling reference allele frequencies, etc.   time: 0.75 seconds</span></span>
+<pre><code><span><span class="co">## Collating data; compiling reference allele frequencies, etc.   time: 0.67 seconds</span></span>
 <span><span class="co">## Computing reference locus specific means and variances for computing mixture z-scores   time: 0.10 seconds</span></span>
 <span><span class="co">## Working on mixture collection: rec2 with 772 individuals</span></span>
 <span><span class="co">## Joining with `by = join_by(collection)`  calculating log-likelihoods of the mixture individuals.   time: 0.06 seconds</span></span>
@@ -520,12 +521,12 @@ the other column, named “pi_param” gives the desired parameter.</p>
 <span><span class="co">##   tidying output into a tibble.   time: 0.03 seconds</span></span>
 <span><span class="co">## Working on mixture collection: rec3 with 741 individuals</span></span>
 <span><span class="co">## Joining with `by = join_by(collection)`  calculating log-likelihoods of the mixture individuals.   time: 0.06 seconds</span></span>
-<span><span class="co">##   performing 2000 total sweeps, 100 of which are burn-in and will not be used in computing averages in method "MCMC"   time: 0.52 seconds</span></span>
+<span><span class="co">##   performing 2000 total sweeps, 100 of which are burn-in and will not be used in computing averages in method "MCMC"   time: 0.51 seconds</span></span>
 <span><span class="co">##   tidying output into a tibble.   time: 0.03 seconds</span></span></code></pre>
 <p>and now, for fun, we can compare the results for the mixing
 proportions of different collections there with and without the prior
 for the mixture collection rec1:</p>
-<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">comp_mix_ests</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>  `pi (default prior)` <span class="op">=</span> <span class="va">mix_est</span><span class="op">$</span><span class="va">mixing_proportions</span>,</span>
 <span>  `pi (cv fall gets 2s prior)` <span class="op">=</span> <span class="va">mix_est_with_prior</span><span class="op">$</span><span class="va">mixing_proportions</span></span>
@@ -546,7 +547,7 @@ for the mixture collection rec1:</p>
 <p><img src="rubias-overview_files/figure-html/unnamed-chunk-7-1.png" width="672"></p>
 <p>Yep, slightly different than before. Let’s look at the sums of
 everything:</p>
-<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">comp_mix_ests</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> </span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">coll_group</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> </span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarise</a></span><span class="op">(</span>with_explicit_prior <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">`pi (cv fall gets 2s prior)`</span><span class="op">)</span>, </span>
@@ -568,14 +569,14 @@ extra weight in the prior will have.</p>
 <h3 id="aggregating-collections-into-reporting-units">Aggregating collections into reporting units<a class="anchor" aria-label="anchor" href="#aggregating-collections-into-reporting-units"></a>
 </h3>
 <p>This is a simple operation in the <a href="https://tidyverse.org/" class="external-link">tidyverse</a>:</p>
-<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># for mixing proportions</span></span>
 <span><span class="va">rep_mix_ests</span> <span class="op">&lt;-</span> <span class="va">mix_est</span><span class="op">$</span><span class="va">mixing_proportions</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">mixture_collection</span>, <span class="va">repunit</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarise</a></span><span class="op">(</span>repprop <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">pi</span><span class="op">)</span><span class="op">)</span>  <span class="co"># adding mixing proportions over collections in the repunit</span></span></code></pre></div>
 <pre><code><span><span class="co">## `summarise()` has grouped output by 'mixture_collection'. You can override</span></span>
 <span><span class="co">## using the `.groups` argument.</span></span></code></pre>
-<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># for individuals posteriors</span></span>
 <span><span class="va">rep_indiv_ests</span> <span class="op">&lt;-</span> <span class="va">mix_est</span><span class="op">$</span><span class="va">indiv_posteriors</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">mixture_collection</span>, <span class="va">indiv</span>, <span class="va">repunit</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
@@ -592,7 +593,7 @@ obtain an estimate of the posterior density of the mixing
 proportions.</p>
 <p>Here we plot kernel density estimates for the 6 most abundant
 repunits from the <code>rec1</code> fishery:</p>
-<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># find the top 6 most abundant:</span></span>
 <span><span class="va">top6</span> <span class="op">&lt;-</span> <span class="va">rep_mix_ests</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">mixture_collection</span> <span class="op">==</span> <span class="st">"rec1"</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> </span>
@@ -612,7 +613,7 @@ repunits from the <code>rec1</code> fishery:</p>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">repunit</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="va">top6</span><span class="op">$</span><span class="va">repunit</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## `summarise()` has grouped output by 'sweep'. You can override using the</span></span>
 <span><span class="co">## `.groups` argument.</span></span></code></pre>
-<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># now we can plot those:</span></span>
 <span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">trace_subset</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">repprop</span>, colour <span class="op">=</span> <span class="va">repunit</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_density.html" class="external-link">geom_density</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
@@ -625,7 +626,7 @@ repunits from the <code>rec1</code> fishery:</p>
 <code>trace_subset</code> to compute the equal-tail 95% credible
 intervals for the 6 most abundant reporting units in the
 <code>rec1</code> fishery:</p>
-<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">top6_cis</span> <span class="op">&lt;-</span> <span class="va">trace_subset</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">repunit</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarise</a></span><span class="op">(</span>loCI <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/quantile.html" class="external-link">quantile</a></span><span class="op">(</span><span class="va">repprop</span>, probs <span class="op">=</span> <span class="fl">0.025</span><span class="op">)</span>,</span>
@@ -670,7 +671,7 @@ would <strong>never</strong> want to use the z-score to assign fish to
 different populations—it is only there to decide whether it looks like
 it might not have actually come from the population that it was assigned
 to, or any other population in the reference data set.)</p>
-<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># get the maximum-a-posteriori population for each individual</span></span>
 <span><span class="va">map_rows</span> <span class="op">&lt;-</span> <span class="va">mix_est</span><span class="op">$</span><span class="va">indiv_posteriors</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">indiv</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
@@ -679,7 +680,7 @@ to, or any other population in the reference data set.)</p>
 <p>If everything is kosher, then we expect that the z-scores we see will
 be roughly normally distributed. We can compare the distribution of
 z-scores we see with a bunch of simulated normal random variables.</p>
-<div class="sourceCode" id="cb39"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">normo</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a></span><span class="op">(</span>z_score <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">1e06</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">map_rows</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">z_score</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_density.html" class="external-link">geom_density</a></span><span class="op">(</span>colour <span class="op">=</span> <span class="st">"blue"</span><span class="op">)</span> <span class="op">+</span></span>
@@ -702,7 +703,7 @@ actually fit any of the populations in the reference well.</p>
 <code>small_chinook</code> data set so that it goes fast.</p>
 <p>First, we analyze the data with no fish in the mixture of known
 collection</p>
-<div class="sourceCode" id="cb40"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb41"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">no_kc</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/infer_mixture.html">infer_mixture</a></span><span class="op">(</span><span class="va">small_chinook_ref</span>, <span class="va">small_chinook_mix</span>, gen_start_col <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## Collating data; compiling reference allele frequencies, etc.   time: 0.09 seconds</span></span>
 <span><span class="co">## Computing reference locus specific means and variances for computing mixture z-scores   time: 0.01 seconds</span></span>
@@ -719,7 +720,7 @@ collection</p>
 <span><span class="co">##   performing 2000 total sweeps, 100 of which are burn-in and will not be used in computing averages in method "MCMC"   time: 0.02 seconds</span></span>
 <span><span class="co">##   tidying output into a tibble.   time: 0.01 seconds</span></span></code></pre>
 <p>And look at the results for the mixing proportions:</p>
-<div class="sourceCode" id="cb42"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb43"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">no_kc</span><span class="op">$</span><span class="va">mixing_proportions</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> </span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html" class="external-link">arrange</a></span><span class="op">(</span><span class="va">mixture_collection</span>, <span class="fu"><a href="https://dplyr.tidyverse.org/reference/desc.html" class="external-link">desc</a></span><span class="op">(</span><span class="va">pi</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## <span style="color: #949494;"># A tibble: 18 × 4</span></span></span>
@@ -748,7 +749,7 @@ first 8 of the 36 fish in fishery rec1 are from the Deer_Cr_sp
 collection.</p>
 <p>First we have to add the known_collection column to the
 reference.</p>
-<div class="sourceCode" id="cb44"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb45"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># make reference file that includes the known_collection column</span></span>
 <span><span class="va">kc_ref</span> <span class="op">&lt;-</span> <span class="va">small_chinook_ref</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>known_collection <span class="op">=</span> <span class="va">collection</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
@@ -773,7 +774,7 @@ reference.</p>
 <p>Then we add the known collection column to the mixture. We start out
 making it all NAs, and then we change that to Deer_Cr_sp for 8 of the
 rec1 fish:</p>
-<div class="sourceCode" id="cb46"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb47"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">kc_mix</span> <span class="op">&lt;-</span> <span class="va">small_chinook_mix</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>known_collection <span class="op">=</span> <span class="cn">NA</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">known_collection</span>, <span class="fu"><a href="https://tidyselect.r-lib.org/reference/everything.html" class="external-link">everything</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
@@ -807,7 +808,7 @@ rec1 fish:</p>
 <span><span class="co">## <span style="color: #BCBCBC;">20</span> <span style="color: #BB0000;">NA</span>               mixture     <span style="color: #BB0000;">NA</span>      rec3       T125624             2</span></span>
 <span><span class="co">## <span style="color: #949494;"># ℹ 1 more variable: Ots_94857.232.1 &lt;int&gt;</span></span></span></code></pre>
 <p>And now we can do the mixture analysis:</p>
-<div class="sourceCode" id="cb48"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb49"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># note that the genetic data start in column 6 now</span></span>
 <span><span class="va">with_kc</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/infer_mixture.html">infer_mixture</a></span><span class="op">(</span><span class="va">kc_ref</span>, <span class="va">kc_mix</span>, <span class="fl">6</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## Collating data; compiling reference allele frequencies, etc.   time: 0.09 seconds</span></span>
@@ -827,7 +828,7 @@ rec1 fish:</p>
 <p>And, when we look at the estimated proportions, we see that for rec1
 they reflect the fact that 8 of those fish were singled out as known
 fish from Deer_Cr_sp:</p>
-<div class="sourceCode" id="cb50"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb51"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">with_kc</span><span class="op">$</span><span class="va">mixing_proportions</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> </span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html" class="external-link">arrange</a></span><span class="op">(</span><span class="va">mixture_collection</span>, <span class="fu"><a href="https://dplyr.tidyverse.org/reference/desc.html" class="external-link">desc</a></span><span class="op">(</span><span class="va">pi</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## <span style="color: #949494;"># A tibble: 18 × 4</span></span></span>
@@ -868,7 +869,7 @@ default running one thread for every core on your machine.</p>
 <p>The basic way to invoke the fully Bayesian model is to use the
 <code>infer_mixture</code> function with the <code>method</code> option
 set to “BR”. For example:</p>
-<div class="sourceCode" id="cb52"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb53"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">full_model_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/infer_mixture.html">infer_mixture</a></span><span class="op">(</span></span>
 <span>  reference <span class="op">=</span> <span class="va">chinook</span>, </span>
 <span>  mixture <span class="op">=</span> <span class="va">chinook_mix</span>, </span>
@@ -890,7 +891,7 @@ model.</p>
 the reference back to the collections in the reference using a
 <em>leave-one-out</em> procedure. This is taken care of by the
 <code><a href="../reference/self_assign.html">self_assign()</a></code> function.</p>
-<div class="sourceCode" id="cb53"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb54"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sa_chinook</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/self_assign.html">self_assign</a></span><span class="op">(</span>reference <span class="op">=</span> <span class="va">chinook</span>, gen_start_col <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## Summary Statistics:</span></span>
 <span><span class="co">## </span></span>
@@ -904,7 +905,7 @@ the reference back to the collections in the reference using a
 <span><span class="co">## </span></span>
 <span><span class="co">## 4.18% of allelic data identified as missing</span></span></code></pre>
 <p>Now, you can look at the self assignment results:</p>
-<div class="sourceCode" id="cb55"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb56"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">sa_chinook</span>, n <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## <span style="color: #949494;"># A tibble: 100 × 11</span></span></span>
 <span><span class="co">##    indiv             collection   repunit   inferred_collection inferred_repunit</span></span>
@@ -934,13 +935,13 @@ distribution of the <code>z_score</code> statistic for fish from known,
 reference populations. This can be used to compare to values obtained in
 mixed fisheries.</p>
 <p>The output can be summarized by repunit as was done above:</p>
-<div class="sourceCode" id="cb57"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb58"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">sa_to_repu</span> <span class="op">&lt;-</span> <span class="va">sa_chinook</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">indiv</span>, <span class="va">collection</span>, <span class="va">repunit</span>, <span class="va">inferred_repunit</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarise</a></span><span class="op">(</span>repu_scaled_like <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">scaled_likelihood</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## `summarise()` has grouped output by 'indiv', 'collection', 'repunit'. You can</span></span>
 <span><span class="co">## override using the `.groups` argument.</span></span></code></pre>
-<div class="sourceCode" id="cb59"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb60"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">sa_to_repu</span>, n <span class="op">=</span> <span class="fl">200</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## <span style="color: #949494;"># A tibble: 200 × 5</span></span></span>
 <span><span class="co">## <span style="color: #949494;"># Groups:   indiv, collection, repunit [6]</span></span></span>
@@ -989,13 +990,13 @@ use low numbers here for illustration) of size 200 fish using the
 default values (Dirichlet parameters of 1.5 for each reporting unit, and
 Dirichlet parameters of 1.5 for each collection within a reporting
 unit…)</p>
-<div class="sourceCode" id="cb61"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb62"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">chin_sims</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/assess_reference_loo.html">assess_reference_loo</a></span><span class="op">(</span>reference <span class="op">=</span> <span class="va">chinook</span>, </span>
 <span>                     gen_start_col <span class="op">=</span> <span class="fl">5</span>, </span>
 <span>                     reps <span class="op">=</span> <span class="fl">5</span>, </span>
 <span>                     mixsize <span class="op">=</span> <span class="fl">200</span><span class="op">)</span></span></code></pre></div>
 <p>Here is what the output looks like:</p>
-<div class="sourceCode" id="cb62"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb63"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">chin_sims</span></span></code></pre></div>
 <pre><code><span><span class="co">## <span style="color: #949494;"># A tibble: 345 × 9</span></span></span>
 <span><span class="co">##    repunit_scenario collection_scenario  iter repunit   collection true_pi     n</span></span>
@@ -1083,7 +1084,7 @@ of individuals should be simulated.</li>
 <p>Let’s say that we want to simulate data that roughly have proportions
 like what we saw in the Chinook <code>rec1</code> fishery. We have those
 estimates in the variable <code>top6</code>:</p>
-<div class="sourceCode" id="cb64"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb65"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">top6</span></span></code></pre></div>
 <pre><code><span><span class="co">## <span style="color: #949494;"># A tibble: 6 × 3</span></span></span>
 <span><span class="co">## <span style="color: #949494;"># Groups:   mixture_collection [1]</span></span></span>
@@ -1099,7 +1100,7 @@ estimates in the variable <code>top6</code>:</p>
 <code>ppn</code> column, simulate mixtures with exactly those
 proportions. Or if we wanted to simulate exact numbers of fish in a
 sample of 345 fish, we could get those values like this:</p>
-<div class="sourceCode" id="cb66"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb67"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">top6</span><span class="op">$</span><span class="va">repprop</span> <span class="op">*</span> <span class="fl">350</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## [1] 287  23  21  10   3   1</span></span></code></pre>
 <p>and then put them in a <code>cnts</code> column.</p>
@@ -1115,7 +1116,7 @@ variation, but not too much. Accordingly the tibble that we pass in as
 the <code>alpha_repunit</code> parameter, which describes the variation
 in reporting unit proportions we would like to simulate would look like
 this:</p>
-<div class="sourceCode" id="cb68"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb69"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">arep</span> <span class="op">&lt;-</span> <span class="va">top6</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">ungroup</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>dirichlet <span class="op">=</span> <span class="fl">10</span> <span class="op">*</span> <span class="va">repprop</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
@@ -1134,14 +1135,14 @@ this:</p>
 <p>Let’s do some simulations with those repunit parameters. By default,
 if we don’t specify anything extra for the <em>collections</em>, they
 get dirichlet parameters of 1.5.</p>
-<div class="sourceCode" id="cb70"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb71"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">chin_sims_repu_top6</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/assess_reference_loo.html">assess_reference_loo</a></span><span class="op">(</span>reference <span class="op">=</span> <span class="va">chinook</span>, </span>
 <span>                     gen_start_col <span class="op">=</span> <span class="fl">5</span>, </span>
 <span>                     reps <span class="op">=</span> <span class="fl">5</span>, </span>
 <span>                     mixsize <span class="op">=</span> <span class="fl">200</span>,</span>
 <span>                     alpha_repunit <span class="op">=</span> <span class="va">arep</span><span class="op">)</span></span></code></pre></div>
 <p>Now, we can summarise the output by reporting unit…</p>
-<div class="sourceCode" id="cb71"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb72"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># now, call those repunits that we did not specify in arep "OTHER"</span></span>
 <span><span class="co"># and then sum up over reporting units</span></span>
 <span><span class="va">tmp</span> <span class="op">&lt;-</span> <span class="va">chin_sims_repu_top6</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
@@ -1154,7 +1155,7 @@ get dirichlet parameters of 1.5.</p>
 <pre><code><span><span class="co">## `summarise()` has grouped output by 'iter'. You can override using the</span></span>
 <span><span class="co">## `.groups` argument.</span></span></code></pre>
 <p>…and then plot it for the values we are interested in:</p>
-<div class="sourceCode" id="cb73"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb74"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># then plot them</span></span>
 <span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">tmp</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">true_repprop</span>, y <span class="op">=</span> <span class="va">reprop_posterior_mean</span>, colour <span class="op">=</span> <span class="va">repunit</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
@@ -1163,7 +1164,7 @@ get dirichlet parameters of 1.5.</p>
 <p><img src="rubias-overview_files/figure-html/plot-top6-1.png" width="672"></p>
 <p>Or plot comparing to their “n” value, which is the actual number of
 fish from each reporting unit in the sample.</p>
-<div class="sourceCode" id="cb74"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb75"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">tmp</span>, <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">repu_n_prop</span>, y <span class="op">=</span> <span class="va">reprop_posterior_mean</span>, colour <span class="op">=</span> <span class="va">repunit</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_abline.html" class="external-link">geom_abline</a></span><span class="op">(</span>intercept <span class="op">=</span> <span class="fl">0</span>, slope <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op">+</span></span>
@@ -1182,7 +1183,7 @@ function returns a list with components <code>mixture_proportions</code>
 (which holds a tibble like <code>chin_sims_repu_top6</code> in the
 previous section) and <code>indiv_posteriors</code>, which holds all the
 posteriors (<code>PofZ</code>s) for the simulated individuals.</p>
-<div class="sourceCode" id="cb75"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb76"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">100</span><span class="op">)</span></span>
 <span><span class="va">chin_sims_with_indivs</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/assess_reference_loo.html">assess_reference_loo</a></span><span class="op">(</span>reference <span class="op">=</span> <span class="va">chinook</span>, </span>
 <span>                     gen_start_col <span class="op">=</span> <span class="fl">5</span>, </span>
@@ -1198,7 +1199,7 @@ posteriors (<code>PofZ</code>s) for the simulated individuals.</p>
 <span><span class="co">## <span style="color: #555555;">This warning is displayed once every 8 hours.</span></span></span>
 <span><span class="co">## <span style="color: #555555;">Call `lifecycle::last_lifecycle_warnings()` to see where this warning was</span></span></span>
 <span><span class="co">## <span style="color: #555555;">generated.</span></span></span></code></pre>
-<div class="sourceCode" id="cb77"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb78"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># print out the indiv posteriors</span></span>
 <span><span class="va">chin_sims_with_indivs</span><span class="op">$</span><span class="va">indiv_posteriors</span></span></code></pre></div>
 <pre><code><span><span class="co">## <span style="color: #949494;"># A tibble: 69,000 × 9</span></span></span>
@@ -1228,7 +1229,7 @@ collection.</p>
 posteriors to the correct reporting unit is for fish from the different
 simulated collections. We’ll do that with a boxplot, coloring by
 repunit:</p>
-<div class="sourceCode" id="cb79"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb80"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># summarise things</span></span>
 <span><span class="va">repu_pofzs</span> <span class="op">&lt;-</span> <span class="va">chin_sims_with_indivs</span><span class="op">$</span><span class="va">indiv_posteriors</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">repunit</span> <span class="op">==</span> <span class="va">simulated_repunit</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
@@ -1239,7 +1240,7 @@ repunit:</p>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>simulated_collection <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">simulated_collection</span>, levels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">simulated_collection</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## `summarise()` has grouped output by 'iter', 'indiv', 'simulated_collection'.</span></span>
 <span><span class="co">## You can override using the `.groups` argument.</span></span></code></pre>
-<div class="sourceCode" id="cb81"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb82"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># also get the number of simulated individuals from each collection</span></span>
 <span><span class="va">num_simmed</span> <span class="op">&lt;-</span> <span class="va">chin_sims_with_indivs</span><span class="op">$</span><span class="va">indiv_posteriors</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">iter</span>, <span class="va">indiv</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
@@ -1277,7 +1278,7 @@ Anderson et al. (2008).</p>
 do the simulations. Note, we do only 5 reps so that we don’t take too
 long to generate this vignette. But you should do more reps,
 typically.</p>
-<div class="sourceCode" id="cb82"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb83"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">101</span><span class="op">)</span> <span class="co"># for reproducibility</span></span>
 <span><span class="co"># do the simulation</span></span>
 <span><span class="va">chin_sims_by_gc</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/assess_reference_loo.html">assess_reference_loo</a></span><span class="op">(</span>reference <span class="op">=</span> <span class="va">chinook</span>, </span>
@@ -1288,7 +1289,7 @@ typically.</p>
 <span>                     return_indiv_posteriors <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>                     resampling_unit <span class="op">=</span> <span class="st">"gene_copies"</span><span class="op">)</span></span></code></pre></div>
 <p>and here we process the output and plot it:</p>
-<div class="sourceCode" id="cb83"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb84"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># summarise things</span></span>
 <span><span class="va">repu_pofzs_gc</span> <span class="op">&lt;-</span> <span class="va">chin_sims_by_gc</span><span class="op">$</span><span class="va">indiv_posteriors</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">repunit</span> <span class="op">==</span> <span class="va">simulated_repunit</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
@@ -1299,7 +1300,7 @@ typically.</p>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>simulated_collection <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">simulated_collection</span>, levels <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">simulated_collection</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## `summarise()` has grouped output by 'iter', 'indiv', 'simulated_collection'.</span></span>
 <span><span class="co">## You can override using the `.groups` argument.</span></span></code></pre>
-<div class="sourceCode" id="cb85"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb86"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># also get the number of simulated individuals from each collection</span></span>
 <span><span class="va">num_simmed_gc</span> <span class="op">&lt;-</span> <span class="va">chin_sims_by_gc</span><span class="op">$</span><span class="va">indiv_posteriors</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">iter</span>, <span class="va">indiv</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
@@ -1334,7 +1335,7 @@ you. These are given as column names in the
 <code>alpha_collection</code> data frame.</p>
 <p>For example, let’s say we want to simulate reporting unit proportions
 as before, using <code>arep</code> from above:</p>
-<div class="sourceCode" id="cb86"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb87"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">arep</span></span></code></pre></div>
 <pre><code><span><span class="co">## <span style="color: #949494;"># A tibble: 6 × 2</span></span></span>
 <span><span class="co">##   repunit                 dirichlet</span></span>
@@ -1348,7 +1349,7 @@ as before, using <code>arep</code> from above:</p>
 <p>But, now, let’s say that within reporting unit we want specific
 weights for different collections. Then we could specify those, for
 example, like this:</p>
-<div class="sourceCode" id="cb88"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb89"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">arep_subs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tibble.tidyverse.org/reference/tribble.html" class="external-link">tribble</a></span><span class="op">(</span></span>
 <span>  <span class="op">~</span><span class="va">collection</span>, <span class="op">~</span><span class="va">sub_ppn</span>,</span>
 <span>  <span class="st">"Eel_R"</span>,   <span class="fl">0.1</span>,</span>
@@ -1365,7 +1366,7 @@ zero, but it is so small—like
 that is is effectively 0…doing that made coding it up a lot easier…)</p>
 <p>Now, we can simulate with that and see what the resulting proportion
 of fish from each collection is (once again with only 5 reps):</p>
-<div class="sourceCode" id="cb89"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb90"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">chin_sims_sub_ppn</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/assess_reference_loo.html">assess_reference_loo</a></span><span class="op">(</span>reference <span class="op">=</span> <span class="va">chinook</span>, </span>
 <span>                     gen_start_col <span class="op">=</span> <span class="fl">5</span>, </span>
 <span>                     reps <span class="op">=</span> <span class="fl">5</span>, </span>
@@ -1376,7 +1377,7 @@ of fish from each collection is (once again with only 5 reps):</p>
 <p>Now observe the average proportions of the collections and repunits
 that were simulated, and the average fraction, <em>within reporting
 units</em> of each of the collection</p>
-<div class="sourceCode" id="cb90"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb91"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">chin_sims_sub_ppn</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">repunit</span>, <span class="va">collection</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarise</a></span><span class="op">(</span>mean_pi <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">true_pi</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
@@ -1430,7 +1431,7 @@ to the <code>alpha_repunit</code> or <code>alpha_collection</code>
 option in <code><a href="../reference/assess_reference_loo.html">assess_reference_loo()</a></code>. These can be named lists,
 if desired. So, for example, let’s do 100% simulations for each of the
 repunits in <code>arep</code>:</p>
-<div class="sourceCode" id="cb93"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb94"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">arep</span><span class="op">$</span><span class="va">repunit</span></span></code></pre></div>
 <pre><code><span><span class="co">## [1] "CentralValleyfa"         "KlamathR"               </span></span>
 <span><span class="co">## [3] "RogueR"                  "CaliforniaCoast"        </span></span>
@@ -1440,11 +1441,11 @@ dirichlet distribution with parameter 10 (so, pretty close to equal
 proportions).</p>
 <p>So, to do this, we make a list of data frames with the proportions.
 We’ll give it some names too:</p>
-<div class="sourceCode" id="cb95"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb96"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">six_hundy_scenarios</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">arep</span><span class="op">$</span><span class="va">repunit</span>, <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a></span><span class="op">(</span>repunit <span class="op">=</span> <span class="va">x</span>, ppn <span class="op">=</span> <span class="fl">1.0</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">six_hundy_scenarios</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"All"</span>, <span class="va">arep</span><span class="op">$</span><span class="va">repunit</span>, sep <span class="op">=</span> <span class="st">"-"</span><span class="op">)</span></span></code></pre></div>
 <p>Then, we use it, producing only 5 replicates for each scenario:</p>
-<div class="sourceCode" id="cb96"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb97"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">repu_hundy_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/assess_reference_loo.html">assess_reference_loo</a></span><span class="op">(</span>reference <span class="op">=</span> <span class="va">chinook</span>, </span>
 <span>                     gen_start_col <span class="op">=</span> <span class="fl">5</span>, </span>
 <span>                     reps <span class="op">=</span> <span class="fl">5</span>, </span>
@@ -1474,18 +1475,18 @@ We’ll give it some names too:</p>
 (rather than reporting units) as well, lets do 100% simulations for a
 handful of the collections. Let’s just randomly take 5 of them, and do 6
 reps for each:</p>
-<div class="sourceCode" id="cb98"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb99"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">10</span><span class="op">)</span></span>
 <span><span class="va">hundy_colls</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">chinook</span><span class="op">$</span><span class="va">collection</span><span class="op">)</span>, <span class="fl">5</span><span class="op">)</span></span>
 <span><span class="va">hundy_colls</span></span></code></pre></div>
 <pre><code><span><span class="co">## [1] "Deer_Cr_fa"  "Kitwanga_R"  "Morice_R"    "Wenatchee_R" "Russian_R"</span></span></code></pre>
 <p>So, now make a list of those with 100% specifications in the
 tibbles:</p>
-<div class="sourceCode" id="cb100"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb101"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">hundy_coll_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">hundy_colls</span>, <span class="kw">function</span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a></span><span class="op">(</span>collection <span class="op">=</span> <span class="va">x</span>, ppn <span class="op">=</span> <span class="fl">1.0</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/stats/setNames.html" class="external-link">setNames</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="st">"100%"</span>, <span class="va">hundy_colls</span>, sep <span class="op">=</span> <span class="st">"_"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>Then, do it:</p>
-<div class="sourceCode" id="cb101"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb102"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">hundy_coll_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/assess_reference_loo.html">assess_reference_loo</a></span><span class="op">(</span>reference <span class="op">=</span> <span class="va">chinook</span>, </span>
 <span>                     gen_start_col <span class="op">=</span> <span class="fl">5</span>, </span>
 <span>                     reps <span class="op">=</span> <span class="fl">5</span>, </span>
@@ -1520,14 +1521,14 @@ MCMC results as before, but also will population the
 takes a little bit longer, computationally, because there is a good deal
 of simulation involved, so this doesn’t get evaluated in the
 vignette.</p>
-<div class="sourceCode" id="cb103"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb104"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mix_est_pb</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/infer_mixture.html">infer_mixture</a></span><span class="op">(</span>reference <span class="op">=</span> <span class="va">chinook</span>, </span>
 <span>                         mixture <span class="op">=</span> <span class="va">chinook_mix</span>, </span>
 <span>                         gen_start_col <span class="op">=</span> <span class="fl">5</span>,</span>
 <span>                         method <span class="op">=</span> <span class="st">"PB"</span><span class="op">)</span></span></code></pre></div>
 <p>And now we can compare the estimates, showing here the 10 most
 prevalent repunits, in the <code>rec1</code> fishery:</p>
-<div class="sourceCode" id="cb104"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb105"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mix_est_pb</span><span class="op">$</span><span class="va">mixing_proportions</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">mixture_collection</span>, <span class="va">repunit</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarise</a></span><span class="op">(</span>repprop <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">pi</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
@@ -1540,6 +1541,28 @@ prevalent repunits, in the <code>rec1</code> fishery:</p>
 expect: no appreciable difference, because the reporting units are
 already very well resolved, so we don’t expect that the parametric
 bootstrap procedure would find any benefit in correcting them.</p>
+</div>
+<div class="section level2">
+<h2 id="other-information">Other Information<a class="anchor" aria-label="anchor" href="#other-information"></a>
+</h2>
+<p>These are just a few lines from the old README that has now been
+subsumed into this vignette.</p>
+<p>In order to run C++ implementations of MCMC, rubias requires the
+package Rcpp (and now, also, RcppParallel for the baseline resampling
+option), which in turn requires an Rtools installation (if you are on
+Windows) or XCode (if you are on a Mac). After cloning into the
+repository with the above dependencies installed, build &amp; reload the
+package to view further documentation.</p>
+<p>The script “/R-main/coalescent_sim” was used to generate coalescent
+simulations for bias correction validation. This is unnecessary for
+testing the applicability of our methods to any particular dataset,
+which should be done using <code><a href="../reference/assess_reference_loo.html">assess_reference_loo()</a></code> and
+<code><a href="../reference/assess_pb_bias_correction.html">assess_pb_bias_correction()</a></code>. <code>coalescent_sim()</code>
+creates simulated populations using the <code>ms</code> coalescent
+simulation program, available from the Hudson lab at UChicago, and the
+<code>GSImulator</code> and <code>ms2geno</code> packages, available at
+<a href="https://github.com/eriqande" class="external-link">https://github.com/eriqande</a>,
+and so requires more dependencies than the rest of the package.</p>
 </div>
 <div class="section level2">
 <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>

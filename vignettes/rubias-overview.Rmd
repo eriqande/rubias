@@ -2,7 +2,7 @@
 title: "An Overview of rubias Usage"
 author: "Eric C. Anderson"
 date: "`r Sys.Date()`"
-output: 
+output:
   rmarkdown::html_vignette:
     toc: true
 vignette: >
@@ -10,7 +10,6 @@ vignette: >
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
-
 
 ```{r, echo = FALSE, message=FALSE}
 knitr::opts_chunk$set(
@@ -27,7 +26,7 @@ proportion estimates are desired for groups of populations (reporting units)
 and the number of populations within each reporting unit are uneven.
 
 
-# Input Data
+## Input Data
 
 The functions for conducting genetic mixture analysis and for doing simulation
 assessment to predict the accuracy of a set of genetic markers for genetic stock 
@@ -74,7 +73,7 @@ in, and it is assumed that all the columns after that one contain genetic data.
 same column structure, i.e., they must have exactly the same number of columns with exactly the same
 column names, in the same order and of the same type.
 
-## How about haploid markers?
+### How about haploid markers?
 
 At the request of the good folks at ADFG, I introduced a few hacks to allow the input to 
 include markers that are haploid (for example mtDNA haplotypes).  To denote a marker as haploid
@@ -88,7 +87,7 @@ gene copies as missing in any individual, it is going to throw an error.  Likewi
 not have every single individual with an NA at the second gene copy, then it's also going to throw an error.
 
 
-## An example reference data file
+### An example reference data file
 
 
 Load our packages first:
@@ -111,7 +110,7 @@ package:
 head(chinook[, 1:8])
 ```
 
-## An example mixture data file
+### An example mixture data file
 
 Here is the same for the mixture data frame that goes along with that reference data set:
 ```{r head-chinook-mix}
@@ -119,7 +118,7 @@ head(chinook_mix[, 1:8])
 ```
 
 
-## Preliminary good practice --- check for duplicate individuals
+### Preliminary good practice --- check for duplicate individuals
 
 Sometimes, for a variety of reasons, an individual's genotype might appear more than once in a data
 set.  `rubias` has a quick and dirty function to spot pairs of individuals that share a large number of 
@@ -171,7 +170,7 @@ and take a likelihood based approach, but this is adequate for finding obvious d
 
 
 
-## How about known-origin individuals in the mixture?
+### How about known-origin individuals in the mixture?
 
 In some cases, you might know (more or less unambiguously) the origin of some fish
 in a particular mixture sample.  For example, if 10% of the individuals in a mixture
@@ -194,7 +193,7 @@ These modifications are not allowed for the parametric bootstrap (PB) and baseli
 
 
 
-# Performing a Genetic Mixture Analysis
+## Performing a Genetic Mixture Analysis
 
 This is done with the `infer_mixture` function.  In the example data 
 `chinook_mix` our data consist of fish caught in three different fisheries, `rec1`,
@@ -229,7 +228,7 @@ These data frames look like this:
 lapply(mix_est, head)
 ```
 
-## Setting the prior for the mixing proportions
+### Setting the prior for the mixing proportions
 
 In some cases there might be a reason to explicitly set the parameters of the
 Dirichlet prior on the mixing proportions of the collections.  For a contrived example,
@@ -297,7 +296,7 @@ fish into different collections within the Central Valley Fall reporting unit.  
 is not suprising---it is very hard to tell apart fish from those different collections.  However, it did not greatly change the estimated proportion of the whole reporting unit.  This also turns out to make sense if you consider the effect that the extra weight in the prior will have.  
 
 
-## Aggregating collections into reporting units
+### Aggregating collections into reporting units
 
 This is a simple operation in the [tidyverse](https://tidyverse.org/):
 ```{r aggregating}
@@ -314,7 +313,7 @@ rep_indiv_ests <- mix_est$indiv_posteriors %>%
 ```
 
 
-## Creating posterior density curves from the traces
+### Creating posterior density curves from the traces
 
 The full MCMC output for the mixing proportions is available by default in the
 field `$mix_prop_traces`.  This
@@ -347,7 +346,7 @@ ggplot(trace_subset, aes(x = repprop, colour = repunit)) +
   geom_density()
 ```
 
-## Computing Credible Intervals from the Traces
+### Computing Credible Intervals from the Traces
 
 Following on from the above example, we will use `trace_subset` to compute
 the equal-tail 95% credible intervals for the 6 most abundant reporting units in the
@@ -364,7 +363,7 @@ top6_cis
 
 
 
-## Assessing whether individuals are not from any of the reference populations
+### Assessing whether individuals are not from any of the reference populations
 
 Sometimes totally unexpected things happen.  One situation we saw in the California Chinook
 fishery was samples coming to us that were actually coho salmon.  Before we included coho salmon
@@ -415,7 +414,7 @@ then you might infer that the individual doesn't actually fit any of the
 populations in the reference well.
 
 
-## Individuals of known origin in the mixture
+### Individuals of known origin in the mixture
 
 Here I include a small, contrived example.  We use the `small_chinook` data set so that it goes
 fast.
@@ -475,7 +474,7 @@ The output from `infer_mixture()` in this case can be used just like it was befo
 without known individuals in the baseline.
 
 
-## Fully Bayesian model (with updating of allele freqencies)
+### Fully Bayesian model (with updating of allele freqencies)
 
 The default model in `rubias` is a conditional model in which inference is done
 with the baseline allele counts fixed.  In a fully Bayesian version, fish from within
@@ -498,9 +497,9 @@ More details about different options for working with the fully Bayesian model a
 available in the vignette about the fully Bayesian model.
 
 
-# Assessment of Genetic References
+## Assessment of Genetic References
 
-## Self-assigning fish from the reference
+### Self-assigning fish from the reference
 
 A standard analysis in molecular ecology is to assign individuals in the reference
 back to the collections in the reference using a _leave-one-out_ procedure.
@@ -532,7 +531,7 @@ head(sa_to_repu, n = 200)
 ```
 
 
-## Simulated mixtures using a leave-one-out type of approach
+### Simulated mixtures using a leave-one-out type of approach
 
 If you want to know how much accuracy you can expect given a set of genetic markers and
 a grouping of populations (`collection`s) into reporting units (`repunit`s), there are two
@@ -579,7 +578,7 @@ multiple scenarios).
 - `post_mean_pi` the posterior mean of mixing proportion.
 - `mle_pi` the maximum likelihood of `pi` obtained using an EM-algorithm.
 
-## Specifying mixture proportions in `assess_reference_loo()`
+### Specifying mixture proportions in `assess_reference_loo()`
 
 By default, each iteration, the proportions of fish from each reporting unit are simulated
 from a Dirichlet distribution with parameter (1.5,...,1.5).  And, within each reporting unit the mixing 
@@ -678,7 +677,7 @@ ggplot(tmp, aes(x = repu_n_prop, y = reprop_posterior_mean, colour = repunit)) +
   facet_wrap(~ repunit)
 ```
 
-## Retrieving the individual simulated fish posteriors
+### Retrieving the individual simulated fish posteriors
 
 Quite often you might be curious about how much you can expect to be able to trust
 the posterior for individual fish from a mixture like this.  You can retrieve all
@@ -740,7 +739,7 @@ ggplot(repu_pofzs, aes(x = simulated_collection, y = repu_PofZ)) +
 
 Great.  That is helpful.
 
-## Changing the resampling unit
+### Changing the resampling unit
 
 By default, individuals are simulated in `assess_reference_loo()` by resampling full
 multilocus genotypes.  This tends to be more realistic, because it includes as missing 
@@ -802,7 +801,7 @@ And in that, we find somewhat fewer fish that have low posteriors, but there are
 still some.  This reminds us that with this dataset, (rather) occasionally it is possible to get
 individuals carrying genotypes that make it difficult to correctly assign them to reporting unit. 
 
-## "sub-specifying" collection proportions or dirichlet parameters
+### "sub-specifying" collection proportions or dirichlet parameters
 
 If you are simulating the reporting unit proportions or numbers, and want to
 have more control over which collections those fish are simulated from, within
@@ -858,7 +857,7 @@ chin_sims_sub_ppn %>%
 ```
 
 
-## Multiple simulation scenarios and "100% Simulations"
+### Multiple simulation scenarios and "100% Simulations"
 
 In the fisheries world, "100% simulations" have been a staple. In these simulations,
 mixtures are simulated in which 100% of the individuals are from one collection (or
@@ -895,7 +894,7 @@ repu_hundy_results <- assess_reference_loo(reference = chinook,
 repu_hundy_results
 ```
 
-### Do it again with 100% collections
+#### Do it again with 100% collections
 
 Just to make sure that it is clear how to do this with collections (rather than reporting units)
 as well, lets do 100% simulations for a handful of the collections.  Let's just randomly take
@@ -920,7 +919,7 @@ hundy_coll_results <- assess_reference_loo(reference = chinook,
 hundy_coll_results
 ```
 
-# Bootstrap-Corrected Reporting Unit Proportions
+## Bootstrap-Corrected Reporting Unit Proportions
 
 These are obtained using `method = "PB"` in `infer_mixture()`.  When invoked, this will return the 
 regular MCMC results as before, but also will population the `bootstrapped_proportions` field
@@ -952,8 +951,28 @@ are already very well resolved, so we don't expect that the parametric bootstrap
 would find any benefit in correcting them.  
 
 
+## Other Information
+
+These are just a few lines from the old README that has now been subsumed into this
+vignette.
+
+In order to run C++ implementations of MCMC, rubias requires the package
+Rcpp (and now, also, RcppParallel for the baseline resampling option),
+which in turn requires an Rtools installation (if you are on Windows)
+or XCode (if you are on a Mac). After cloning into the
+repository with the above dependencies installed, build & reload the package 
+to view further documentation.
+
+The script "/R-main/coalescent_sim" was used to generate coalescent simulations
+for bias correction validation. This is unnecessary for testing the applicability
+of our methods to any particular dataset, which should be done using
+`assess_reference_loo()` and  `assess_pb_bias_correction()`.
+`coalescent_sim()`  creates simulated populations using the `ms` coalescent simulation 
+program, available from the Hudson lab at UChicago, and the `GSImulator`
+and `ms2geno` packages, available at [https://github.com/eriqande](https://github.com/eriqande),
+and so requires more dependencies than the rest of the package.
 
 
-# References
+## References
 
 Anderson, Eric C, Robin S Waples, and Steven T Kalinowski. 2008. “An Improved Method for Predicting the Accuracy of Genetic Stock Identification.” _Can J Fish Aquat Sci_ **65**:1475–86.
