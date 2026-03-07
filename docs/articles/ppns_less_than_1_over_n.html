@@ -76,18 +76,18 @@ Anderson</h4>
 <h2 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
 </h2>
 <p>One of the main outputs from ‘rubias’ is a Markov chain Monte Carlo
-(MCMC) sample of the mixing proportion. This is meant to be a sample
-from the posterior distribution of the vector of mixing proportions from
-which the sample was drawn. This sample is returned from the
+(MCMC) sample of the mixing proportion. This represents a sample from
+the posterior distribution of the vector of mixing proportions from
+which the mixture sample was drawn. This sample is returned by the
 <code><a href="../reference/infer_mixture.html">infer_mixture()</a></code> function in the
-<code>mix_prop_traces</code> component, of the return object, and the
-posterior mean of the mixing proportions is returned in the
+<code>mix_prop_traces</code> component of the return object, and the
+posterior means of the mixing proportions are returned in the
 <code>mixing_proportions</code> component.</p>
-<p>During each step of the MCMC, the current value of the mixing
-proportions are drawn as a sample from a Dirichlet distribution. This is
-a vector
+<p>During each step of the MCMC, the current values of the mixing
+proportions are drawn from a Dirichlet distribution.. This produces a
+vector
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝛑</mi><mo>=</mo><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>π</mi><mn>1</mn></msub><mo>,</mo><mi>…</mi><mo>,</mo><msub><mi>π</mi><mi>K</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\boldsymbol{\pi}= (\pi_1,\ldots,\pi_K)</annotation></semantics></math>
-of values with
+with
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>0</mn><mo>&lt;</mo><msub><mi>π</mi><mi>k</mi></msub><mo>&lt;</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">0&lt; \pi_k &lt; 1</annotation></semantics></math>
 for all
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>
@@ -98,14 +98,14 @@ The individual
 values are constrained to not be equal to 0 or 1. Thus, even if there
 are no fish from a certain collection in the mixture, there might still
 be a small, but non-zero, estimate of the proportion of fish from that
-collection. Depending on how they are interpreted, these small, but
-non-zero estimates can lead to different notions about how fisheries
+collection. Depending on how they are interpreted, these small but
+non-zero estimates can lead to different conclusions about how fisheries
 should be managed. For example, if a very small proportion is
 interpreted as evidence that there is a non-zero chance that a rare or
 threatened stock is being impacted by a fishery, then some might wish to
 curtail the fishery on that basis, even if none of the fish in the
 sample are actually from that threatened stock. If fishery restrictions
-are put in place this will incur a loss of some sort (lost income,
+are put in place, this will incur some form of loss (lost income,
 reduced catch, etc.); however if no fish in the sample are actually from
 the threatened stock, then it is far from clear that there is compelling
 evidence that the fishery restrictions would actually be benefitting the
@@ -136,30 +136,30 @@ greater than
 but which are based on a handful of fish, none of which possess
 compelling genetic data that they are actually from the stock in
 question.</p>
-<p>I have been thinking of ways to approach this problem such that
-small, but non-zero, proportions could be identified and removed or
-given less weight or transferred to an “Undetermined” category. I have
-largely settled on a Bayesian decision-theory based approach that will
-be described shortly. Before that, however, I find it very helpful—nay,
-critical even—to have a good visualization tool that lets us explore the
-details of this problem. It is correct to have a lot of questions: is
-the small non-zero weight coming entirely from the prior, or are there
-some fish that are occasionally being assigned to that component? Is it
-just one fish, or is a little bit of weight from many fish? How do the
-scaled likelihoods of these fish compare to their posterior
-probabilities? These are all things that would be good to know and to be
-able to diagnose, so, in the next section I illustrate the use of a new
-function <code><a href="../reference/plot_PofZ_vs_pi.html">plot_PofZ_vs_pi()</a></code> to visualize the relationship
-between the mixing proportions and the posterior probabilities of
-allocation (as well as the scaled likelihoods) for all individuals.
-These plots give us considerable insight into what is going on under the
-hood in ‘rubias.’</p>
+<p>I have been thinking of ways to approach this problem such that small
+but non-zero proportions could be identified and removed or given less
+weight or transferred to an “Undetermined” category. I have largely
+settled on a Bayesian decision-theory based approach that will be
+described shortly. Before that, however, I find it very helpful—indeed,
+almost essential—to have a good visualization tool that lets us explore
+the details of this problem. There are many natural questions: is the
+small non-zero weight coming entirely from the prior, or are there some
+fish that are occasionally being assigned to that component? Is it just
+one fish, or is a little bit of weight from many fish? How do the scaled
+likelihoods of these fish compare to their posterior probabilities?
+These are all things that would be good to know and to be able to
+diagnose, so, in the next section I illustrate the use of a new function
+<code><a href="../reference/plot_PofZ_vs_pi.html">plot_PofZ_vs_pi()</a></code> to visualize the relationship between the
+mixing proportions and the posterior probabilities of allocation (as
+well as the scaled likelihoods) for all individuals. These plots give us
+considerable insight into what is going on under the hood in
+‘rubias.’</p>
 </div>
 <div class="section level2">
 <h2 id="visualizing-estimates-with-plot_pofz_vs_pi">Visualizing Estimates with <code>plot_PofZ_vs_pi()</code><a class="anchor" aria-label="anchor" href="#visualizing-estimates-with-plot_pofz_vs_pi"></a>
 </h2>
-<p>The main goal of the <code><a href="../reference/plot_PofZ_vs_pi.html">plot_PofZ_vs_pi()</a></code> function is to
-compare the relationships between the posterior mean of allocation of
+<p>The main goal of the <code><a href="../reference/plot_PofZ_vs_pi.html">plot_PofZ_vs_pi()</a></code> function is to is
+to visualize the relationship between the posterior mean allocation of
 each fish (known as <code>PofZ</code> in rubias parlance, because it is
 the posterior probability of the indicator vector
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>Z</mi><annotation encoding="application/x-tex">Z</annotation></semantics></math>
@@ -203,7 +203,7 @@ mixture sample consisting of 772 fish.</p>
 <p><img src="ppns_less_than_1_over_n_files/figure-html/p1-1.svg" width="100%"></p>
 <p>The resulting plot appears above. Note: you really need to zoom in on
 these plots. You can do that to some extent on the HTML version of the
-vignetter in your web browser, but to get the full experience it is
+vignette in your web browser, but to get the full experience it is
 better to zoom in on a PDF file. You <strong>REALLY</strong> need to
 zoom in on these plots. So please download a <a href="https://github.com/eriqande/rubias/blob/master/man/figures/ppns-figure1.pdf?raw=1" class="external-link">PDF
 version of the figure</a> and open it with a PDF viewer and zoom way in.
@@ -246,7 +246,7 @@ high posterior probability for <code>CentralValleyfa</code>; however,
 there are also some individuals that don’t have a really high scaled
 likelihood for <code>CentralValleyfa</code>, but their posterior to
 <code>CentralValleyfa</code> still ends up being high. This is a
-consequence of how a mixure model like this works: if you’ve seen a lot
+consequence of how a mixture model like this works: if you’ve seen a lot
 of fish from <code>CentralValleyfa</code>, then even before you look at
 any genetic data on the next fish, you expect that it is more likely to
 come from <code>CentralValleyfa</code> than from some other stock that
@@ -291,7 +291,7 @@ such that the estimated mixing proportion for
 <code>CentralValleyfa</code> is quite small—considerably less than
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mi>/</mi><mi>N</mi></mrow><annotation encoding="application/x-tex">1/N</annotation></semantics></math>.</p>
 <p>Also noteworthy is the <code>CohoSp</code>. There appears to be one
-individual with both PofZ ane scaled likelihood very close to 1.0 of
+individual with both PofZ and scaled likelihood very close to 1.0 of
 being a coho salmon. This makes sense because with this baseline it is
 quite easy to distinguish coho from Chinook salmon. So, even though the
 mixing proportion for <code>CohoSp</code> is very low, there is
@@ -323,14 +323,14 @@ below.</p>
 The expanded bars of this plot make it much easier to see how many fish
 are involved in the smaller
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>π</mi><mi>k</mi></msub><annotation encoding="application/x-tex">\pi_k</annotation></semantics></math>
-estimates. In fact, if I were to eyeball this, I would say that it would
-make sense to put all of the mixing proportion mass from
+estimates. In fact, from a quick visual inspection, I would say that it
+would make sense to put all of the mixing proportion mass from
 <code>CentralValleysp</code> down to <code>TakuR</code> into an
 “Undetermined” category.</p>
 <p>Before we go on to talk about principled ways of characterizing an
 “Undetermined” category, we will introduce one other plot flavor, the
 “bars_expanded_and_ticked” flavor. In this plot, tick marks are added
-upon the outer edges of the bars to show where individuals with a PofZ
+along the outer edges of the bars to show where individuals with a PofZ
 or scaled likelihood of 1.0 would line up (starting from the right side)
 so that the widths of the rectangles within the bars can be compared to
 these. Additionally, bars that have a total length less than one are
@@ -350,8 +350,8 @@ version</a></p>
 <div class="section level2">
 <h2 id="a-bayesian-decision-theoretic-approach">A Bayesian Decision-Theoretic Approach<a class="anchor" aria-label="anchor" href="#a-bayesian-decision-theoretic-approach"></a>
 </h2>
-<p>We will cast this as a decision theory problem to gain some insights
-into it. Let us consider two possible actions that we can take for each
+<p>We can cast this as a decision-theoretic problem to gain some
+insight. Let us consider two possible actions that we can take for each
 reporting unit on the basis of the data:</p>
 <ol style="list-style-type: decimal">
 <li>We can declare the mixing proportion of a reporting unit to be zero,
@@ -530,10 +530,10 @@ sweeps in which there are more than zero fish from
 <code>DeschutesRfa</code>—the mixing proportion posterior mean times the
 sample size was around 1.3, but it has only a 50% posterior of having at
 least one fish in the sample.</p>
-<p>How can we use this in a decision-theory framework? Well, remember
-that the “Bayes Rule” (i.e., the decision rule we should choose) is the
-one that minimizes the posterior loss. In the above output we have
-calculated the posterior probability
+<p>How can we use this in a decision-theory framework? Recall that the
+Bayes Rule (i.e., the decision rule we should choose) is the one that
+minimizes the posterior loss. In the above output we have calculated the
+posterior probability
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>P</mi><mrow><mo stretchy="true" form="prefix">(</mo><msup><mi>θ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>k</mi><mo stretchy="true" form="postfix">)</mo></mrow></msup><mo>=</mo><mn>1</mn><mo stretchy="false" form="prefix">|</mo><mi>𝐱</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">P(\theta^{(k)} = 1|\mathbf{x})</annotation></semantics></math>
 for each reporting unit
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math>.
@@ -574,12 +574,12 @@ should be, it is straightforward to apply them.</p>
 <div class="section level2">
 <h2 id="a-revamped-plot-function">A Revamped Plot Function<a class="anchor" aria-label="anchor" href="#a-revamped-plot-function"></a>
 </h2>
-<p>The above decision theory stuff works out so tidily that I decided to
-augment the <code><a href="../reference/plot_PofZ_vs_pi.html">plot_PofZ_vs_pi()</a></code> function to use this
-information to arrange groups and also to print the value of
+<p>Because the decision-theoretic framework works out so cleanly, I
+decided to augment the <code><a href="../reference/plot_PofZ_vs_pi.html">plot_PofZ_vs_pi()</a></code> function to use
+this information to arrange groups and also to print the value of
 <code>fract_non_zero</code> just to the right of the sample size times
 the mixing proportion. The function now automatically detects if the
-<code>allocation_count_traces</code> component it present (as it is in
+<code>allocation_count_traces</code> component is present (as it is in
 <code>mixf2</code>), and if it is then it includes the posterior
 probability of having at least one fish in the sample. When we use it,
 we have to expand the left edge a little bit to fit everything. To get

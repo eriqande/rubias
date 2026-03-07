@@ -33,26 +33,17 @@ knitr::opts_chunk$set(
 # Introduction 
 
 One of the main outputs from 'rubias' is a Markov chain Monte Carlo (MCMC) sample of
-the mixing proportion.  This is meant to be a sample from the posterior distribution
-of the vector of mixing proportions from which the sample was drawn.  This sample is
-returned from the `infer_mixture()` function in the `mix_prop_traces` component,
-of the return object, and the posterior mean of the mixing proportions is returned
-in the `mixing_proportions` component.  
+the mixing proportion.  This represents a sample from the posterior distribution of the
+vector of mixing proportions from which the mixture sample was drawn.  This sample is returned by the `infer_mixture()` function in the `mix_prop_traces` component of the return object, and the posterior means of the mixing proportions are returned in the `mixing_proportions` component.  
 
-During each step of the MCMC, the current value of the mixing proportions are drawn
-as a sample from a Dirichlet distribution.  This is a vector $\bpi = (\pi_1,\ldots,\pi_K)$
-of values with $0< \pi_k < 1$ for all $k$ and $\sum_{k=1}^K \pi_k = 1$.  The individual
+During each step of the MCMC, the current values of the mixing proportions are drawn from a Dirichlet distribution..  This produces a vector $\bpi = (\pi_1,\ldots,\pi_K)$ with $0< \pi_k < 1$ for all $k$ and $\sum_{k=1}^K \pi_k = 1$.  The individual
 $\pi_k$ values are constrained to not be equal to 0 or 1.  Thus, even if there are no fish
 from a certain collection in the mixture, there might still be a small, but non-zero,
-estimate of the proportion of fish from that collection.  Depending on how they are
-interpreted, these small, but non-zero estimates can lead to different notions
-about how fisheries should be managed.  For example, if a very small proportion is
+estimate of the proportion of fish from that collection.  Depending on how they are interpreted, these small but non-zero estimates can lead to different conclusions about how fisheries should be managed.  For example, if a very small proportion is
 interpreted as evidence that there is a non-zero chance that a rare or threatened
 stock is being impacted by a fishery, then some might wish to curtail the fishery
 on that basis, even if none of the fish in the sample are actually from that
-threatened stock. If fishery restrictions are put in place this will incur a loss
-of some sort (lost income,
-reduced catch, etc.); however if no fish in the sample are actually from the
+threatened stock. If fishery restrictions are put in place, this will incur some form of loss (lost income, reduced catch, etc.); however if no fish in the sample are actually from the
 threatened stock, then it is far from clear that there is compelling evidence that
 the fishery restrictions would actually be benefitting the threatened stock. 
 
@@ -77,14 +68,12 @@ that are greater than $1/N$, but which are based on a handful of fish, none of w
 possess compelling genetic data that they are actually from the stock in question.
 
 I have been thinking of ways to
-approach this problem such that small, but non-zero, proportions could be identified
+approach this problem such that small but non-zero proportions could be identified
 and removed or given less weight or transferred to an "Undetermined" category.
 I have largely settled
 on a Bayesian decision-theory based approach that will be described shortly.
-Before that, however, I find it very helpful---nay, critical even---to have
-a good visualization tool that lets us explore the details of this problem. It
-is correct to 
-have a lot of questions: is the small non-zero weight coming entirely from the
+Before that, however, I find it very helpful---indeed, almost essential---to have
+a good visualization tool that lets us explore the details of this problem. There are many natural questions: is the small non-zero weight coming entirely from the
 prior, or are there some fish that are occasionally being assigned to that
 component? Is it just one fish, or is a little bit of weight from many fish?
 How do the scaled likelihoods of these fish compare to their posterior
@@ -98,8 +87,7 @@ insight into what is going on under the hood in 'rubias.'
 
 # Visualizing Estimates with `plot_PofZ_vs_pi()`
 
-The main goal of the `plot_PofZ_vs_pi()` function is to compare the relationships
-between the posterior mean of allocation of each fish (known as `PofZ` in rubias
+The main goal of the `plot_PofZ_vs_pi()` function is to is to visualize the relationship between the posterior mean allocation of each fish (known as `PofZ` in rubias
 parlance, because it is the posterior probability of the indicator vector $Z$ which 
 indicates where the fish originated) and the mixing proportions from that stock
 or reporting unit.  It aims to answer the question, "Does a low mixing proportion
@@ -139,7 +127,7 @@ P$plot
 ```
 
 The resulting plot appears above.  Note: you really need to zoom in on these plots. You
-can do that to some extent on the HTML version of the vignetter in your web browser,
+can do that to some extent on the HTML version of the vignette in your web browser,
 but to get the full experience it is better to zoom in on a PDF file. 
 You **REALLY** need to zoom in on these plots. So please download a [PDF version of the figure](https://github.com/eriqande/rubias/blob/master/man/figures/ppns-figure1.pdf?raw=1)
 and open it with a PDF viewer and zoom way in. 
@@ -154,7 +142,7 @@ can see that it indicates a lot of interesting things. First off,
 notice that the most abundant stock, `CentralValleyfa`, the fall-run from the Central Valley, is represented
 by a large number of individuals with high posterior probability for `CentralValleyfa`; however, there are
 also some individuals that don't have a really high scaled likelihood for `CentralValleyfa`, but their
-posterior to `CentralValleyfa` still ends up being high.  This is a consequence of how a mixure model like
+posterior to `CentralValleyfa` still ends up being high.  This is a consequence of how a mixture model like
 this works: if you've seen a lot of fish from `CentralValleyfa`, then even before you look at any genetic 
 data on the next fish, you expect that
 it is more likely to come from `CentralValleyfa` than from some other stock that
@@ -186,7 +174,7 @@ the posterior probability for `CentralValleysp` ends up being less than the scal
 for `CentralValleysp` for most of the fish, such that the estimated mixing proportion for
 `CentralValleyfa` is quite small---considerably less than $1/N$.
 
-Also noteworthy is the `CohoSp`.  There appears to be one individual with both PofZ ane scaled likelihood
+Also noteworthy is the `CohoSp`.  There appears to be one individual with both PofZ and scaled likelihood
 very close to 1.0 of being a coho salmon.  This makes sense because with this baseline it is quite
 easy to distinguish coho from Chinook salmon.  So, even though the mixing proportion for `CohoSp`
 is very low, there is overwhelming evidence (from the likelihood based on the genetic data)
@@ -214,13 +202,12 @@ P2$plot
 
 A PDF version of the plot can be found [here](https://github.com/eriqande/rubias/blob/master/man/figures/ppns-figure2.pdf?raw=1).
 The expanded bars of this plot make it much easier
-to see how many fish are involved in the smaller $\pi_k$ estimates.  In fact, if I were
-to eyeball this, I would say that it would make sense to put all of the mixing proportion
+to see how many fish are involved in the smaller $\pi_k$ estimates.  In fact, from a quick visual inspection, I would say that it would make sense to put all of the mixing proportion
 mass from `CentralValleysp` down to `TakuR` into an "Undetermined" category.  
 
 Before we go on to talk about principled ways of characterizing an "Undetermined"
 category, we will introduce one other plot flavor, the "bars_expanded_and_ticked"
-flavor.  In this plot, tick marks are added upon the outer edges of the bars to
+flavor.  In this plot, tick marks are added along the outer edges of the bars to
 show where individuals with a PofZ or scaled likelihood of 1.0 would line up 
 (starting from the right side) so that the widths of the rectangles within the bars
 can be compared to these.  Additionally, bars that have a total length less than
@@ -242,7 +229,7 @@ this you can download the
 
 # A Bayesian Decision-Theoretic Approach
 
-We will cast this as a decision theory problem to gain some insights into it. Let
+We can cast this as a decision-theoretic problem to gain some insight. Let
 us consider two possible actions that we can take for each reporting unit on the basis
 of the data:
 
@@ -364,7 +351,7 @@ one (and not 2 or 3), because we are simply counting the fraction of sweeps in w
 times the sample size was around 1.3, but it has only a 50% posterior of having at least
 one fish in the sample.
 
-How can we use this in a decision-theory framework? Well, remember that the "Bayes Rule" (i.e., the
+How can we use this in a decision-theory framework? Recall that the Bayes Rule (i.e., the
 decision rule we should choose) is the one that minimizes the posterior loss.  In the above output
 we have calculated the posterior probability $P(\theta^{(k)} = 1|\vecx)$ for each reporting
 unit $k$.  That is, the posterior probability that there is at least one fish in the sample from
@@ -389,11 +376,11 @@ ideas for what $L_z$ and $L_n$ should be, it is straightforward to apply them.
 
 # A Revamped Plot Function
 
-The above decision theory stuff works out so tidily that I decided to augment the
+Because the decision-theoretic framework works out so cleanly, I decided to augment the
 `plot_PofZ_vs_pi()` function to use this information to arrange groups and also
 to print the value of `fract_non_zero` just to the right of the sample size times
 the mixing proportion.  The function now automatically detects if the
-`allocation_count_traces` component it present (as it is in `mixf2`), and if it is
+`allocation_count_traces` component is present (as it is in `mixf2`), and if it is
 then it includes the posterior probability of having at least one fish in the sample.
 When we use it, we have to expand the left edge a little bit to fit everything.
 To get the plot we use the  `plot_flavor = "bars_fully_expanded" option with output
