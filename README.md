@@ -35,7 +35,7 @@ fully-bayesian version code encounters some memory problems. In the
 meantime, to install the development version you can simply do:
 
 ``` r
-remotes::install_github("eriande/rubias")
+remotes::install_github("eriqande/rubias")
 ```
 
 Full pkgdown documentation is now available at
